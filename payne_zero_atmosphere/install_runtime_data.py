@@ -271,7 +271,7 @@ def _load_initializer_asset_records(
         if path not in wanted:
             continue
         expected_delivery = (
-            "optional_experimental_runtime"
+            "default_experimental_runtime"
             if path == _DIRECT_XH_INITIALIZER_PATH
             else "default_runtime"
         )
@@ -346,14 +346,14 @@ def install_initializer_assets(
     destination_root: Path,
     *,
     generated_manifest_path: Path = DEFAULT_GENERATED_ASSET_MANIFEST,
-    include_direct_xh: bool = False,
+    include_direct_xh: bool = True,
     replace: bool = False,
 ) -> dict[str, Any]:
     """Install hash-bound Payne Zero initializer assets into a data root.
 
-    Only the two default checkpoint files and, when explicitly requested, the
-    direct-abundance checkpoint and its safety manifest are selected.  Truth
-    corpora and Kurucz-derived runtime payloads are never copied by this path.
+    The three runtime checkpoints and the direct-abundance safety manifest are
+    selected by default. Truth corpora and Kurucz-derived runtime payloads are
+    never copied by this path.
     """
 
     source = _normalize_source_root(source_root)
@@ -563,7 +563,20 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         default=DEFAULT_GENERATED_ASSET_MANIFEST,
     )
-    initializer_parser.add_argument("--include-direct-xh", action="store_true")
+    direct_group = initializer_parser.add_mutually_exclusive_group()
+    direct_group.add_argument(
+        "--include-direct-xh",
+        dest="include_direct_xh",
+        action="store_true",
+        help="install the direct-abundance checkpoint (the default)",
+    )
+    direct_group.add_argument(
+        "--exclude-direct-xh",
+        dest="include_direct_xh",
+        action="store_false",
+        help="omit the direct-abundance checkpoint from a reduced installation",
+    )
+    initializer_parser.set_defaults(include_direct_xh=True)
     initializer_parser.add_argument("--replace", action="store_true")
     return parser
 

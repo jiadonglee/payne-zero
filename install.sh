@@ -9,7 +9,7 @@ export NUMBA_NUM_THREADS="${NUMBA_NUM_THREADS:-$(getconf _NPROCESSORS_ONLN 2>/de
 export PAYNE_ZERO_ATMOSPHERE_PROGRESS="${PAYNE_ZERO_ATMOSPHERE_PROGRESS:-1}"
 PREWARM_R_GRID="${PAYNE_ZERO_PREWARM_R_GRID:-${PAYNE_ZERO_PREWARM_RESOLUTION:-}}"
 DATA_ROOT_INPUT="${PAYNE_ZERO_DATA_ROOT:-$REPO_DIR/source_data_files}"
-INCLUDE_DIRECT_ABUNDANCE="${PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE:-${PAYNE_ZERO_INCLUDE_DIRECT_XH:-${PAYNE_ZERO_INCLUDE_EXPERIMENTAL_DIRECT_XH:-0}}}"
+INCLUDE_DIRECT_ABUNDANCE="${PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE:-${PAYNE_ZERO_INCLUDE_DIRECT_XH:-${PAYNE_ZERO_INCLUDE_EXPERIMENTAL_DIRECT_XH:-1}}}"
 
 NUMBA_CACHE_INPUT="${NUMBA_CACHE_DIR:-$PAYNE_ZERO_NUMBA_CACHE_DIR}"
 RESOLVED_NUMBA_CACHE_DIR="$("$PYTHON" -c 'import pathlib, sys; print(pathlib.Path(sys.argv[1]).expanduser().resolve())' "$NUMBA_CACHE_INPUT")"
@@ -73,6 +73,8 @@ initializer_args=(
 )
 if [[ "$INCLUDE_DIRECT_ABUNDANCE" == "1" ]]; then
     initializer_args+=(--include-direct-xh)
+else
+    initializer_args+=(--exclude-direct-xh)
 fi
 echo "[payne-zero installer] staging hash-verified initializer assets"
 "$PYTHON" "$runtime_installer" "${initializer_args[@]}"

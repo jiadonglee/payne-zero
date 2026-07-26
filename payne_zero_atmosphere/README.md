@@ -58,17 +58,17 @@ Every initializer predicts the same six atmosphere fields. It changes the starti
 | eight-label | five-label set plus `[C/M]`, `[N/M]`, `[O/M]` | automatic when any carbon, nitrogen, or oxygen coordinate is supplied |
 | direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit command-line or Python selection |
 
-The five- and eight-label initializers are installed by default. An out-of-support query warns and clips only the initializer input to its support boundary. The physical solve still uses the exact requested labels and writes the structured product only after convergence.
+All three initializer checkpoints are installed by default. The direct-abundance family still requires explicit selection and is never chosen by the ordinary dispatcher. An out-of-support query warns and clips only the initializer input to its support boundary. The physical solve still uses the exact requested labels and writes the structured product only after convergence.
 
 ### Direct-abundance initializer
 
-The optional direct-abundance initializer exposes every supported element as an individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. This atmosphere interface always follows the decoded starting structure with the physical solve. The synthesis interface can instead use the initialized structure directly when many fast spectral evaluations are required.
-
-From the repository root, install its optional checkpoint with
-
-```bash
-PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE=1 ./install.sh
-```
+The direct-abundance initializer exposes every supported element as an
+individual coordinate, such as `fe_over_h`, `mg_over_h`, or `c_over_h`. Its
+checkpoint is installed and hash-verified by `install.sh`, but the family is
+selected only when direct abundances are requested. This atmosphere interface
+always follows the decoded starting structure with the physical solve. The
+synthesis interface can instead use the initialized structure directly when
+many spectral evaluations are required.
 
 Supply `[Fe/H]` and any elements that differ from it. Unspecified metals inherit `[Fe/H]`, producing the complete mixture used by the atmosphere and synthesis calculations. The support is 4,000–10,500 K, `logg` 0.7–5.3, microturbulence 0.5–4.0 km s⁻¹, `[Fe/H]` −2.5–0.5, and each `[X/Fe]` −0.5–0.5. The public input remains 81 `[X/H]` values; `[Fe/H]` and `[X/Fe]` are only the network's internal coordinates. Inputs are quantized to the solver's 0.01 dex abundance precision.
 
@@ -107,7 +107,7 @@ The reference solar mixture is the photospheric composition by number from Asplu
 - `[M/H]`: applied to every metal (`Z >= 3`);
 - `[alpha/M]`: applied in addition to O, Ne, Mg, Si, S, Ca, and Ti;
 - `[C/M]`, `[N/M]`, `[O/M]`: learned eight-label coordinates, with explicit oxygen replacing the alpha-scaled oxygen offset;
-- `[X/H]`: an advanced exact-solver override relative to solar. Arbitrary per-element abundances are not learned coordinates of either validated default initializer. The separately installed direct-abundance initializer learns an 81-element starting structure but never replaces the exact solve.
+- `[X/H]`: an advanced exact-solver override relative to solar. Arbitrary per-element abundances are not learned coordinates of the five- or eight-label initializer. The explicitly selected direct-abundance initializer learns an 81-element starting structure but never replaces the exact solve.
 
 Hydrogen is renormalized after helium and metals are assigned. The user-facing name `metallicity` always means [M/H], not [Fe/H].
 

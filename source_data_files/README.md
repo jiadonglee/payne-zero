@@ -5,11 +5,15 @@ This directory is the shared data root for the atmosphere and synthesis packages
 | directory | contents |
 | --- | --- |
 | `atmosphere_tables/` | equation-of-state, opacity, line-profile, and transfer tables used by the atmosphere solver |
-| `atmosphere_emulator/` | five-label, eight-label, and optional direct-abundance initializer assets |
+| `atmosphere_emulator/` | five-label, eight-label, and direct-abundance initializer assets |
 | `synthesis_tables/` | invariant tables used by spectral synthesis |
 | `source_catalogs/` | atomic and molecular source catalogs used to prepare wavelength windows |
 
-The runtime arrays are distributed through Git Large File Storage (Git LFS). `install.sh` verifies every file against `runtime_data_manifest.json`, installs the two default initializer checkpoints, and builds persistent caches. Set `PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE=1` to install the optional direct-abundance checkpoint.
+The runtime arrays are distributed through Git Large File Storage (Git LFS).
+`install.sh` verifies every file against `runtime_data_manifest.json`, installs
+all three runtime initializer checkpoints, and builds persistent caches. The
+direct-abundance checkpoint is installed by default but is loaded only when
+that family is explicitly selected.
 
 The identity files are runtime safeguards rather than user inputs:
 

@@ -39,7 +39,8 @@ payne-zero-synthesis \
   --out cno_giant_spectrum.npz
 ```
 
-To control individual abundances, install the optional direct-abundance asset and give an iron baseline plus any `[X/H]` values:
+To control individual abundances, select the installed direct-abundance
+initializer and give an iron baseline plus any `[X/H]` values:
 
 ```bash
 payne-zero-synthesis \

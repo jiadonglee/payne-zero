@@ -8,7 +8,7 @@ This directory stores neural-network initializers and optional training evidence
 | --- | --- | --- |
 | `five_label/` | `Teff`, `logg`, `[M/H]`, `[alpha/M]`, microturbulence | installed by default |
 | `cno8/` | five-label set plus independent carbon, nitrogen, and oxygen coordinates `[C/M]`, `[N/M]`, and `[O/M]` | installed by default |
-| `direct_abundance/` | `Teff`, `logg`, microturbulence, and 81 `[X/H]` values | optional direct-abundance initializer |
+| `direct_abundance/` | `Teff`, `logg`, microturbulence, and 81 `[X/H]` values | installed by default; selected explicitly |
 
 The ordinary dispatcher selects the five-label family unless a C, N, or O coordinate is supplied. Direct abundance is a separate explicit interface and is not selected automatically.
 
@@ -29,10 +29,11 @@ The five-label model was trained from 52,199 converged atmospheres, the eight-la
 
 ## Installation and contracts
 
-From the repository root, `install.sh` installs the five- and eight-label checkpoints. Include the direct-abundance checkpoint with:
+From the repository root, `install.sh` installs and verifies the five-label,
+eight-label, and direct-abundance checkpoints. Installation does not change
+dispatch: direct abundance must still be selected explicitly.
 
-```bash
-PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE=1 ./install.sh
-```
-
-`release_manifest.json` documents the default family labels, support, checkpoint identities, and training splits. `direct_abundance/manifest.json` defines the complete abundance order and mandatory physical-solve policy, and is validated when the optional initializer is loaded.
+`release_manifest.json` documents the family labels, support, checkpoint
+identities, and training splits. `direct_abundance/manifest.json` defines the
+complete abundance order and mandatory physical-solve policy, and is validated
+when that initializer is loaded.

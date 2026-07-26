@@ -17,22 +17,24 @@ The repository also provides general interfaces for normalized-spectrum fitting 
 
 ## Installation
 
-Python 3.11 or newer and Git Large File Storage (Git LFS) are required. To install the published v1.3 release, clone its tag, download every large runtime file, and run the installer:
+Python 3.11 or newer and Git Large File Storage (Git LFS) are required. Clone
+the repository, download every large runtime file, and run the installer:
 
 ```bash
-git clone --branch v1.3 https://github.com/tingyuansen/payne-zero.git
+git clone https://github.com/tingyuansen/payne-zero.git
 cd payne-zero
 git lfs pull
 ./install.sh
 ```
 
-Omit `--branch v1.3` to follow the current development branch. The installer verifies the runtime files, installs the Python packages, and builds persistent caches in `.cache/payne-zero/`. A clean installation can spend 10–20 minutes compiling. Later runs reuse these caches.
+The installer verifies the runtime files, installs the Python packages, and
+builds persistent caches in `.cache/payne-zero/`. A clean installation can
+spend 10–20 minutes compiling. Later runs reuse these caches.
 
-The optional direct-abundance initializer is installed only when requested:
-
-```bash
-PAYNE_ZERO_INCLUDE_DIRECT_ABUNDANCE=1 ./install.sh
-```
+The installer downloads and verifies all three runtime initializer
+checkpoints: five-label, eight-label CNO, and direct abundance. Direct
+abundance remains an explicitly selected initializer family; installing its
+checkpoint does not make it part of automatic dispatch.
 
 Install the plotting and Jupyter dependencies before running the tutorial:
 
@@ -58,7 +60,7 @@ The three initializer families turn stellar labels into a complete depth structu
 | --- | --- | --- |
 | five-label | `Teff`, `logg`, `[M/H]`, `[alpha/M]`, microturbulence | default ordinary-star atmosphere |
 | eight-label | five-label set plus `[C/M]`, `[N/M]`, `[O/M]` | carbon-, nitrogen-, and oxygen-sensitive mixtures, including evolved giants |
-| direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit abundance mixtures; requires the optional initializer asset |
+| direct abundance | `Teff`, `logg`, microturbulence, `[Fe/H]`, and any individual `[X/H]` values | explicit abundance mixtures; selected explicitly |
 
 The five-label initializer is selected by default. Supplying any C, N, or O coordinate selects the eight-label initializer. Direct abundance is selected explicitly in either interface. Every supported element is available as an individual `X_over_h` coordinate. Unspecified metals inherit `[Fe/H]`; internally the complete mixture is re-expressed as `[Fe/H]` and 80 `[X/Fe]` coordinates.
 
@@ -77,7 +79,7 @@ The command-line and Python names map to the scientific coordinates as follows:
 | `[Fe/H]` | `--fe-over-h` | `fe_over_h` | direct abundance |
 | individual `[X/H]` | element flags such as `--mg-over-h` | `x_over_h` mapping such as `{"Mg": -0.2}` | direct abundance |
 
-The common five- and eight-label support is approximately 4,000–10,500 K in effective temperature, 0.7–5.3 in `logg`, −2.5–0.5 in `[M/H]`, −0.1–0.5 in `[alpha/M]`, and 0.5–4.0 km s⁻¹ in microturbulence. The CNO coordinates span about −0.5–0.5 dex relative to the base metal mixture. The direct-abundance interface uses the same stellar range and accepts −0.5–0.5 in each `[X/Fe]`. Exact contracts are documented in the atmosphere README. The complete initializer training corpora are available as an optional [v1.3 data bundle](source_data_files/atmosphere_emulator/TRAINING_CORPORA.md); they are not downloaded for ordinary installation.
+The common five- and eight-label support is approximately 4,000–10,500 K in effective temperature, 0.7–5.3 in `logg`, −2.5–0.5 in `[M/H]`, −0.1–0.5 in `[alpha/M]`, and 0.5–4.0 km s⁻¹ in microturbulence. The CNO coordinates span about −0.5–0.5 dex relative to the base metal mixture. The direct-abundance interface uses the same stellar range and accepts −0.5–0.5 in each `[X/Fe]`. Exact contracts are documented in the atmosphere README. The complete initializer training corpora are available as an optional [data bundle](source_data_files/atmosphere_emulator/TRAINING_CORPORA.md); they are not downloaded for ordinary installation.
 
 ## 1. Fast synthesis from stellar labels
 
@@ -105,7 +107,7 @@ payne-zero-synthesis \
   --out runs/cno_giant_fast_spectrum.npz
 ```
 
-The optional direct-abundance initializer accepts each element on the usual `[X/H]` scale. Unspecified elements inherit `[Fe/H]`:
+The direct-abundance initializer accepts each element on the usual `[X/H]` scale. Unspecified elements inherit `[Fe/H]`:
 
 ```bash
 payne-zero-synthesis \
