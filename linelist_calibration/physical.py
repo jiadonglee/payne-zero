@@ -210,6 +210,12 @@ class SynthesisLineCalibrationModel:
         self._group_by_line = torch.as_tensor(
             group_by_line, dtype=torch.int64, device=self.device
         )
+        # Torch canonicalizes bare accelerator names such as ``mps`` and
+        # ``cuda`` to an indexed tensor device (for example ``mps:0``). Keep
+        # the public model device aligned with its resident tensors so the
+        # strict no-copy checks in ``spectrum`` also accept tensors created by
+        # ``baseline_flux`` on that same accelerator.
+        self.device = self._group_by_line.device
 
         self._continuum_absorption = torch.as_tensor(
             baseline.continuum_absorption, dtype=self.dtype, device=self.device
