@@ -26,6 +26,7 @@ tutorial = [
 ]
 
 [project.urls]
+Homepage = "https://paynezero.com"
 Repository = "https://github.com/tingyuansen/payne-zero"
 
 [project.scripts]

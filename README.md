@@ -1,5 +1,7 @@
 # Payne Zero
 
+> **Project website:** [paynezero.com](https://paynezero.com)
+
 Payne Zero calculates one-dimensional local thermodynamic equilibrium (LTE) stellar atmospheres and synthetic spectra. It is a modern reimplementation of the physical calculation rather than a wrapper around the historical programs. Atmosphere iteration uses compiled kernels on multicore central processing units (CPUs), while spectral synthesis uses PyTorch kernels on NVIDIA or Apple graphics processing units (GPUs). The converged atmosphere passes directly to synthesis as a structured NumPy `.npz` archive.
 
 The repository also provides general interfaces for normalized-spectrum fitting and differentiable line-list calibration.
