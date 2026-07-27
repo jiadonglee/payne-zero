@@ -224,7 +224,9 @@ Warm starts and converged columns pass through the reference implementation's fi
 
 Compiled Numba kernels use the configured CPU thread pool. Line selection is computed once from the resident catalogs for each atmosphere solve and reused across its iterations.
 
-Run the one-time installation prewarm before timing or producing a grid:
+`./install.sh` runs the standard atmosphere prewarm as part of installation.
+The command below is only needed when deliberately rebuilding that cache after
+changing Python, Numba, CPU class, kernel source, or runtime catalogs:
 
 ```bash
 python -m payne_zero_atmosphere.prewarm \

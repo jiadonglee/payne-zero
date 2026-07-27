@@ -18,18 +18,18 @@ The repository also provides general interfaces for normalized-spectrum fitting 
 ## Installation
 
 Python 3.11 or newer and Git Large File Storage (Git LFS) are required. Clone
-the repository, download every large runtime file, and run the installer:
+the repository and run its installer:
 
 ```bash
 git clone https://github.com/tingyuansen/payne-zero.git
 cd payne-zero
-git lfs pull
 ./install.sh
 ```
 
-The installer verifies the runtime files, installs the Python packages, and
-builds persistent caches in `.cache/payne-zero/`. A clean installation can
-spend 10–20 minutes compiling. Later runs reuse these caches.
+The installer downloads and verifies the runtime files, installs the Python
+package, and builds the standard atmosphere and synthesis caches in
+`.cache/payne-zero/`. A clean installation can spend 10–20 minutes compiling.
+Later runs reuse these caches.
 
 The installer downloads and verifies all three runtime initializer
 checkpoints: five-label, eight-label CNO, and direct abundance. Direct

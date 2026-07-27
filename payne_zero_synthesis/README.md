@@ -197,7 +197,10 @@ Synthesis is parallel over wavelength. At `R_grid = 300,000`, a warm 300–1000 
 
 Window-invariant line and transfer data are cached in process. Derived caches may be deleted without changing the physics.
 
-Prepare all persistent caches for a wavelength window before timing:
+`./install.sh` prepares the standard 400–900 nm, `R_grid=20,000` synthesis
+cache. The command below is optional: use it to prepare a different wavelength
+window before timing, rather than charging its one-time setup to the measured
+call:
 
 ```bash
 python -m payne_zero_synthesis.prewarm \
