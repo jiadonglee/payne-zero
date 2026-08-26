@@ -4,12 +4,17 @@ import numpy as np
 
 from experiments.analytic_initializer.textbook_opacity import (
     DEFAULT_TEXTBOOK_CONSTANTS,
+    WINDOW_NAMES,
     build_textbook_reduced_state,
+    build_textbook_reduced_state_v3,
+    frequency_window_edges_hz,
     hminus_freefree_rosseland_opacity,
     integrate_hydrostatic_opacity_ode,
+    rosseland_window_weights,
     saha_aware_adiabatic_gradient,
     saha_electron_diagnostics,
     textbook_opacity_components,
+    textbook_opacity_window_components,
 )
 
 
@@ -123,3 +128,60 @@ def test_solar_component_values_stay_within_the_preregistered_dex_tolerance():
     for name, reference in references.items():
         error_dex = abs(np.log10(components[name][0, 0] / reference))
         assert error_dex <= 0.2, (name, components[name][0, 0], reference)
+
+
+def test_v3_frequency_edges_and_rosseland_weights_are_fixed_and_normalized():
+    edges = frequency_window_edges_hz()
+    assert len(edges) == len(WINDOW_NAMES) + 1
+    assert edges[0] == 0.0 and np.isinf(edges[-1])
+    assert np.all(np.diff(edges[1:-1]) > 0.0)
+    weights = rosseland_window_weights(np.asarray([[3200.0, 5777.0, 12000.0]]))
+    assert weights.shape == (1, 3, len(WINDOW_NAMES))
+    assert np.all(weights > 0.0)
+    np.testing.assert_allclose(weights.sum(axis=-1), 1.0, rtol=0.0, atol=2.0e-14)
+
+
+def test_v3_window_components_are_monotone_and_harmonically_combined():
+    labels, _, temperature, pressure = _inputs()
+    components = textbook_opacity_window_components(labels, temperature, pressure)
+    expected = {
+        "hminus_boundfree",
+        "hminus_freefree",
+        "hydrogen_paschen_boundfree",
+        "hydrogen_balmer_boundfree",
+        "kramers_freefree",
+        "electron_scattering",
+        "hydrogen_rayleigh_scattering",
+        "window_opacity",
+        "window_weights",
+        "total",
+    }
+    assert set(components) == expected
+    windows = components["window_opacity"]
+    weights = components["window_weights"]
+    assert windows.shape == temperature.shape + (len(WINDOW_NAMES),)
+    assert np.all(np.diff(windows, axis=-1) >= 0.0)
+    arithmetic = np.sum(weights * windows, axis=-1)
+    assert np.all(components["total"] <= arithmetic * (1.0 + 1.0e-13))
+    assert np.all(np.isfinite(components["total"]))
+    assert np.all(components["total"] > 0.0)
+
+
+def test_v3_solar_opacity_remains_in_the_reference_window():
+    labels = np.asarray([[5777.0, 4.44, 0.0, 0.0, 1.0]])
+    temperature = np.asarray([[5777.0]])
+    pressure = np.asarray([[1.0e5]])
+    total = textbook_opacity_window_components(labels, temperature, pressure)["total"][0, 0]
+    assert 0.75 / 10.0**0.2 <= total <= 0.75 * 10.0**0.2
+
+
+def test_v3_opacity_ode_and_convection_seed_are_positive_and_monotone():
+    labels, tau, _, _ = _inputs()
+    mass, temperature, diagnostics = build_textbook_reduced_state_v3(
+        labels, tau, include_convection=True, substeps_per_layer=2
+    )
+    assert mass.shape == temperature.shape == (labels.shape[0], tau.size)
+    assert np.all(np.isfinite(mass)) and np.all(mass > 0.0)
+    assert np.all(np.diff(mass, axis=1) > 0.0)
+    assert np.all(np.isfinite(temperature)) and np.all(temperature > 0.0)
+    assert diagnostics["rosseland_opacity"].shape == mass.shape

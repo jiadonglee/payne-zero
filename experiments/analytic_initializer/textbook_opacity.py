@@ -23,6 +23,7 @@ candidate, not a replacement for the production opacity tables.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
@@ -36,6 +37,7 @@ class TextbookOpacityConstants:
     boltzmann_erg_per_K: float = 1.380649e-16
     boltzmann_eV_per_K: float = 8.617333262e-5
     planck_erg_s: float = 6.62607015e-27
+    speed_of_light_cm_s: float = 2.99792458e10
     electron_mass_g: float = 9.1093837015e-28
     hydrogen_mass_g: float = 1.6735575e-24
     thomson_cross_section_cm2: float = 6.6524587321e-25
@@ -84,6 +86,7 @@ class TextbookOpacityConstants:
     hydrogen_balmer_cross_section_cm2: float = 1.40e-17
     hydrogen_paschen_cross_section_cm2: float = 1.20e-18
     hydrogen_representative_photon_energy_over_kT: float = 3.8
+    hydrogen_rayleigh_cross_section_at_500nm_cm2: float = 5.799e-29
 
     # Kramers free-free fallback only.  The H-ionization fraction is the
     # explicit hot-end window; there is no Kramers bound-free contribution.
@@ -411,6 +414,254 @@ def textbook_rosseland_opacity(
     )["total"]
 
 
+WINDOW_NAMES = (
+    "below_hminus_threshold",
+    "hminus_to_paschen",
+    "paschen_to_balmer",
+    "balmer_to_lyman",
+    "above_lyman",
+)
+ROSSELAND_WINDOW_QUADRATURE_ORDER = 32
+_ROSSELAND_GL_NODES, _ROSSELAND_GL_WEIGHTS = np.polynomial.legendre.leggauss(
+    ROSSELAND_WINDOW_QUADRATURE_ORDER
+)
+
+
+def frequency_window_edges_hz(
+    *, constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS
+) -> np.ndarray:
+    """Return the fixed frequency boundaries used by the v3 synthesis.
+
+    The first four non-zero boundaries are the H-minus photodetachment
+    threshold and the hydrogen n=3, n=2, and n=1 series limits.  They are
+    derived from named energies rather than fit to the corpus.
+    """
+
+    energies_eV = np.asarray(
+        (
+            constants.hydrogen_minus_affinity_eV,
+            constants.hydrogen_ionization_eV / 9.0,
+            constants.hydrogen_ionization_eV / 4.0,
+            constants.hydrogen_ionization_eV,
+        ),
+        dtype=np.float64,
+    )
+    if np.any(~np.isfinite(energies_eV)) or np.any(energies_eV <= 0.0):
+        raise ValueError("frequency-window threshold energies must be positive")
+    frequency = energies_eV * constants.eV_to_erg / constants.planck_erg_s
+    return np.concatenate((np.asarray([0.0]), frequency, np.asarray([np.inf])))
+
+
+def _rosseland_weight(u: np.ndarray) -> np.ndarray:
+    """Return the normalized-shape Rosseland weight in the variable u."""
+
+    values = np.asarray(u, dtype=np.float64)
+    q = np.exp(-values)
+    denominator = -np.expm1(-values)
+    numerator = values**4 * q
+    return np.divide(
+        numerator,
+        denominator**2,
+        out=np.zeros_like(values),
+        where=values > 0.0,
+    )
+
+
+def _rosseland_weight_integral(
+    lower: np.ndarray, upper: np.ndarray
+) -> np.ndarray:
+    """Integrate the analytic Rosseland weight over finite u intervals."""
+
+    lower_values = np.asarray(lower, dtype=np.float64)
+    upper_values = np.asarray(upper, dtype=np.float64)
+    if np.any(~np.isfinite(lower_values)) or np.any(~np.isfinite(upper_values)):
+        raise ValueError("finite u boundaries are required for quadrature")
+    if np.any(lower_values < 0.0) or np.any(upper_values <= lower_values):
+        raise ValueError("Rosseland u intervals must be positive and increasing")
+    half = 0.5 * (upper_values - lower_values)
+    midpoint = 0.5 * (upper_values + lower_values)
+    nodes = midpoint[..., None] + half[..., None] * _ROSSELAND_GL_NODES
+    return half * np.sum(
+        _ROSSELAND_GL_WEIGHTS * _rosseland_weight(nodes), axis=-1
+    )
+
+
+def rosseland_window_weights(
+    temperature: np.ndarray,
+    *,
+    constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS,
+) -> np.ndarray:
+    """Return normalized Rosseland weights for the five fixed frequency windows."""
+
+    thermal = np.asarray(temperature, dtype=np.float64)
+    if np.any(~np.isfinite(thermal)) or np.any(thermal <= 0.0):
+        raise ValueError("temperature must be finite and positive")
+    edges = frequency_window_edges_hz(constants=constants)
+    finite_edges = edges[1:-1]
+    u_edges = (
+        constants.planck_erg_s
+        * finite_edges[None, :]
+        / (constants.boltzmann_erg_per_K * thermal.reshape(-1, 1))
+    )
+    u_edges = np.column_stack(
+        (
+            np.zeros(thermal.size),
+            u_edges,
+            np.full(thermal.size, 100.0),
+        )
+    )
+    integrals = np.column_stack(
+        [
+            _rosseland_weight_integral(u_edges[:, index], u_edges[:, index + 1])
+            for index in range(len(WINDOW_NAMES))
+        ]
+    )
+    # The u=100 truncation leaves a negligible tail; renormalizing makes the
+    # window partition exact and keeps the harmonic mean numerically stable.
+    total = np.sum(integrals, axis=1, keepdims=True)
+    if np.any(~np.isfinite(total)) or np.any(total <= 0.0):
+        raise ValueError("Rosseland window weights are non-finite")
+    return (integrals / total).reshape(thermal.shape + (len(WINDOW_NAMES),))
+
+
+def textbook_opacity_window_components(
+    labels: np.ndarray,
+    temperature: np.ndarray,
+    gas_pressure: np.ndarray,
+    *,
+    constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS,
+) -> dict[str, np.ndarray]:
+    """Build the v3 five-window opacity and its Rosseland harmonic synthesis.
+
+    Each window contains the positive local components that are physically
+    allowed above its threshold.  Components are added inside a window; the
+    five window opacities are then combined as
+
+    ``1 / kappa_R = sum_i w_i / kappa_i``.
+
+    The window amplitudes are deliberately low-order: they are local
+    Rosseland-scale component estimates, not a corpus-fitted monochromatic
+    opacity table.  The fixed thresholds and analytic weights are the v3
+    structural change being tested.
+    """
+
+    values, thermal, pressure = _as_profile_inputs(labels, temperature, gas_pressure)
+    state = saha_electron_diagnostics(
+        values, thermal, pressure, constants=constants
+    )
+    rho = state["rho_g_cm3"]
+    electron_density = state["electron_density_cm3"]
+    neutral_hydrogen = state["hydrogen_neutral_density_cm3"]
+    kT_eV = constants.boltzmann_eV_per_K * thermal
+    representative_energy_over_kT = float(
+        constants.hydrogen_representative_photon_energy_over_kT
+    )
+    if not np.isfinite(representative_energy_over_kT) or representative_energy_over_kT <= 0.0:
+        raise ValueError("representative photon energy must be finite and positive")
+
+    hminus_saha_volume = (
+        constants.planck_erg_s**2
+        / (2.0 * np.pi * constants.electron_mass_g * constants.boltzmann_erg_per_K * thermal)
+    ) ** 1.5
+    hminus_ratio = (
+        electron_density
+        * hminus_saha_volume
+        * 0.25
+        * np.exp(
+            np.clip(constants.hydrogen_minus_affinity_eV / kT_eV, -700.0, 700.0)
+        )
+    )
+    hminus_density = neutral_hydrogen * np.clip(hminus_ratio, 0.0, 1.0)
+    hminus_boundfree = (
+        constants.hminus_boundfree_cross_section_cm2 * hminus_density / rho
+    )
+    hminus_freefree = hminus_freefree_rosseland_opacity(
+        values, thermal, pressure, constants=constants
+    )
+
+    n2 = neutral_hydrogen * 4.0 * np.exp(
+        np.clip(-10.1988 / kT_eV, -700.0, 0.0)
+    )
+    n3 = neutral_hydrogen * 9.0 * np.exp(
+        np.clip(-12.0875 / kT_eV, -700.0, 0.0)
+    )
+    hydrogen_stimulated = 1.0 - np.exp(-representative_energy_over_kT)
+    hydrogen_paschen = (
+        hydrogen_stimulated
+        * constants.hydrogen_paschen_cross_section_cm2
+        * n3
+        / rho
+    )
+    hydrogen_balmer = (
+        hydrogen_stimulated
+        * constants.hydrogen_balmer_cross_section_cm2
+        * n2
+        / rho
+    )
+
+    hydrogen_ionized = state["hydrogen_ionized_fraction"]
+    kramers_freefree = (
+        constants.kramers_freefree_coefficient
+        * (1.0 + constants.hydrogen_mass_fraction)
+        * rho
+        * np.power(thermal, -3.5)
+        * hydrogen_ionized
+    )
+    electron_scattering = constants.thomson_cross_section_cm2 * electron_density / rho
+    hydrogen_rayleigh = (
+        constants.hydrogen_rayleigh_cross_section_at_500nm_cm2
+        * neutral_hydrogen
+        / rho
+    )
+    base = (
+        hminus_freefree
+        + kramers_freefree
+        + electron_scattering
+        + hydrogen_rayleigh
+    )
+    window_opacity = np.stack(
+        (
+            base,
+            base + hminus_boundfree,
+            base + hminus_boundfree + hydrogen_paschen,
+            base + hminus_boundfree + hydrogen_paschen + hydrogen_balmer,
+            base + hminus_boundfree + hydrogen_paschen + hydrogen_balmer,
+        ),
+        axis=-1,
+    )
+    weights = rosseland_window_weights(thermal, constants=constants)
+    total = 1.0 / np.sum(weights / np.maximum(window_opacity, 1.0e-30), axis=-1)
+    components = {
+        "hminus_boundfree": np.maximum(hminus_boundfree, 0.0),
+        "hminus_freefree": np.maximum(hminus_freefree, 0.0),
+        "hydrogen_paschen_boundfree": np.maximum(hydrogen_paschen, 0.0),
+        "hydrogen_balmer_boundfree": np.maximum(hydrogen_balmer, 0.0),
+        "kramers_freefree": np.maximum(kramers_freefree, 0.0),
+        "electron_scattering": np.maximum(electron_scattering, 0.0),
+        "hydrogen_rayleigh_scattering": np.maximum(hydrogen_rayleigh, 0.0),
+        "window_opacity": np.maximum(window_opacity, 1.0e-30),
+        "window_weights": weights,
+        "total": np.maximum(total, 1.0e-30),
+    }
+    if np.any(~np.isfinite(components["total"])) or np.any(components["total"] <= 0.0):
+        raise ValueError("window opacity synthesis produced an invalid total")
+    return components
+
+
+def textbook_rosseland_opacity_v3(
+    labels: np.ndarray,
+    temperature: np.ndarray,
+    gas_pressure: np.ndarray,
+    *,
+    constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS,
+) -> np.ndarray:
+    """Evaluate the v3 fixed-window Rosseland opacity candidate."""
+
+    return textbook_opacity_window_components(
+        labels, temperature, gas_pressure, constants=constants
+    )["total"]
+
+
 def _scalar_log_mass_rhs(
     log_tau: float,
     log_mass: float,
@@ -419,6 +670,7 @@ def _scalar_log_mass_rhs(
     temperature: np.ndarray,
     gravity: float,
     constants: TextbookOpacityConstants,
+    opacity_function: Callable[..., np.ndarray],
 ) -> float:
     local_temperature = float(
         np.interp(log_tau, log_tau_grid, np.log(temperature))
@@ -427,7 +679,7 @@ def _scalar_log_mass_rhs(
     mass = float(np.exp(np.clip(log_mass, -700.0, 700.0)))
     pressure = max(gravity * mass, 1.0e-30)
     opacity = float(
-        textbook_rosseland_opacity(
+        opacity_function(
             labels[None, :],
             np.asarray([[local_temperature]]),
             np.asarray([[pressure]]),
@@ -445,6 +697,7 @@ def integrate_hydrostatic_opacity_ode(
     *,
     constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS,
     substeps_per_layer: int = 8,
+    opacity_function: Callable[..., np.ndarray] = textbook_rosseland_opacity,
 ) -> np.ndarray:
     """Integrate ``dm/dtau=1/kappa(T,g*m)`` in positive log coordinates."""
 
@@ -485,7 +738,7 @@ def integrate_hydrostatic_opacity_ode(
             surface_mass = float(np.exp(np.clip(log_mass, -700.0, 700.0)))
             surface_pressure = max(gravity * surface_mass, 1.0e-30)
             surface_opacity = float(
-                textbook_rosseland_opacity(
+                opacity_function(
                     values[star : star + 1],
                     temperature[star : star + 1, :1],
                     np.asarray([[surface_pressure]]),
@@ -504,22 +757,32 @@ def integrate_hydrostatic_opacity_ode(
             for substep in range(substeps_per_layer):
                 x = left + substep * width
                 k1 = _scalar_log_mass_rhs(
-                    x, log_mass, values[star], log_tau_grid, thermal[star], gravity, constants
+                    x,
+                    log_mass,
+                    values[star],
+                    log_tau_grid,
+                    thermal[star],
+                    gravity,
+                    constants,
+                    opacity_function,
                 )
                 k2 = _scalar_log_mass_rhs(
                     x + 0.5 * width,
                     log_mass + 0.5 * width * k1,
                     values[star], log_tau_grid, thermal[star], gravity, constants,
+                    opacity_function,
                 )
                 k3 = _scalar_log_mass_rhs(
                     x + 0.5 * width,
                     log_mass + 0.5 * width * k2,
                     values[star], log_tau_grid, thermal[star], gravity, constants,
+                    opacity_function,
                 )
                 k4 = _scalar_log_mass_rhs(
                     x + width,
                     log_mass + width * k3,
                     values[star], log_tau_grid, thermal[star], gravity, constants,
+                    opacity_function,
                 )
                 log_mass += width * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0
                 log_mass = float(np.clip(log_mass, -700.0, 700.0))
@@ -554,6 +817,7 @@ def build_textbook_reduced_state(
     constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS,
     include_convection: bool = True,
     substeps_per_layer: int = 8,
+    opacity_function: Callable[..., np.ndarray] = textbook_rosseland_opacity,
 ) -> tuple[np.ndarray, np.ndarray, dict[str, np.ndarray]]:
     """Build a grey/Hopf temperature plus the textbook opacity ODE mass seed."""
 
@@ -572,10 +836,11 @@ def build_textbook_reduced_state(
         temperature,
         constants=constants,
         substeps_per_layer=substeps_per_layer,
+        opacity_function=opacity_function,
     )
     gravity = 10.0 ** values[:, 1]
     pressure = gravity[:, None] * mass
-    opacity = textbook_rosseland_opacity(
+    opacity = opacity_function(
         values, temperature, pressure, constants=constants
     )
     nabla_rad = (
@@ -607,9 +872,10 @@ def build_textbook_reduced_state(
             temperature,
             constants=constants,
             substeps_per_layer=substeps_per_layer,
+            opacity_function=opacity_function,
         )
         pressure = gravity[:, None] * mass
-        opacity = textbook_rosseland_opacity(
+        opacity = opacity_function(
             values, temperature, pressure, constants=constants
         )
     diagnostics = {
@@ -620,3 +886,23 @@ def build_textbook_reduced_state(
         "convective_mask": convective,
     }
     return mass, temperature, diagnostics
+
+
+def build_textbook_reduced_state_v3(
+    labels: np.ndarray,
+    tau: np.ndarray,
+    *,
+    constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS,
+    include_convection: bool = True,
+    substeps_per_layer: int = 8,
+) -> tuple[np.ndarray, np.ndarray, dict[str, np.ndarray]]:
+    """Build the v3 grey/Hopf plus fixed-window opacity ODE seed."""
+
+    return build_textbook_reduced_state(
+        labels,
+        tau,
+        constants=constants,
+        include_convection=include_convection,
+        substeps_per_layer=substeps_per_layer,
+        opacity_function=textbook_rosseland_opacity_v3,
+    )

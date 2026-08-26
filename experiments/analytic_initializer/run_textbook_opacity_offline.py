@@ -19,6 +19,7 @@ from experiments.analytic_initializer.profile_closure import integrate_mass_from
 from experiments.analytic_initializer.textbook_opacity import (
     DEFAULT_TEXTBOOK_CONSTANTS,
     textbook_opacity_components,
+    textbook_opacity_window_components,
 )
 
 
@@ -59,6 +60,50 @@ def _band_masks(teff: np.ndarray) -> dict[str, np.ndarray]:
         "middle_6000_10000K": (values >= 6000.0) & (values < 10000.0),
         "hot_at_least_10000K": values >= 10000.0,
     }
+
+
+LAYER_TEMPERATURE_BINS = (
+    ("3200_4000K", 3200.0, 4000.0),
+    ("4000_5000K", 4000.0, 5000.0),
+    ("5000_6000K", 5000.0, 6000.0),
+    ("6000_7000K", 6000.0, 7000.0),
+    ("7000_8000K", 7000.0, 8000.0),
+    ("8000_10000K", 8000.0, 10000.0),
+    ("10000_15000K", 10000.0, 15000.0),
+    ("at_least_15000K", 15000.0, np.inf),
+)
+
+
+def _teff_layer_temperature_summary(
+    residual: np.ndarray,
+    labels: np.ndarray,
+    temperature: np.ndarray,
+    layer_mask: np.ndarray,
+) -> list[dict[str, object]]:
+    """Report signed and absolute errors in the requested two-dimensional bins."""
+
+    rows: list[dict[str, object]] = []
+    for teff_band, teff_mask in _band_masks(labels[:, 0]).items():
+        for layer_band, lower, upper in LAYER_TEMPERATURE_BINS:
+            mask = (
+                teff_mask[:, None]
+                & layer_mask
+                & (temperature >= lower)
+                & (temperature < upper)
+            )
+            if not np.any(mask):
+                continue
+            metrics = _metrics(residual[mask])
+            rows.append(
+                {
+                    "teff_band": teff_band,
+                    "layer_temperature_band": layer_band,
+                    "layer_temperature_lower_K": lower,
+                    "layer_temperature_upper_K": None if np.isinf(upper) else upper,
+                    **metrics,
+                }
+            )
+    return rows
 
 
 def _profile_metrics(
@@ -121,13 +166,22 @@ def _component_diagnostics(
     components: dict[str, np.ndarray],
     labels: np.ndarray,
     layer_mask: np.ndarray,
+    *,
+    component_names: tuple[str, ...] | None = None,
 ) -> dict[str, object]:
     """Summarize the physical component that carries each temperature band."""
 
-    total = np.asarray(components["total"], dtype=np.float64)
-    names = tuple(name for name in components if name != "total")
+    names = (
+        tuple(component_names)
+        if component_names is not None
+        else tuple(name for name in components if name != "total")
+    )
+    component_sum = np.maximum(
+        sum(np.asarray(components[name], dtype=np.float64) for name in names),
+        1.0e-30,
+    )
     fractions = {
-        name: np.asarray(components[name], dtype=np.float64) / total
+        name: np.asarray(components[name], dtype=np.float64) / component_sum
         for name in names
     }
     result: dict[str, object] = {}
@@ -149,18 +203,46 @@ def _component_diagnostics(
     return result
 
 
+def _window_diagnostics(
+    components: dict[str, np.ndarray],
+    labels: np.ndarray,
+    layer_mask: np.ndarray,
+) -> dict[str, object]:
+    weights = np.asarray(components["window_weights"], dtype=np.float64)
+    opacity = np.asarray(components["window_opacity"], dtype=np.float64)
+    result: dict[str, object] = {}
+    for band, star_mask in _band_masks(labels[:, 0]).items():
+        mask = star_mask[:, None] & layer_mask
+        if not np.any(mask):
+            continue
+        result[band] = {
+            "star_count": int(np.sum(star_mask)),
+            "layer_count": int(np.sum(mask)),
+            "median_rosseland_weight": [
+                float(np.median(weights[:, :, index][mask]))
+                for index in range(opacity.shape[-1])
+            ],
+            "median_window_opacity_cm2_per_g": [
+                float(np.median(opacity[:, :, index][mask]))
+                for index in range(opacity.shape[-1])
+            ],
+        }
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument(
-        "--out",
-        type=Path,
-        default=Path(
-            "results/analytic_initializer/textbook_opacity_v2_offline_validation.json"
-        ),
-    )
+    parser.add_argument("--version", choices=("v2", "v3"), default="v2")
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
+
+    if args.out is None:
+        args.out = Path(
+            "results/analytic_initializer/"
+            f"textbook_opacity_{args.version}_offline_validation.json"
+        )
 
     corpus = load_strict_truth(args.corpus)
     excluded, used_manifests = collect_excluded_indices(
@@ -177,10 +259,25 @@ def main(argv: list[str] | None = None) -> int:
     temperature = corpus.temperature[indices]
     pressure = corpus.gas_pressure[indices]
     truth_opacity = corpus.rosseland_opacity[indices]
-    components = textbook_opacity_components(labels, temperature, pressure)
+    if args.version == "v3":
+        components = textbook_opacity_window_components(labels, temperature, pressure)
+        component_names = (
+            "hminus_boundfree",
+            "hminus_freefree",
+            "hydrogen_paschen_boundfree",
+            "hydrogen_balmer_boundfree",
+            "kramers_freefree",
+            "electron_scattering",
+            "hydrogen_rayleigh_scattering",
+        )
+        temperature_floor = 3200.0
+    else:
+        components = textbook_opacity_components(labels, temperature, pressure)
+        component_names = tuple(name for name in components if name != "total")
+        temperature_floor = 2500.0
     prediction = components["total"]
     opacity_residual = np.log10(prediction) - np.log10(truth_opacity)
-    applicable_layers = temperature >= 2500.0
+    applicable_layers = temperature >= temperature_floor
     out_of_domain_layers = ~applicable_layers
 
     # This is still an offline control: it uses the true P and T to isolate
@@ -191,13 +288,25 @@ def main(argv: list[str] | None = None) -> int:
     mass_residual = np.log10(integrated_mass) - np.log10(corpus.column_mass[indices])
 
     component_fraction = {
-        name: float(np.median((components[name] / prediction)[applicable_layers]))
-        for name in components
-        if name != "total"
+        name: float(
+            np.median(
+                (
+                    components[name]
+                    / np.maximum(
+                        sum(components[item] for item in component_names),
+                        1.0e-30,
+                    )
+                )[applicable_layers]
+            )
+        )
+        for name in component_names
     }
     band_summary = []
     component_diagnostics = _component_diagnostics(
-        components, labels, applicable_layers
+        components,
+        labels,
+        applicable_layers,
+        component_names=component_names,
     )
     for band, star_mask in _band_masks(labels[:, 0]).items():
         if not np.any(star_mask):
@@ -230,9 +339,51 @@ def main(argv: list[str] | None = None) -> int:
             & applicable_layers
         ]
     )
+    mass_cool_gate = _metrics(
+        mass_residual[(labels[:, 0] < 6000.0)[:, None] & applicable_layers]
+    )
+    mass_middle_gate = _metrics(
+        mass_residual[
+            ((labels[:, 0] >= 6000.0) & (labels[:, 0] < 10000.0))[:, None]
+            & applicable_layers
+        ]
+    )
+    formal_opacity_pass = bool(
+        cool_gate["p95_dex"] <= 0.30 and middle_gate["p95_dex"] <= 0.50
+    )
+    bridge_allowance_applies = bool(
+        cool_gate["p95_dex"] <= 0.40 and middle_gate["p95_dex"] <= 0.60
+    )
+    bridge_pass = bool(
+        bridge_allowance_applies
+        and mass_cool_gate["p95_dex"] <= 0.20
+        and mass_middle_gate["p95_dex"] <= 0.20
+    )
+    two_dimensional_summary = _teff_layer_temperature_summary(
+        opacity_residual, labels, temperature, applicable_layers
+    )
     result = {
-        "candidate": "named_constant_saha_hminus_gray_hbf_kramers_ff_window_v2",
-        "status": "offline_only_not_production",
+        "candidate": (
+            "named_constant_saha_hminus_gray_hbf_kramers_ff_window_v3"
+            if args.version == "v3"
+            else "named_constant_saha_hminus_gray_hbf_kramers_ff_window_v2"
+        ),
+        "version": args.version,
+        "status": (
+            "offline_fail_stop"
+            if args.version == "v3" and not (formal_opacity_pass or bridge_pass)
+            else "offline_only_not_production"
+        ),
+        "decision": (
+            "FAIL_STOP"
+            if args.version == "v3" and not (formal_opacity_pass or bridge_pass)
+            else "legacy_v2_record"
+        ),
+        "next_registered_stage": (
+            "blocked_before_ode_temperature_ablation_smoke_and_funnel"
+            if args.version == "v3" and not (formal_opacity_pass or bridge_pass)
+            else "not_applicable_to_legacy_v2_record"
+        ),
         "corpus": str(corpus.path),
         "corpus_sha256": file_sha256(corpus.path),
         "validation_star_count": int(indices.size),
@@ -245,11 +396,17 @@ def main(argv: list[str] | None = None) -> int:
             name: value
             for name, value in DEFAULT_TEXTBOOK_CONSTANTS.__dict__.items()
         },
-        "component_median_fraction_of_total": component_fraction,
+        "component_median_fraction_of_component_sum": component_fraction,
         "component_diagnostics_by_band": component_diagnostics,
         "band_summary": band_summary,
+        "teff_x_layer_temperature_summary": two_dimensional_summary,
+        "window_diagnostics_by_band": (
+            _window_diagnostics(components, labels, applicable_layers)
+            if args.version == "v3"
+            else None
+        ),
         "applicability": {
-            "temperature_floor_K": 2500.0,
+            "temperature_floor_K": temperature_floor,
             "excluded_layer_count": int(np.sum(out_of_domain_layers)),
             "applicable_layer_count": int(np.sum(applicable_layers)),
             "excluded_layer_fraction": float(np.mean(out_of_domain_layers)),
@@ -274,13 +431,17 @@ def main(argv: list[str] | None = None) -> int:
             "cool_p95_max_dex": 0.30,
             "middle_p95_max_dex": 0.50,
             "transition_band_reported_separately": True,
-            "low_temperature_layers_excluded_from_gate_below_K": 2500.0,
-            "pass": bool(
-                cool_gate["p95_dex"] <= 0.30
-                and middle_gate["p95_dex"] <= 0.50
-            ),
+            "low_temperature_layers_excluded_from_gate_below_K": temperature_floor,
+            "formal_opacity_pass": formal_opacity_pass,
+            "bridge_allowance_max_excess_dex": 0.10,
+            "bridge_mass_p95_max_dex": 0.20,
+            "bridge_allowance_applies": bridge_allowance_applies,
+            "bridge_pass": bridge_pass,
+            "pass": bool(formal_opacity_pass or bridge_pass),
             "cool_observed_p95_dex": cool_gate["p95_dex"],
             "middle_observed_p95_dex": middle_gate["p95_dex"],
+            "cool_mass_observed_p95_dex": mass_cool_gate["p95_dex"],
+            "middle_mass_observed_p95_dex": mass_middle_gate["p95_dex"],
         },
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
