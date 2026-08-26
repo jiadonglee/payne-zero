@@ -6157,8 +6157,65 @@ def compute_continuum_scattering_columns(
 @lru_cache(maxsize=16)
 def build_opacity_sampling_grid(
     effective_temperature: float,
+    frequency_grid_stride: int = 1,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return opacity-sampling wavelengths and frequency quadrature weights."""
+    """Return opacity-sampling wavelengths and frequency quadrature weights.
+
+    The undecimated grid is 30000 points equally spaced in log10 wavelength
+    with a step of 1e-4 dex (a resolving power of about 4340), starting at the
+    ionization edge selected by ``effective_temperature``.
+
+    ``frequency_grid_stride`` keeps every ``stride``-th point of that grid and
+    is the frequency-resolution knob of the opacity stage, whose cost is
+    linear in the number of sampled points. A stride of 1 is the production
+    grid and returns arrays bit-identical to the undecimated construction.
+    Both endpoints are always retained: the first point is the ionization edge
+    that ``active_continuum_reference_frequencies`` and
+    ``assemble_continuum_line_selection_threshold`` read as element 0, and
+    keeping the last point makes every stride span the same wavelength range.
+    When the stride does not divide the grid evenly the final interval is
+    therefore shorter than the others, which needs no special handling because
+    the weights below are built from the sampled wavelengths themselves.
+
+    ``frequency_weights`` are quadrature weights in frequency, in Hz: a
+    frequency integral over the sampled band is
+    ``sum(value * frequency_weights)``, which is how the transfer kernel
+    accumulates flux, radiation pressure, and the Rosseland mean. The grid
+    runs blue to red, so frequency decreases with index and every weight is
+    positive. Each interior weight is the central difference
+    ``(nu[i - 1] - nu[i + 1]) / 2``, the width of the frequency cell whose
+    edges are the midpoints to the two neighbours -- the midpoint rule on a
+    non-uniform frequency grid. The two endpoints keep the external format's
+    special cases: the first weight is ``1.5 * (nu[0] - nu[1])``, its own half
+    cell plus a full cell standing in for the band just blueward of the grid,
+    and the last is ``(nu[-2] + nu[-1]) / 4``, a tail term proportional to the
+    lowest sampled frequency that stands in for the integral down to zero.
+
+    The weights are re-derived on the decimated grid rather than summed from
+    the undecimated grid's weights, because a weight is not a conserved
+    quantity attached to a sample: it is the width of the frequency cell that
+    the sample is asked to represent. After decimation each surviving sample
+    must stand for everything half-way to its new neighbours, which is exactly
+    what the same central difference on the decimated wavelengths gives.
+    Folding a dropped point's weight into a neighbour would instead assert
+    that the dropped sample carried the neighbour's opacity, would leave the
+    result dependent on which of the two neighbours absorbed it, and has no
+    defined meaning for the two endpoint cases. Re-deriving also keeps the
+    weights a telescoping partition of the same band.
+
+    The first weight needs one correction the plain midpoint rule does not
+    supply. Its ``1.5`` factor is two different things added together: a half
+    cell of its own, which must scale with the stride, and a full extra cell
+    standing in for the band just blueward of the grid, which represents a
+    *fixed physical band* and must not. Scaling both drifts the total
+    quadrature measure by exactly ``(stride - 1) * 2.3025e-4`` relative
+    (+1.6e-3 at stride 8), entirely through this one weight. That is a
+    boundary artefact, and letting it ride would confound a decimation
+    measurement -- whose whole purpose is to isolate the cost of lost
+    frequency resolution -- with a growing blueward extension. The stand-in is
+    therefore measured on the undecimated grid. Stride 1 is unchanged because
+    the two terms sum back to the original ``1.5`` factor.
+    """
 
     grid_size = 30000
     carbon_edge_start = 11601
@@ -6177,14 +6234,37 @@ def build_opacity_sampling_grid(
     if temperature < 4500.0:
         start_index = carbon_edge_start
 
+    stride = int(frequency_grid_stride)
+    if stride < 1:
+        raise ValueError("frequency_grid_stride must be a positive integer")
+    if stride > grid_size // 2:
+        raise ValueError(
+            "frequency_grid_stride must leave at least three sampled points, "
+            f"so it cannot exceed {grid_size // 2}"
+        )
+
     one_based_index = np.arange(1, grid_size + 1, dtype=np.float64)
     wavelength_nm = 10.0 ** (1.0 + 0.0001 * (one_based_index + start_index - 1.0))
-    frequency_weights = np.zeros(grid_size, dtype=np.float64)
+
+    # The blueward stand-in inside the first weight represents a fixed physical
+    # band just outside the grid, not a grid cell, so it is measured on the
+    # undecimated grid and does not scale with the stride. Taken before slicing.
+    undecimated_first_frequency_step = (
+        LIGHT_SPEED_NM_PER_S / wavelength_nm[0]
+        - LIGHT_SPEED_NM_PER_S / wavelength_nm[1]
+    )
+
+    sampled_index = np.arange(0, grid_size, stride, dtype=np.int64)
+    if int(sampled_index[-1]) != grid_size - 1:
+        sampled_index = np.append(sampled_index, grid_size - 1)
+    wavelength_nm = wavelength_nm[sampled_index]
+
+    frequency_weights = np.zeros(wavelength_nm.size, dtype=np.float64)
 
     frequency_weights[0] = (
         LIGHT_SPEED_NM_PER_S / wavelength_nm[0]
         - LIGHT_SPEED_NM_PER_S / wavelength_nm[1]
-    ) * 1.5
+    ) * 0.5 + undecimated_first_frequency_step
     frequency_weights[1:-1] = (
         LIGHT_SPEED_NM_PER_S / wavelength_nm[:-2]
         - LIGHT_SPEED_NM_PER_S / wavelength_nm[2:]

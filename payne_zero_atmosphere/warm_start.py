@@ -622,8 +622,14 @@ class AtmosphereInitializer:
         carbon_enhancement: float | None = None,
         nitrogen_enhancement: float | None = None,
         oxygen_enhancement: float | None = None,
+        allow_extrapolation: bool = False,
     ) -> dict[str, np.ndarray]:
-        """Decode one complete six-field atmosphere on the fixed depth grid."""
+        """Decode one complete six-field atmosphere on the fixed depth grid.
+
+        ``allow_extrapolation`` is reserved for controlled cool-star
+        experiments.  The default production path still rejects labels outside
+        the checkpoint support exactly as before.
+        """
 
         import torch
 
@@ -638,11 +644,12 @@ class AtmosphereInitializer:
             oxygen_enhancement=oxygen_enhancement,
             checkpoint_feature_fields=self.checkpoint_feature_fields,
         )
-        _require_initializer_bounds(
-            features,
-            self.checkpoint["labels"]["bounds"],
-            checkpoint_feature_fields=self.checkpoint_feature_fields,
-        )
+        if not allow_extrapolation:
+            _require_initializer_bounds(
+                features,
+                self.checkpoint["labels"]["bounds"],
+                checkpoint_feature_fields=self.checkpoint_feature_fields,
+            )
         label_mean = np.asarray(self.checkpoint["labels"]["mean"], dtype=np.float64)
         label_std = np.asarray(self.checkpoint["labels"]["std"], dtype=np.float64)
         model_input = (features - label_mean) / label_std
@@ -692,10 +699,14 @@ class AtmosphereInitializer:
             for index, field in enumerate(INITIALIZER_OUTPUT_FIELDS)
         }
 
-    def predict_layer_table(self, **labels: float) -> np.ndarray:
+    def predict_layer_table(
+        self, *, allow_extrapolation: bool = False, **labels: float
+    ) -> np.ndarray:
         """Return the standard nine-column warm-start table."""
 
-        prediction = self.predict(**labels)
+        prediction = self.predict(
+            **labels, allow_extrapolation=allow_extrapolation
+        )
         return atmosphere_prediction_to_layer_table(
             prediction,
             microturbulence_km_s=float(labels["microturbulence_km_s"]),
@@ -1181,6 +1192,7 @@ def emulator_warm_start_model(
     cno8_path: Path | None = None,
     initializer_label: Mapping[str, float] | None = None,
     title: str | None = None,
+    allow_extrapolation: bool = False,
 ) -> tuple[ModelAtmosphere, str]:
     """Predict an emulator warm start and return ``(atmosphere, deck_text)``.
 
@@ -1273,18 +1285,21 @@ def emulator_warm_start_model(
         **prediction_label,
         checkpoint_feature_fields=checkpoint_feature_fields,
     )
-    _require_initializer_bounds(
-        prediction_features,
-        emulator.checkpoint["labels"]["bounds"],
-        checkpoint_feature_fields=checkpoint_feature_fields,
-    )
-    if initializer_label is None:
+    if not allow_extrapolation:
+        _require_initializer_bounds(
+            prediction_features,
+            emulator.checkpoint["labels"]["bounds"],
+            checkpoint_feature_fields=checkpoint_feature_fields,
+        )
+    if initializer_label is None and not allow_extrapolation:
         _require_initializer_bounds(
             target_features,
             emulator.checkpoint["labels"]["bounds"],
             checkpoint_feature_fields=checkpoint_feature_fields,
         )
-    layer_table = emulator.predict_layer_table(**prediction_label)
+    layer_table = emulator.predict_layer_table(
+        **prediction_label, allow_extrapolation=allow_extrapolation
+    )
     default_title = f"Payne Zero {family.replace('_', '-')} warm start"
 
     layer_table = np.asarray(layer_table, dtype=np.float64).copy()

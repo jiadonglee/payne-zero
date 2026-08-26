@@ -53,7 +53,9 @@ from .continuum_opacity import (
     load_molecular_equilibrium_tables,
 )
 from .convergence import (
+    ConvergenceStopDecision,
     deep_layer_relative_temperature_change,
+    evaluate_convergence_stop,
     max_normalized_column_delta,
 )
 from .convection import (
@@ -214,10 +216,12 @@ from .runner import (
     accumulate_transfer_state,
     compute_convection_finite_difference_samples,
     finalize_transfer_state,
+    opacity_recompute_scheduled,
     prepare_opacity_state,
     prepare_population_state,
     prepare_structured_handoff_population_state,
     remap_finalized_iteration_state,
+    reuse_lagged_opacity_state,
     run_atmosphere_model,
     finalize_remapped_iteration,
 )
@@ -329,7 +333,9 @@ __all__ = [
     "finalize_remapped_iteration",
     "finalize_transfer_state",
     "format_atmosphere_deck",
+    "ConvergenceStopDecision",
     "deep_layer_relative_temperature_change",
+    "evaluate_convergence_stop",
     "generate_selected_lines",
     "iron_group_partition_function",
     "iterate_electron_density",
@@ -363,7 +369,9 @@ __all__ = [
     "parse_abundance_offset",
     "parse_atmosphere_deck",
     "parse_molecular_equilibrium_record",
+    "opacity_recompute_scheduled",
     "prepare_opacity_state",
+    "reuse_lagged_opacity_state",
     "populate_all_species",
     "populate_molecular_species",
     "populate_species",

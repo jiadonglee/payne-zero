@@ -41,6 +41,7 @@ class RunSetup:
     maximum_deep_layer_relative_temperature_change: float
     maximum_all_layer_relative_temperature_change: float | None
     surface_gravity_cgs: float
+    opacity_frequency_grid_stride: int
     opacity_flags: list[int]
     molecules_enabled: bool
     pressure_iteration_enabled: bool
@@ -50,6 +51,9 @@ class RunSetup:
     effective_temperature: float
     log_surface_gravity: float
     standard_rosseland_optical_depth: np.ndarray
+    enable_opacity_lagging: bool = False
+    opacity_recompute_interval: int = 1
+    temperature_correction_damping: float = 1.0
 
 
 def surface_gravity_from_atmosphere(atmosphere: ModelAtmosphere) -> float:
@@ -167,6 +171,23 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
     ):
         raise ValueError("maximum all-layer temperature change must be positive")
 
+    opacity_frequency_grid_stride = int(config.opacity_frequency_grid_stride)
+    if opacity_frequency_grid_stride < 1:
+        raise ValueError("opacity frequency-grid stride must be a positive integer")
+
+    enable_opacity_lagging = bool(config.enable_opacity_lagging)
+    opacity_recompute_interval = int(config.opacity_recompute_interval)
+    if opacity_recompute_interval < 1:
+        raise ValueError("opacity_recompute_interval must be at least 1")
+
+    temperature_correction_damping = float(config.temperature_correction_damping)
+    if not np.isfinite(temperature_correction_damping) or not (
+        0.0 < temperature_correction_damping <= 1.0
+    ):
+        raise ValueError(
+            "temperature_correction_damping must be finite and in (0, 1]"
+        )
+
     surface_gravity_cgs = surface_gravity_from_atmosphere(atmosphere)
     opacity_flags = opacity_flags_from_atmosphere(atmosphere)
     molecules_enabled = bool(config.enable_molecules)
@@ -220,6 +241,7 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
             maximum_all_layer_relative_temperature_change
         ),
         surface_gravity_cgs=surface_gravity_cgs,
+        opacity_frequency_grid_stride=opacity_frequency_grid_stride,
         opacity_flags=opacity_flags,
         molecules_enabled=molecules_enabled,
         pressure_iteration_enabled=pressure_iteration_enabled,
@@ -231,4 +253,7 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
         effective_temperature=effective_temperature,
         log_surface_gravity=log_surface_gravity,
         standard_rosseland_optical_depth=standard_rosseland_optical_depth,
+        enable_opacity_lagging=enable_opacity_lagging,
+        opacity_recompute_interval=opacity_recompute_interval,
+        temperature_correction_damping=temperature_correction_damping,
     )

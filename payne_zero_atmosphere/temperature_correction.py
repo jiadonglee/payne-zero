@@ -355,6 +355,7 @@ def apply_temperature_correction(
     surface_gravity_cgs: float = 1.0e4,
     standard_log_tau_step: float = 0.125,
     standard_log_tau_start: float = -6.875,
+    temperature_correction_damping: float = 1.0,
 ) -> TemperatureCorrectionResult | None:
     """Apply one temperature-correction mode step in place."""
 
@@ -377,6 +378,9 @@ def apply_temperature_correction(
     temperature = np.asarray(temperature_k, dtype=np.float64)
     stimulated = np.asarray(stimulated_emission, dtype=np.float64)
     scattering = np.asarray(scattering_fraction, dtype=np.float64)
+    correction_damping = float(temperature_correction_damping)
+    if not np.isfinite(correction_damping) or not (0.0 < correction_damping <= 1.0):
+        raise ValueError("temperature_correction_damping must be finite and in (0, 1]")
 
     if int(mode) == 2:
         weight = float(frequency_weight)
@@ -820,6 +824,7 @@ def apply_temperature_correction(
                 temperature_correction[layer_index] *= 1.25
             if previous * current < 0.0:
                 temperature_correction[layer_index] *= 0.5
+        temperature_correction[layer_index] *= correction_damping
         state.previous_temperature_correction[layer_index] = temperature_correction[
             layer_index
         ]

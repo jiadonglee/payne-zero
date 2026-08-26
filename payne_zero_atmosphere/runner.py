@@ -15,7 +15,7 @@ from dataclasses import dataclass, replace
 import os
 from pathlib import Path
 import time
-from typing import Any
+from typing import Any, Callable, Mapping
 
 import numpy as np
 
@@ -27,6 +27,7 @@ from .atmosphere_io import (
 from .config import AtmosphereConfig
 from .convergence import (
     deep_layer_relative_temperature_change,
+    evaluate_convergence_stop,
     max_normalized_column_delta,
     temperature_changes_within_limits,
 )
@@ -157,6 +158,10 @@ class OpacityState:
     rosseland_table: RosselandOpacityTable
     selected_line_catalog: SelectedLineCatalog | None = None
     transition_line_catalog: LineTransitionCatalog | None = None
+    # False only for a lagged state built by ``reuse_lagged_opacity_state``:
+    # the opacity slabs below came from an earlier iteration's atmosphere, so
+    # this state's transfer output must never certify the fixed point.
+    opacity_recomputed: bool = True
 
 
 @dataclass
@@ -195,6 +200,431 @@ class IterationRemap:
     standard_rosseland_optical_depth: np.ndarray
     integrated_radiation_pressure: np.ndarray
     turbulent_pressure: np.ndarray
+
+
+@dataclass
+class IterationCarry:
+    """State that flows from one solver iteration into the next.
+
+    Collected so that a single iteration (``run_single_iteration``) is a
+    function of explicit inputs only: every value an iteration reads that a
+    previous iteration produced lives here, not in a loop-local variable.
+    ``run_single_iteration`` consumes and returns the same object (the
+    transfer kernel accumulates into ``temperature_correction_state`` in
+    place), so callers that need the pre-iteration state must keep a deep
+    copy.  The fields are exactly the loop-carried variables of the historical
+    ``run_atmosphere_model`` loop:
+
+    - ``remapped``: last iteration's remapped output; None before the first
+      iteration, which selects the setup atmosphere as the starting point.
+    - ``previous_rosseland_table``: the correction opacity lookup the last
+      iteration ingested, reused by the next opacity stage.
+    - ``previous_surface_radiation_pressure_constant``: carried radiative
+      pressure boundary value.
+    - ``molecular_thermal_energy_reference``: thermal-energy reference fixed
+      from the *initial* atmosphere; constant across iterations.
+    - ``iteration_itemp``: accumulated iteration-index sum (1, 3, 6, ...),
+      used as the temperature-iteration index and finalization seed.
+    - ``temperature_correction_state``: accumulators the transfer kernel
+      updates in place, including ``previous_temperature_correction``.
+    - ``selected_line_catalog`` / ``transition_line_catalog``: line catalogs
+      selected on first use and reused by later iterations.
+    - ``previous_exact_opacity``: the last opacity state that was actually
+      computed from an atmosphere, kept only when opacity lagging is enabled
+      so a lagged iteration has something to reuse. It is deliberately *not*
+      overwritten by lagged states, so a run of lagged iterations all reuse the
+      same exact slabs rather than chaining copies.
+    - ``force_exact_opacity``: set by the convergence policy when a lagged
+      iteration looked converged, so the next iteration is pushed back onto
+      exact opacity and can certify (or refute) the candidate fixed point.
+    """
+
+    remapped: IterationRemap | None
+    previous_rosseland_table: RosselandOpacityTable | None
+    previous_surface_radiation_pressure_constant: float
+    molecular_thermal_energy_reference: np.ndarray
+    iteration_itemp: int
+    temperature_correction_state: "TemperatureCorrectionState"
+    selected_line_catalog: "SelectedLineCatalog | None"
+    transition_line_catalog: "LineTransitionCatalog | None"
+    previous_exact_opacity: "OpacityState | None" = None
+    force_exact_opacity: bool = False
+
+
+@dataclass
+class SingleIterationResult:
+    """One iteration's outputs: the updated carry plus what callers report."""
+
+    carry: IterationCarry
+    remapped: IterationRemap
+    opacity: OpacityState
+    transfer: TransferAccumulation
+    deep_layer_relative_temperature_change: float
+    all_layer_relative_temperature_change: float
+    timing: dict[str, float | int]
+    # True when this iteration's opacity was computed from *this* iteration's
+    # atmosphere. Always True unless opacity lagging is enabled. The convergence
+    # stop in ``_run_atmosphere_model`` reads this and refuses to declare
+    # convergence when it is False.
+    opacity_recomputed: bool = True
+
+
+AfterIterationHook = Callable[
+    [int, RunSetup, SingleIterationResult], Mapping[str, Any] | None
+]
+
+
+def initialize_iteration_carry(setup: "RunSetup") -> IterationCarry:
+    """Build the carry for the first iteration from the resolved setup."""
+
+    return IterationCarry(
+        remapped=None,
+        previous_rosseland_table=None,
+        previous_surface_radiation_pressure_constant=float(
+            setup.surface_radiation_pressure_constant
+        ),
+        molecular_thermal_energy_reference=np.asarray(
+            setup.atmosphere.thermal_energy_erg,
+            dtype=np.float64,
+        ).copy(),
+        iteration_itemp=0,
+        temperature_correction_state=initialize_temperature_correction_state(
+            setup.atmosphere.layers,
+        ),
+        selected_line_catalog=None,
+        transition_line_catalog=None,
+    )
+
+
+def opacity_recompute_scheduled(
+    *,
+    iteration_index: int,
+    total_iterations: int,
+    enable_opacity_lagging: bool,
+    opacity_recompute_interval: int,
+    has_reusable_opacity: bool,
+    force_exact_opacity: bool = False,
+) -> bool:
+    """Decide whether this iteration must recompute opacity exactly.
+
+    Opacity is 79% of solver wall time and is recomputed at full price on
+    iterations where the atmosphere has essentially stopped moving.  Lagging
+    freezes the opacity operator for ``opacity_recompute_interval - 1``
+    iterations at a time, which is the classical Kantorovich lagged-operator
+    step: the operator is approximate, but the *fixed point* is untouched as
+    long as it is certified by an iteration that used the exact operator.
+
+    This function is the single place the schedule is decided, and it returns
+    ``True`` -- today's behavior, exactly -- in every case where lagging is not
+    safe or not requested:
+
+    - lagging disabled, or an interval of 1 (both mean "recompute always");
+    - no previous exact opacity to reuse (the first iteration);
+    - ``force_exact_opacity``, set by the convergence policy after a lagged
+      iteration looked converged, so the candidate fixed point is re-tested
+      against the exact operator;
+    - the last iteration of the budget, whose output is returned as the run's
+      answer even when it did not converge.
+
+    Together with the stop guard in ``_run_atmosphere_model`` this gives the
+    invariant that the atmosphere a run returns is always the output of an
+    exact-opacity iteration.
+    """
+
+    if not enable_opacity_lagging:
+        return True
+    interval = int(opacity_recompute_interval)
+    if interval <= 1:
+        return True
+    if not has_reusable_opacity:
+        return True
+    if force_exact_opacity:
+        return True
+    if int(iteration_index) >= int(total_iterations):
+        return True
+    return (int(iteration_index) - 1) % interval == 0
+
+
+def reuse_lagged_opacity_state(
+    previous: OpacityState,
+    *,
+    population_state: AtmospherePopulationState,
+    rosseland_table: RosselandOpacityTable | None = None,
+) -> OpacityState:
+    """Build this iteration's opacity state from a previous iteration's slabs.
+
+    Reused unchanged from ``previous`` (this is what "lagging the opacity"
+    means here -- the whole monochromatic opacity operator, frozen together so
+    absorption, scattering, and the source term stay mutually consistent):
+
+    ``continuum_absorption``, ``continuum_scattering``, ``continuum_source``,
+    ``line_opacity``, the sampling grid (``opacity_wavelength_grid_nm``,
+    ``opacity_frequency_hz``, ``frequency_weights``), the active-continuum
+    reference frequencies, and the line-selection threshold arrays
+    (``continuum_line_selection_threshold``, ``continuum_reference_wavelength_nm``,
+    ``wavelength_bin_edges``) that only feed line selection and accumulation.
+    The sampling grid and the active reference frequencies depend on effective
+    temperature alone, so reusing them is exact, not an approximation.
+
+    Recomputed for this iteration: the whole population/EOS state (done by the
+    caller before this point), and ``continuum_atmosphere``, which is a cheap
+    repack of the current runtime state.  ``rosseland_table`` is the freshly
+    carried correction table; it is stored for bookkeeping but, unlike on the
+    exact path, nothing consumes it here because the continuum was not
+    recomputed.  Downstream transfer uses this iteration's temperature,
+    ``h_over_kt``, and ``column_mass`` through ``population_state.setup``, so
+    the Planck function and the correction are current -- only the opacity is
+    stale.
+
+    The reused arrays are shared, not copied: every downstream consumer reads
+    them (``accumulate_transfer_range_parallel`` takes the slabs as inputs and
+    writes only its accumulators), so a copy would cost ~77 MB per iteration
+    and buy nothing.
+    """
+
+    setup = population_state.setup
+    atmosphere = setup.atmosphere
+    layer_count = int(atmosphere.layers)
+    if int(previous.continuum_absorption.shape[0]) != layer_count:
+        raise ValueError(
+            "lagged opacity state has a different layer count than the current "
+            "atmosphere; opacity cannot be reused across a grid change"
+        )
+    continuum_atmosphere = build_continuum_atmosphere_state(
+        atmosphere,
+        population_state.runtime_state,
+    )
+    return OpacityState(
+        population_state=population_state,
+        continuum_atmosphere=continuum_atmosphere,
+        opacity_wavelength_grid_nm=previous.opacity_wavelength_grid_nm,
+        opacity_frequency_hz=previous.opacity_frequency_hz,
+        frequency_weights=previous.frequency_weights,
+        active_continuum_indices=previous.active_continuum_indices,
+        active_continuum_frequency_hz=previous.active_continuum_frequency_hz,
+        continuum_absorption=previous.continuum_absorption,
+        continuum_scattering=previous.continuum_scattering,
+        continuum_source=previous.continuum_source,
+        continuum_line_selection_threshold=previous.continuum_line_selection_threshold,
+        continuum_reference_wavelength_nm=previous.continuum_reference_wavelength_nm,
+        wavelength_bin_edges=previous.wavelength_bin_edges,
+        line_opacity=previous.line_opacity,
+        rosseland_table=(
+            previous.rosseland_table if rosseland_table is None else rosseland_table
+        ),
+        selected_line_catalog=previous.selected_line_catalog,
+        transition_line_catalog=previous.transition_line_catalog,
+        opacity_recomputed=False,
+    )
+
+
+def run_single_iteration(
+    config: AtmosphereConfig,
+    setup: "RunSetup",
+    carry: IterationCarry,
+    iteration_index: int,
+) -> SingleIterationResult:
+    """Run one solver iteration against explicit cross-iteration state.
+
+    This is the loop body of ``run_atmosphere_model`` with every loop-carried
+    value threaded through ``carry``: one iteration is a function of
+    ``(config, setup, carry, iteration_index)`` and nothing else.  ``carry``
+    is consumed and returned (the transfer kernel accumulates in place); the
+    convergence stop decision stays with the caller.
+    """
+
+    iteration_timing: dict[str, float | int] = {"iteration": int(iteration_index)}
+    stage_start_time = time.perf_counter()
+    if carry.remapped is None:
+        iteration_atmosphere = _copy_iteration_atmosphere(setup.atmosphere)
+    else:
+        gas_pressure = carry.remapped.atmosphere.gas_pressure
+        if setup.pressure_iteration_enabled:
+            gas_pressure = integrate_hydrostatic_pressure(
+                carry.remapped.atmosphere,
+                surface_gravity_cgs=setup.surface_gravity_cgs,
+                integrated_radiation_pressure=(
+                    carry.remapped.integrated_radiation_pressure
+                ),
+                turbulent_pressure=carry.remapped.turbulent_pressure,
+            )
+        iteration_atmosphere = _copy_iteration_atmosphere(
+            carry.remapped.atmosphere,
+            gas_pressure=gas_pressure,
+        )
+
+    iteration_setup = replace(
+        setup,
+        atmosphere=iteration_atmosphere,
+        surface_radiation_pressure_constant=(
+            carry.previous_surface_radiation_pressure_constant
+        ),
+    )
+    iteration_timing["prepare_iteration_seconds"] = (
+        time.perf_counter() - stage_start_time
+    )
+    stage_start_time = time.perf_counter()
+    carry.iteration_itemp += iteration_index
+    population = prepare_population_state(
+        config,
+        temperature_iteration_index=carry.iteration_itemp,
+        setup=iteration_setup,
+        molecular_thermal_energy_erg=carry.molecular_thermal_energy_reference,
+    )
+    iteration_timing["population_seconds"] = time.perf_counter() - stage_start_time
+    recompute_opacity = opacity_recompute_scheduled(
+        iteration_index=iteration_index,
+        total_iterations=int(setup.iterations),
+        enable_opacity_lagging=bool(setup.enable_opacity_lagging),
+        opacity_recompute_interval=int(setup.opacity_recompute_interval),
+        has_reusable_opacity=carry.previous_exact_opacity is not None,
+        force_exact_opacity=bool(carry.force_exact_opacity),
+    )
+    _progress(
+        f"iteration {iteration_index}/{int(setup.iterations)}: "
+        f"opacity ({'exact' if recompute_opacity else 'lagged'})"
+        if setup.enable_opacity_lagging
+        else f"iteration {iteration_index}/{int(setup.iterations)}: opacity"
+    )
+    stage_start_time = time.perf_counter()
+    if recompute_opacity:
+        opacity = prepare_opacity_state(
+            config,
+            population_state=population,
+            temperature_iteration_index=carry.iteration_itemp,
+            rosseland_table=carry.previous_rosseland_table,
+            selected_line_catalog=carry.selected_line_catalog,
+            transition_line_catalog=carry.transition_line_catalog,
+        )
+    else:
+        opacity = reuse_lagged_opacity_state(
+            carry.previous_exact_opacity,
+            population_state=population,
+            rosseland_table=carry.previous_rosseland_table,
+        )
+    carry.selected_line_catalog = opacity.selected_line_catalog
+    carry.transition_line_catalog = opacity.transition_line_catalog
+    if setup.enable_opacity_lagging and recompute_opacity:
+        # Only exact states are retained, so consecutive lagged iterations all
+        # reuse the same slabs instead of chaining. Nothing is retained on the
+        # default path, so default memory use is unchanged.
+        carry.previous_exact_opacity = opacity
+        carry.force_exact_opacity = False
+    iteration_timing["opacity_seconds"] = time.perf_counter() - stage_start_time
+    if setup.enable_opacity_lagging:
+        # Emitted only when lagging is on, so the default diagnostics payload
+        # is byte-for-byte what it was before.
+        iteration_timing["opacity_recomputed"] = int(bool(recompute_opacity))
+    _progress(f"iteration {iteration_index}/{int(setup.iterations)}: transfer")
+    stage_start_time = time.perf_counter()
+    transfer = accumulate_transfer_state(
+        opacity,
+        temperature_correction_state=carry.temperature_correction_state,
+    )
+    iteration_timing["transfer_seconds"] = time.perf_counter() - stage_start_time
+    _progress(f"iteration {iteration_index}/{int(setup.iterations)}: finalization")
+    stage_start_time = time.perf_counter()
+    finalization = finalize_transfer_state(
+        transfer,
+        iteration_index=iteration_index,
+        temperature_iteration_seed=carry.iteration_itemp * 10,
+        convection_enabled=setup.convection.enabled,
+        molecular_convection_thermal_tracks_perturbation=bool(
+            config.molecular_convection_thermal_tracks_perturbation
+        ),
+    )
+    iteration_timing["finalization_seconds"] = (
+        time.perf_counter() - stage_start_time
+    )
+    stage_start_time = time.perf_counter()
+    total_pressure = (
+        iteration_setup.surface_gravity_cgs * iteration_setup.atmosphere.column_mass
+        + float(iteration_setup.surface_radiation_pressure_constant)
+    )
+    radiative_pressure = finalization.radiative_pressure_state
+    temperature_correction = transfer.temperature_correction_state
+    convection_flux = None
+    convection_velocity = None
+    if finalization.convection_result is not None:
+        convection_flux = finalization.convection_result.convective_flux
+        convection_velocity = finalization.convection_result.convective_velocity
+    else:
+        convection_diagnostics = compute_disabled_convection_diagnostics(
+            column_mass=iteration_setup.atmosphere.column_mass,
+            rosseland_optical_depth=finalization.rosseland_optical_depth,
+            temperature_k=iteration_setup.atmosphere.temperature,
+            gas_pressure=population.runtime_state.gas_pressure,
+            mass_density=population.runtime_state.mass_density,
+            rosseland_opacity=finalization.rosseland_opacity,
+            absolute_radiation_pressure=(
+                radiative_pressure.absolute_radiation_pressure
+            ),
+            total_pressure=total_pressure,
+            surface_gravity_cgs=iteration_setup.surface_gravity_cgs,
+            target_integrated_eddington_flux=5.6697e-5
+            / 12.5664
+            * iteration_setup.effective_temperature**4,
+            mixing_length=iteration_setup.convection.mixing_length,
+            rosseland_table=temperature_correction.rosseland_opacity_table,
+            overshoot_weight=iteration_setup.convection.overshoot_weight,
+            zero_top_layer_count=(
+                int(iteration_setup.convection.zero_top_layer_count)
+                if int(iteration_setup.convection.zero_top_layer_count) > 0
+                else 36
+            ),
+        )
+        convection_flux = convection_diagnostics.convective_flux
+        convection_velocity = convection_diagnostics.convective_velocity
+    remapped = remap_finalized_iteration_state(
+        finalization,
+        convective_flux=convection_flux,
+        convective_velocity=convection_velocity,
+        completed_iterations=iteration_index,
+    )
+    iteration_timing["remap_seconds"] = time.perf_counter() - stage_start_time
+    carry.remapped = remapped
+    carry.previous_rosseland_table = temperature_correction.rosseland_opacity_table
+    carry.previous_surface_radiation_pressure_constant = (
+        radiative_pressure.surface_radiation_pressure_constant
+    )
+    deep_layer_change = deep_layer_relative_temperature_change(
+        iteration_setup.atmosphere.temperature,
+        remapped.atmosphere.temperature,
+    )
+    all_layer_change = max_normalized_column_delta(
+        iteration_setup.atmosphere.temperature,
+        remapped.atmosphere.temperature,
+        floor=1.0,
+        symmetric=True,
+    )
+    iteration_absolute_flux_error_percent = np.abs(
+        remapped.finalization.temperature_correction_result.flux_error_percent
+    )
+    iteration_timing.update(
+        {
+            "deep_layer_relative_temperature_change": float(deep_layer_change),
+            "all_layer_relative_temperature_change": float(all_layer_change),
+            "median_absolute_flux_error_percent": float(
+                np.median(iteration_absolute_flux_error_percent)
+            ),
+            "p95_absolute_flux_error_percent": float(
+                np.percentile(iteration_absolute_flux_error_percent, 95.0)
+            ),
+            "maximum_absolute_flux_error_percent": float(
+                np.max(iteration_absolute_flux_error_percent)
+            ),
+        }
+    )
+    return SingleIterationResult(
+        carry=carry,
+        remapped=remapped,
+        opacity=opacity,
+        transfer=transfer,
+        deep_layer_relative_temperature_change=deep_layer_change,
+        all_layer_relative_temperature_change=all_layer_change,
+        timing=iteration_timing,
+        opacity_recomputed=bool(recompute_opacity),
+    )
 
 
 def prepare_population_state(
@@ -683,6 +1113,7 @@ def prepare_opacity_state(
     )
     opacity_wavelength_grid_nm, frequency_weights = build_opacity_sampling_grid(
         setup.effective_temperature,
+        frequency_grid_stride=setup.opacity_frequency_grid_stride,
     )
     opacity_frequency_hz = 2.99792458e17 / np.maximum(
         opacity_wavelength_grid_nm,
@@ -1175,6 +1606,7 @@ def finalize_transfer_state(
             else turbulent_pressure
         ),
         surface_gravity_cgs=setup.surface_gravity_cgs,
+        temperature_correction_damping=setup.temperature_correction_damping,
     )
     if correction_result is None:
         raise RuntimeError("the final temperature correction returned no result")
@@ -1602,6 +2034,16 @@ def _copy_iteration_atmosphere(
 
 
 def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
+    """Run the exact atmosphere solver on the unchanged production path."""
+
+    return _run_atmosphere_model(config)
+
+
+def _run_atmosphere_model(
+    config: AtmosphereConfig,
+    *,
+    after_iteration_hook: AfterIterationHook | None = None,
+) -> AtmosphereRunResult:
     """Run the pykurucz-aligned exact atmosphere solver.
 
     The current product runner covers fixed continuum-only and standard atomic
@@ -1618,21 +2060,8 @@ def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
     setup = resolve_run_setup(config)
     setup_seconds = time.perf_counter() - setup_start_time
     _require_supported_run_setup(setup)
+    carry = initialize_iteration_carry(setup)
     remapped: IterationRemap | None = None
-    previous_rosseland_table: RosselandOpacityTable | None = None
-    previous_surface_radiation_pressure_constant = float(
-        setup.surface_radiation_pressure_constant
-    )
-    molecular_thermal_energy_reference = np.asarray(
-        setup.atmosphere.thermal_energy_erg,
-        dtype=np.float64,
-    ).copy()
-    iteration_itemp = 0
-    temperature_correction_state = initialize_temperature_correction_state(
-        setup.atmosphere.layers,
-    )
-    selected_line_catalog: SelectedLineCatalog | None = None
-    transition_line_catalog: LineTransitionCatalog | None = None
     opacity: OpacityState | None = None
     transfer: TransferAccumulation | None = None
     completed_iterations = 0
@@ -1641,165 +2070,29 @@ def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
     last_deep_layer_relative_temperature_change = float("inf")
     last_all_layer_relative_temperature_change = float("inf")
     iteration_timings: list[dict[str, float | int]] = []
+    after_iteration_diagnostics: dict[str, dict[str, Any]] = {}
 
     for iteration_index in range(1, int(setup.iterations) + 1):
         iteration_start_time = time.perf_counter()
-        iteration_timing: dict[str, float | int] = {"iteration": int(iteration_index)}
         _progress(f"iteration {iteration_index}/{int(setup.iterations)}: start")
         completed_iterations = iteration_index
-        iteration_itemp += iteration_index
-        stage_start_time = time.perf_counter()
-        if remapped is None:
-            iteration_atmosphere = _copy_iteration_atmosphere(setup.atmosphere)
-        else:
-            gas_pressure = remapped.atmosphere.gas_pressure
-            if setup.pressure_iteration_enabled:
-                gas_pressure = integrate_hydrostatic_pressure(
-                    remapped.atmosphere,
-                    surface_gravity_cgs=setup.surface_gravity_cgs,
-                    integrated_radiation_pressure=remapped.integrated_radiation_pressure,
-                    turbulent_pressure=remapped.turbulent_pressure,
-                )
-            iteration_atmosphere = _copy_iteration_atmosphere(
-                remapped.atmosphere,
-                gas_pressure=gas_pressure,
-            )
-
-        iteration_setup = replace(
-            setup,
-            atmosphere=iteration_atmosphere,
-            surface_radiation_pressure_constant=previous_surface_radiation_pressure_constant,
-        )
-        iteration_timing["prepare_iteration_seconds"] = (
-            time.perf_counter() - stage_start_time
-        )
-        stage_start_time = time.perf_counter()
-        population = prepare_population_state(
-            config,
-            temperature_iteration_index=iteration_itemp,
-            setup=iteration_setup,
-            molecular_thermal_energy_erg=molecular_thermal_energy_reference,
-        )
-        iteration_timing["population_seconds"] = time.perf_counter() - stage_start_time
-        _progress(f"iteration {iteration_index}/{int(setup.iterations)}: opacity")
-        stage_start_time = time.perf_counter()
-        opacity = prepare_opacity_state(
-            config,
-            population_state=population,
-            temperature_iteration_index=iteration_itemp,
-            rosseland_table=previous_rosseland_table,
-            selected_line_catalog=selected_line_catalog,
-            transition_line_catalog=transition_line_catalog,
-        )
-        selected_line_catalog = opacity.selected_line_catalog
-        transition_line_catalog = opacity.transition_line_catalog
-        iteration_timing["opacity_seconds"] = time.perf_counter() - stage_start_time
-        _progress(f"iteration {iteration_index}/{int(setup.iterations)}: transfer")
-        stage_start_time = time.perf_counter()
-        transfer = accumulate_transfer_state(
-            opacity,
-            temperature_correction_state=temperature_correction_state,
-        )
-        iteration_timing["transfer_seconds"] = time.perf_counter() - stage_start_time
-        _progress(f"iteration {iteration_index}/{int(setup.iterations)}: finalization")
-        stage_start_time = time.perf_counter()
-        finalization = finalize_transfer_state(
-            transfer,
-            iteration_index=iteration_index,
-            temperature_iteration_seed=iteration_itemp * 10,
-            convection_enabled=setup.convection.enabled,
-            molecular_convection_thermal_tracks_perturbation=bool(
-                config.molecular_convection_thermal_tracks_perturbation
-            ),
-        )
-        iteration_timing["finalization_seconds"] = (
-            time.perf_counter() - stage_start_time
-        )
-        stage_start_time = time.perf_counter()
-        total_pressure = (
-            iteration_setup.surface_gravity_cgs * iteration_setup.atmosphere.column_mass
-            + float(iteration_setup.surface_radiation_pressure_constant)
-        )
-        radiative_pressure = finalization.radiative_pressure_state
-        temperature_correction = transfer.temperature_correction_state
-        convection_flux = None
-        convection_velocity = None
-        if finalization.convection_result is not None:
-            convection_flux = finalization.convection_result.convective_flux
-            convection_velocity = finalization.convection_result.convective_velocity
-        else:
-            convection_diagnostics = compute_disabled_convection_diagnostics(
-                column_mass=iteration_setup.atmosphere.column_mass,
-                rosseland_optical_depth=finalization.rosseland_optical_depth,
-                temperature_k=iteration_setup.atmosphere.temperature,
-                gas_pressure=population.runtime_state.gas_pressure,
-                mass_density=population.runtime_state.mass_density,
-                rosseland_opacity=finalization.rosseland_opacity,
-                absolute_radiation_pressure=(
-                    radiative_pressure.absolute_radiation_pressure
-                ),
-                total_pressure=total_pressure,
-                surface_gravity_cgs=iteration_setup.surface_gravity_cgs,
-                target_integrated_eddington_flux=5.6697e-5
-                / 12.5664
-                * iteration_setup.effective_temperature**4,
-                mixing_length=iteration_setup.convection.mixing_length,
-                rosseland_table=temperature_correction.rosseland_opacity_table,
-                overshoot_weight=iteration_setup.convection.overshoot_weight,
-                zero_top_layer_count=(
-                    int(iteration_setup.convection.zero_top_layer_count)
-                    if int(iteration_setup.convection.zero_top_layer_count) > 0
-                    else 36
-                ),
-            )
-            convection_flux = convection_diagnostics.convective_flux
-            convection_velocity = convection_diagnostics.convective_velocity
-        remapped = remap_finalized_iteration_state(
-            finalization,
-            convective_flux=convection_flux,
-            convective_velocity=convection_velocity,
-            completed_iterations=iteration_index,
-        )
-        iteration_timing["remap_seconds"] = time.perf_counter() - stage_start_time
-        stage_start_time = time.perf_counter()
-        previous_rosseland_table = temperature_correction.rosseland_opacity_table
-        previous_surface_radiation_pressure_constant = (
-            radiative_pressure.surface_radiation_pressure_constant
-        )
+        step = run_single_iteration(config, setup, carry, iteration_index)
+        if after_iteration_hook is not None:
+            hook_result = after_iteration_hook(iteration_index, setup, step)
+            if hook_result is not None:
+                after_iteration_diagnostics[str(iteration_index)] = dict(hook_result)
+        carry = step.carry
+        remapped = step.remapped
+        opacity = step.opacity
+        transfer = step.transfer
         last_deep_layer_relative_temperature_change = (
-            deep_layer_relative_temperature_change(
-                iteration_setup.atmosphere.temperature,
-                remapped.atmosphere.temperature,
-            )
+            step.deep_layer_relative_temperature_change
         )
-        last_all_layer_relative_temperature_change = max_normalized_column_delta(
-            iteration_setup.atmosphere.temperature,
-            remapped.atmosphere.temperature,
-            floor=1.0,
-            symmetric=True,
+        last_all_layer_relative_temperature_change = (
+            step.all_layer_relative_temperature_change
         )
-        iteration_absolute_flux_error_percent = np.abs(
-            remapped.finalization.temperature_correction_result.flux_error_percent
-        )
-        iteration_timing.update(
-            {
-                "deep_layer_relative_temperature_change": float(
-                    last_deep_layer_relative_temperature_change
-                ),
-                "all_layer_relative_temperature_change": float(
-                    last_all_layer_relative_temperature_change
-                ),
-                "median_absolute_flux_error_percent": float(
-                    np.median(iteration_absolute_flux_error_percent)
-                ),
-                "p95_absolute_flux_error_percent": float(
-                    np.percentile(iteration_absolute_flux_error_percent, 95.0)
-                ),
-                "maximum_absolute_flux_error_percent": float(
-                    np.max(iteration_absolute_flux_error_percent)
-                ),
-            }
-        )
+        iteration_timing = step.timing
+        stage_start_time = time.perf_counter()
         temperature_change_within_limit = temperature_changes_within_limits(
             deep_layer_change=last_deep_layer_relative_temperature_change,
             all_layer_change=last_all_layer_relative_temperature_change,
@@ -1810,17 +2103,29 @@ def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
                 setup.maximum_all_layer_relative_temperature_change
             ),
         )
-        if (
-            setup.enable_convergence_stop
-            and iteration_index >= int(setup.minimum_iterations_before_convergence)
-            and temperature_change_within_limit
-        ):
-            consecutive_converged_iterations += 1
-        else:
-            consecutive_converged_iterations = 0
-        if setup.enable_convergence_stop and consecutive_converged_iterations >= int(
-            setup.required_consecutive_converged_iterations
-        ):
+        # The opacity-lagging invariant -- convergence is never declared off a
+        # lagged iteration -- is enforced inside evaluate_convergence_stop.
+        # With lagging off, step.opacity_recomputed is always True and the
+        # decision is branch-for-branch the historical one.
+        stop_decision = evaluate_convergence_stop(
+            enable_convergence_stop=bool(setup.enable_convergence_stop),
+            iteration_index=iteration_index,
+            minimum_iterations_before_convergence=int(
+                setup.minimum_iterations_before_convergence
+            ),
+            required_consecutive_converged_iterations=int(
+                setup.required_consecutive_converged_iterations
+            ),
+            temperature_change_within_limit=temperature_change_within_limit,
+            opacity_recomputed=bool(step.opacity_recomputed),
+            consecutive_converged_iterations=consecutive_converged_iterations,
+        )
+        consecutive_converged_iterations = (
+            stop_decision.consecutive_converged_iterations
+        )
+        if stop_decision.force_exact_opacity:
+            carry.force_exact_opacity = True
+        if stop_decision.converged:
             converged = True
             iteration_timing["convergence_seconds"] = (
                 time.perf_counter() - stage_start_time
@@ -1862,6 +2167,7 @@ def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
         "supported_branch": supported_branch,
         "layer_count": int(setup.atmosphere.layers),
         "frequency_count": int(opacity.opacity_frequency_hz.size),
+        "opacity_frequency_grid_stride": int(setup.opacity_frequency_grid_stride),
         "frequency_start_index": int(transfer.frequency_start_index),
         "frequency_stop_index": int(transfer.frequency_stop_index),
         "line_selection_enabled": bool(setup.opacity_flags[14]),
@@ -1903,6 +2209,33 @@ def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
         "total_seconds": float(time.perf_counter() - run_start_time),
         "iteration_timings": iteration_timings,
     }
+    if setup.temperature_correction_damping != 1.0:
+        diagnostics["temperature_correction_damping"] = float(
+            setup.temperature_correction_damping
+        )
+    if setup.enable_opacity_lagging:
+        # Only added when lagging is on; the default diagnostics payload keeps
+        # exactly the keys it had before this feature existed.
+        exact_opacity_iterations = sum(
+            1 for timing in iteration_timings if int(timing.get("opacity_recomputed", 1))
+        )
+        diagnostics["enable_opacity_lagging"] = True
+        diagnostics["opacity_recompute_interval"] = int(
+            setup.opacity_recompute_interval
+        )
+        diagnostics["exact_opacity_iterations"] = int(exact_opacity_iterations)
+        diagnostics["lagged_opacity_iterations"] = int(
+            len(iteration_timings) - exact_opacity_iterations
+        )
+        diagnostics["converged_on_exact_opacity"] = bool(
+            not converged
+            or (
+                bool(iteration_timings)
+                and int(iteration_timings[-1].get("opacity_recomputed", 1)) == 1
+            )
+        )
+    if after_iteration_diagnostics:
+        diagnostics["after_iteration_hooks"] = after_iteration_diagnostics
     result = finalize_remapped_iteration(
         remapped,
         iterations_completed=int(completed_iterations),
@@ -1926,7 +2259,7 @@ def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
                 final_population_setup = replace(setup, atmosphere=remapped.atmosphere)
                 diagnostic_population = prepare_structured_handoff_population_state(
                     config,
-                    temperature_iteration_index=int(iteration_itemp) + 1,
+                    temperature_iteration_index=int(carry.iteration_itemp) + 1,
                     setup=final_population_setup,
                     molecular_thermal_energy_erg=remapped.atmosphere.thermal_energy_erg,
                 )

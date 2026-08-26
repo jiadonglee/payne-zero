@@ -1,0 +1,1009 @@
+{
+ "macros": {
+  "NOracleElectronDensity": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{5.67\\times10^{-4}}",
+   "value": 0.000566753931824996
+  },
+  "NOracleGasPressure": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{4.05\\times10^{-4}}",
+   "value": 0.0004048253533098907
+  },
+  "NOracleRadiativeAcceleration": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{8.47\\times10^{-4}}",
+   "value": 0.0008466753210799283
+  },
+  "NOracleRosselandOpacity": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{8.74\\times10^{-4}}",
+   "value": 0.0008739819008586616
+  },
+  "NSixfieldElectronDensity": {
+   "source": "results/production_sixfield_errors.npz",
+   "tex": "\\ensuremath{1.30\\times10^{-2}}",
+   "value": 0.013000715922272199
+  },
+  "NSixfieldGasPressure": {
+   "source": "results/production_sixfield_errors.npz",
+   "tex": "\\ensuremath{1.81\\times10^{-2}}",
+   "value": 0.01812845783873592
+  },
+  "NSixfieldRadiativeAcceleration": {
+   "source": "results/production_sixfield_errors.npz",
+   "tex": "\\ensuremath{3.18\\times10^{-2}}",
+   "value": 0.03178190291371022
+  },
+  "NSixfieldRosselandOpacity": {
+   "source": "results/production_sixfield_errors.npz",
+   "tex": "\\ensuremath{1.43\\times10^{-2}}",
+   "value": 0.014328111586381757
+  },
+  "NTwofieldElectronDensity": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "tex": "\\ensuremath{5.24\\times10^{-3}}",
+   "value": 0.005243691562279999
+  },
+  "NTwofieldGasPressure": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "tex": "\\ensuremath{4.51\\times10^{-3}}",
+   "value": 0.0045110513365736165
+  },
+  "NTwofieldRadiativeAcceleration": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "tex": "\\ensuremath{5.59\\times10^{-3}}",
+   "value": 0.0055859756929968075
+  },
+  "NTwofieldRosselandOpacity": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "tex": "\\ensuremath{5.21\\times10^{-3}}",
+   "value": 0.0052083767655098385
+  },
+  "NanalyticCommon": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "56",
+   "value": 56
+  },
+  "NanalyticCompression": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "361",
+   "value": 361.3777410012412
+  },
+  "NanalyticConstants": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "2\\,407",
+   "value": 2407
+  },
+  "NanalyticConverged": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "57",
+   "value": 57
+  },
+  "NanalyticFailures": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "3",
+   "value": 3
+  },
+  "NanalyticFaster": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "2",
+   "value": 2
+  },
+  "NanalyticIntegerEntries": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "564",
+   "value": 564
+  },
+  "NanalyticIterDifference": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "3.70",
+   "value": 3.6964285714285716
+  },
+  "NanalyticIterMean": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "7.77",
+   "value": 7.771929824561403
+  },
+  "NanalyticIterMedian": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "8.0",
+   "value": 8.0
+  },
+  "NanalyticIterationLimit": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "15",
+   "value": 15
+  },
+  "NanalyticLearnedFaster": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "54",
+   "value": 54
+  },
+  "NanalyticLearnedOnly": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NanalyticMassPenalty": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "5.8",
+   "value": 5.7677829424510625
+  },
+  "NanalyticMassPfive": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "\\ensuremath{8.76\\times10^{-2}}",
+   "value": 0.08758770194312945
+  },
+  "NanalyticOnly": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "1",
+   "value": 1
+  },
+  "NanalyticSerializedFloats": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "2\\,417",
+   "value": 2417
+  },
+  "NanalyticTempPenalty": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "5.1",
+   "value": 5.115521811412512
+  },
+  "NanalyticTempPfive": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "\\ensuremath{1.91\\times10^{-2}}",
+   "value": 0.019141953091258837
+  },
+  "NanalyticTied": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NanalyticTimeoutSeconds": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "900",
+   "value": 900.0
+  },
+  "NanalyticTimeouts": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NanalyticTrainStars": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "40\\,911",
+   "value": 40911
+  },
+  "NanalyticValStars": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "10\\,228",
+   "value": 10228
+  },
+  "NblindCandIters": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "4.12",
+   "value": 4.117021276595745
+  },
+  "NblindCandNonmono": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/summary.json",
+   "tex": "26.8\\%",
+   "value": 0.2676767676767677
+  },
+  "NblindCandUsable": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "190",
+   "value": 190
+  },
+  "NblindFaster": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "138",
+   "value": 138
+  },
+  "NblindMassBlowouts": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "18",
+   "value": 18
+  },
+  "NblindMassLimit": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "\\ensuremath{1.52\\times10^{-2}}",
+   "value": 0.0152
+  },
+  "NblindMassPfive": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "\\ensuremath{2.66\\times10^{-2}}",
+   "value": 0.026563041705438165
+  },
+  "NblindMcnemarP": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "\\ensuremath{1.6\\times10^{-21}}",
+   "value": 1.6092230908944139e-21
+  },
+  "NblindPaired": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "188",
+   "value": 188
+  },
+  "NblindPairedDiffCiHi": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "1.87",
+   "value": 1.872340425531915
+  },
+  "NblindPairedDiffCiLo": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "1.28",
+   "value": 1.2765957446808511
+  },
+  "NblindPairedDiffMean": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "1.57",
+   "value": 1.574468085106383
+  },
+  "NblindPairedDiffMedian": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "1.50",
+   "value": 1.5
+  },
+  "NblindProdIters": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/production_records/production_six_field/records.jsonl",
+   "tex": "5.69",
+   "value": 5.691489361702128
+  },
+  "NblindProdNonmono": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
+   "tex": "53.0\\%",
+   "value": 0.53
+  },
+  "NblindProdUsable": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
+   "tex": "193",
+   "value": 193
+  },
+  "NblindSame": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "32",
+   "value": 32
+  },
+  "NblindSelectionSeed": {
+   "source": "results/sealed_audit_20260811.json",
+   "tex": "20260811",
+   "value": 20260811
+  },
+  "NblindSlower": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "18",
+   "value": 18
+  },
+  "NblindSpecMax": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "tex": "\\ensuremath{1.42\\times10^{-2}}",
+   "value": 0.01418826228125536
+  },
+  "NblindSpecMedian": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "tex": "\\ensuremath{2.03\\times10^{-3}}",
+   "value": 0.0020278158264113444
+  },
+  "NblindSpecOver": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "tex": "25",
+   "value": 25
+  },
+  "NblindStars": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "200",
+   "value": 200
+  },
+  "NblindTempBlowouts": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "6",
+   "value": 6
+  },
+  "NblindTempLimit": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "\\ensuremath{3.74\\times10^{-3}}",
+   "value": 0.00374
+  },
+  "NblindTempPfive": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "\\ensuremath{3.38\\times10^{-3}}",
+   "value": 0.0033804065570876727
+  },
+  "NblindUnionBlowouts": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "tex": "19",
+   "value": 19
+  },
+  "NboxConverged": {
+   "source": "results/baseline_metrics.json",
+   "tex": "85.3\\%",
+   "value": 0.8533333333333334
+  },
+  "NboxFailed": {
+   "source": "results/baseline_metrics.json",
+   "tex": "14.7\\%",
+   "value": 0.14666666666666667
+  },
+  "NboxNonmono": {
+   "source": "results/baseline_metrics.json",
+   "tex": "64\\%",
+   "value": 0.64
+  },
+  "NboxQ": {
+   "source": "results/baseline_metrics.json",
+   "tex": "0.752",
+   "value": 0.7517592214681517
+  },
+  "NboxRecoverable": {
+   "source": "results/baseline_metrics.json",
+   "tex": "69.8\\%",
+   "value": 0.6981891348088531
+  },
+  "NbrokenCount": {
+   "source": "runs/continuity/summary.json",
+   "tex": "325",
+   "value": 325
+  },
+  "NbrokenIters": {
+   "source": "runs/continuity/summary.json",
+   "tex": "19",
+   "value": 19.0
+  },
+  "NbrokenLogg": {
+   "source": "runs/continuity/summary.json",
+   "tex": "2.54",
+   "value": 2.5375733193049843
+  },
+  "NbrokenMetal": {
+   "source": "runs/continuity/summary.json",
+   "tex": "-1.16",
+   "value": -1.1579480061195488
+  },
+  "NcorpusStars": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "52\\,199",
+   "value": 52199
+  },
+  "NderivedLearnedFailures": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.json",
+   "tex": "1",
+   "value": 1
+  },
+  "NderivedLearnedStars": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.json",
+   "tex": "59",
+   "value": 59
+  },
+  "NdevIterMean": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/frozen_blind_policy.json",
+   "tex": "3.77",
+   "value": 3.7666666666666666
+  },
+  "NdevMassPfive": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/profile_dev60.json",
+   "tex": "\\ensuremath{1.19\\times10^{-2}}",
+   "value": 0.011864971492464672
+  },
+  "NdevQualIters": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/frozen_blind_policy.json",
+   "tex": "3.77",
+   "value": 3.7666666666666666
+  },
+  "NdevSelectionSeed": {
+   "source": "results/sealed_audit_20260811.json",
+   "tex": "20260812",
+   "value": 20260812
+  },
+  "NdevSpecOver": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/dev60_solver/spectral_gate.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NdevSpecStars": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/dev60_solver/spectral_gate.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NdevSpecUpper": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/dev60_solver/spectral_gate.json",
+   "tex": "4.9\\%",
+   "value": 0.04870291331009746
+  },
+  "NdevTempPfive": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/profile_dev60.json",
+   "tex": "\\ensuremath{2.06\\times10^{-3}}",
+   "value": 0.0020647090191517727
+  },
+  "NdirectTempPfive": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "\\ensuremath{3.22\\times10^{-3}}",
+   "value": 0.0032229581861618955
+  },
+  "NdirectViolations": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "3",
+   "value": 3
+  },
+  "NevalStars": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NfieldGainHigh": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "tex": "5.7",
+   "value": 5.689588473067562
+  },
+  "NfieldGainLow": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "tex": "2.5",
+   "value": 2.4793059942334565
+  },
+  "NgateBar": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "\\ensuremath{5.0\\times10^{-3}}",
+   "value": 0.005
+  },
+  "NgateResolution": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "20\\,000",
+   "value": 20000.0
+  },
+  "NgateWindowHi": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "900",
+   "value": 900.0
+  },
+  "NgateWindowLo": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "400",
+   "value": 400.0
+  },
+  "NgridLayers": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "80",
+   "value": 80
+  },
+  "NhardFraction": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "33\\%",
+   "value": 0.3333333333333333
+  },
+  "NiidConverged": {
+   "source": "results/baseline_metrics.json",
+   "tex": "99.2\\%",
+   "value": 0.992
+  },
+  "NiidPninety": {
+   "source": "results/baseline_metrics.json",
+   "tex": "8",
+   "value": 8.0
+  },
+  "NiterReduction": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "28\\%",
+   "value": 0.2752705627705627
+  },
+  "NjitterConverged": {
+   "source": "results/convergence_metrics_production_jitter.json",
+   "tex": "93.3\\%",
+   "value": 0.9333333333333333
+  },
+  "NjitterGateMax": {
+   "source": "results/spectral_gate_jitter_control.json",
+   "tex": "\\ensuremath{1.50\\times10^{-2}}",
+   "value": 0.015014898884336159
+  },
+  "NjitterGateMedian": {
+   "source": "results/spectral_gate_jitter_control.json",
+   "tex": "\\ensuremath{3.44\\times10^{-3}}",
+   "value": 0.003439799558893425
+  },
+  "NjitterGateOver": {
+   "source": "results/spectral_gate_jitter_control.json",
+   "tex": "16",
+   "value": 16
+  },
+  "NjitterGateStars": {
+   "source": "results/spectral_gate_jitter_control.json",
+   "tex": "56",
+   "value": 56
+  },
+  "NjitterIterMean": {
+   "source": "results/convergence_metrics_production_jitter.json",
+   "tex": "7.45",
+   "value": 7.446428571428571
+  },
+  "NlearnedConverged": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "56",
+   "value": 56
+  },
+  "NlearnedFailures": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "4",
+   "value": 4
+  },
+  "NlearnedFirstResidual": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "\\ensuremath{2.75\\times10^{-3}}",
+   "value": 0.002746242653768889
+  },
+  "NlearnedGainP": {
+   "source": "runs/paper_physical_seed_20260820/learned/records/learned_reduced_state/records.jsonl",
+   "tex": "0.002",
+   "value": 0.0016120998656406176
+  },
+  "NlearnedGainRho": {
+   "source": "runs/paper_physical_seed_20260820/learned/records/learned_reduced_state/records.jsonl",
+   "tex": "0.41",
+   "value": 0.4118468665449092
+  },
+  "NlearnedGateMax": {
+   "source": "results/paper_physical_seed_20260820/learned/spectral_gate.json",
+   "tex": "\\ensuremath{5.04\\times10^{-3}}",
+   "value": 0.005037001056221235
+  },
+  "NlearnedGateMedian": {
+   "source": "results/paper_physical_seed_20260820/learned/spectral_gate.json",
+   "tex": "\\ensuremath{1.61\\times10^{-3}}",
+   "value": 0.001612164791290699
+  },
+  "NlearnedGateOver": {
+   "source": "results/paper_physical_seed_20260820/learned/spectral_gate.json",
+   "tex": "1",
+   "value": 1
+  },
+  "NlearnedGateStars": {
+   "source": "results/paper_physical_seed_20260820/learned/spectral_gate.json",
+   "tex": "56",
+   "value": 56
+  },
+  "NlearnedHotGain": {
+   "source": "runs/paper_physical_seed_20260820/learned/records/learned_reduced_state/records.jsonl",
+   "tex": "2.4",
+   "value": 2.409090909090909
+  },
+  "NlearnedIterMean": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "4.05",
+   "value": 4.053571428571429
+  },
+  "NlearnedMassPfive": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "\\ensuremath{1.52\\times10^{-2}}",
+   "value": 0.015185679283885882
+  },
+  "NlearnedNonmono": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "18.6\\%",
+   "value": 0.1864406779661017
+  },
+  "NlearnedQ": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "0.547",
+   "value": 0.5473624903875763
+  },
+  "NlearnedReconstructionFailures": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "1",
+   "value": 1
+  },
+  "NlearnedRestGain": {
+   "source": "runs/paper_physical_seed_20260820/learned/records/learned_reduced_state/records.jsonl",
+   "tex": "0.7",
+   "value": 0.6764705882352942
+  },
+  "NlearnedRuntimeFloats": {
+   "source": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "tex": "873\\,450",
+   "value": 873450
+  },
+  "NlearnedSolverFailures": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "3",
+   "value": 3
+  },
+  "NlearnedTempPfive": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "\\ensuremath{3.74\\times10^{-3}}",
+   "value": 0.0037419355829065555
+  },
+  "NmonoTempPfive": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "\\ensuremath{3.74\\times10^{-3}}",
+   "value": 0.0037419355829065555
+  },
+  "NmonoViolations": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NnetDepth": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "4",
+   "value": 4
+  },
+  "NnetEpochs": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "300",
+   "value": 300
+  },
+  "NnetWidth": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "512",
+   "value": 512
+  },
+  "NoracleAtFloor": {
+   "source": "results/paper_physical_seed_20260820/parity/convergence_metrics_reduced_state_parity.json",
+   "tex": "55",
+   "value": 55
+  },
+  "NoracleFirstResidual": {
+   "source": "results/paper_physical_seed_20260820/parity/convergence_metrics_reduced_state_parity.json",
+   "tex": "\\ensuremath{4.20\\times10^{-4}}",
+   "value": 0.00041968010417380106
+  },
+  "NoracleGap": {
+   "source": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "tex": "11",
+   "value": 11.143203605433381
+  },
+  "NoracleGapMax": {
+   "source": "runs/paper_physical_seed_20260820/parity/records/reduced_state_reconstruction/records.jsonl",
+   "tex": "2",
+   "value": 2
+  },
+  "NoracleGapStars": {
+   "source": "runs/paper_physical_seed_20260820/parity/records/reduced_state_reconstruction/records.jsonl",
+   "tex": "5",
+   "value": 5
+  },
+  "NoracleIterMean": {
+   "source": "results/paper_physical_seed_20260820/parity/convergence_metrics_reduced_state_parity.json",
+   "tex": "3.37",
+   "value": 3.3666666666666667
+  },
+  "NoracleReconElectronDensity": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{5.67\\times10^{-4}}",
+   "value": 0.000566753931824996
+  },
+  "NoracleReconGasPressure": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{4.05\\times10^{-4}}",
+   "value": 0.0004048253533098907
+  },
+  "NoracleReconRadiativeAcceleration": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{8.47\\times10^{-4}}",
+   "value": 0.0008466753210799283
+  },
+  "NoracleReconRosselandOpacity": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{8.74\\times10^{-4}}",
+   "value": 0.0008739819008586616
+  },
+  "NprodFailures": {
+   "source": "results/convergence_metrics_production_baseline.json",
+   "tex": "1",
+   "value": 1
+  },
+  "NprodFirstResidual": {
+   "source": "results/convergence_metrics_production_baseline.json",
+   "tex": "\\ensuremath{2.44\\times10^{-3}}",
+   "value": 0.002439355559588621
+  },
+  "NprodIterMean": {
+   "source": "results/convergence_metrics_production_baseline.json",
+   "tex": "5.59",
+   "value": 5.593220338983051
+  },
+  "NprodMassPfive": {
+   "source": "results/convergence_metrics_production_baseline.json",
+   "tex": "\\ensuremath{2.39\\times10^{-2}}",
+   "value": 0.023927095313092485
+  },
+  "NprodNonmono": {
+   "source": "results/convergence_metrics_production_baseline.json",
+   "tex": "53.3\\%",
+   "value": 0.5333333333333333
+  },
+  "NprodQ": {
+   "source": "results/convergence_metrics_production_baseline.json",
+   "tex": "0.656",
+   "value": 0.6562094007284417
+  },
+  "NprodTempPfive": {
+   "source": "results/convergence_metrics_production_baseline.json",
+   "tex": "\\ensuremath{4.02\\times10^{-3}}",
+   "value": 0.004019653948722704
+  },
+  "NredGiantOneSided": {
+   "source": "runs/paper_physical_seed_20260820/learned/spectra/learned_reduced_state/t04096.6_g+0.72_m-1.91_a-0.10_x3.87.npz",
+   "tex": "96.1\\%",
+   "value": 0.9614649485171712
+  },
+  "NresCoarse": {
+   "source": "results/paper_physical_seed_20260820/depth_resolution/convergence_metrics_depth_resolution.json",
+   "tex": "40",
+   "value": 40
+  },
+  "NresCoarseError": {
+   "source": "results/paper_physical_seed_20260820/depth_resolution/convergence_metrics_depth_resolution.json",
+   "tex": "\\ensuremath{3.08\\times10^{-5}}",
+   "value": 3.079479530776917e-05
+  },
+  "NresFinest": {
+   "source": "results/paper_physical_seed_20260820/depth_resolution/convergence_metrics_depth_resolution.json",
+   "tex": "640",
+   "value": 640
+  },
+  "NresFinestError": {
+   "source": "results/paper_physical_seed_20260820/depth_resolution/convergence_metrics_depth_resolution.json",
+   "tex": "\\ensuremath{6.55\\times10^{-9}}",
+   "value": 6.54985666347657e-09
+  },
+  "NrestIters": {
+   "source": "runs/continuity/summary.json",
+   "tex": "10",
+   "value": 10.0
+  },
+  "NrestLogg": {
+   "source": "runs/continuity/summary.json",
+   "tex": "3.28",
+   "value": 3.2750188956499424
+  },
+  "NrestMetal": {
+   "source": "runs/continuity/summary.json",
+   "tex": "-1.02",
+   "value": -1.0230654738084282
+  },
+  "NseedAboveHundredth": {
+   "source": "runs/continuity/summary.json",
+   "tex": "8.33\\%",
+   "value": 0.08331577233280331
+  },
+  "NseedAboveTenth": {
+   "source": "runs/continuity/summary.json",
+   "tex": "0.62\\%",
+   "value": 0.006226172915189946
+  },
+  "NseedMax": {
+   "source": "runs/continuity/summary.json",
+   "tex": "1.689",
+   "value": 1.6888543187593852
+  },
+  "NseedMedian": {
+   "source": "runs/continuity/summary.json",
+   "tex": "\\ensuremath{7.37\\times10^{-4}}",
+   "value": 0.0007369158413297328
+  },
+  "NseedPninetynine": {
+   "source": "runs/continuity/summary.json",
+   "tex": "0.0739",
+   "value": 0.07385051868663357
+  },
+  "NseedSpearman": {
+   "source": "source_data_files/atmosphere_emulator/five_label/strict_truth_52199.npz",
+   "tex": "-0.043",
+   "value": -0.043393603398272945
+  },
+  "NsixAtFloor": {
+   "source": "results/paper_physical_seed_20260820/parity/convergence_metrics_reduced_state_parity.json",
+   "tex": "57",
+   "value": 57
+  },
+  "NsixIterMean": {
+   "source": "results/paper_physical_seed_20260820/parity/convergence_metrics_reduced_state_parity.json",
+   "tex": "3.23",
+   "value": 3.2333333333333334
+  },
+  "NsyncMaxPasses": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "8",
+   "value": 8
+  },
+  "NsyncPasses": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "3",
+   "value": 3
+  },
+  "NsyncPressureTolerance": {
+   "source": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "tex": "\\ensuremath{1.00\\times10^{-3}}",
+   "value": 0.001
+  },
+  "NtrainSeed": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "20260807",
+   "value": 20260807
+  },
+  "NtrainStars": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "41\\,867",
+   "value": 41867
+  },
+  "NtruthGateFactor": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "60",
+   "value": 60.415095298002775
+  },
+  "NtruthGateMax": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "\\ensuremath{1.39\\times10^{-3}}",
+   "value": 0.001394185164881434
+  },
+  "NtruthGateMedian": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "\\ensuremath{8.28\\times10^{-5}}",
+   "value": 8.276077320307218e-05
+  },
+  "NtruthGateOver": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NtruthGateStars": {
+   "source": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NvalStars": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "10\\,272",
+   "value": 10272
+  }
+ },
+ "sources": {
+  "analytic_comparison": {
+   "path": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.json",
+   "sha256": "be85491eb299882f7e87857f4d20ca980ca5596016607ec951bf79b06eba8306"
+  },
+  "analytic_comparison_arrays": {
+   "path": "results/paper_physical_seed_20260820/analytic/paper_dev60_comparison.npz",
+   "sha256": "dc23615a5f16a4db8d795733482015686a3b189b11ee738504a79d633da5f42c"
+  },
+  "analytic_parameter_asset": {
+   "path": "results/analytic_initializer/compact_profile_parameters_parity.npz",
+   "sha256": "482fb703bb8eda6574eb1bb8cf8fa71eba2691e4ef63d9997777e1f6ac114767"
+  },
+  "baseline": {
+   "path": "results/baseline_metrics.json",
+   "sha256": "af12afecb48a3cef7cf5df06620ee465e044a6f45276210ab85285beb5ede1d4"
+  },
+  "blind": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/summary.json",
+   "sha256": "d8cb052dd5e1b5cf46a1fded7a2b5f4ccffa0231c716377b0a256e3fd241f324"
+  },
+  "blind_cand_records": {
+   "path": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "sha256": "95fb54caea81fffa59f8129f901b5b9ad4469996d469f30683e0c38bf36d3212"
+  },
+  "blind_manifest": {
+   "path": "results/sealed_audit_20260811.json",
+   "sha256": "a5f239b30ef637d21f16b9644ddc74bc22fbc227302d6af3774529150a3a284d"
+  },
+  "blind_prod_records": {
+   "path": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/production_records/production_six_field/records.jsonl",
+   "sha256": "a793ad08c15f27c1e24920eb057654eb844deb672dd2e8187c11872b89ba676a"
+  },
+  "blind_production": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
+   "sha256": "7e6d6460c98104318269268459d0cd88eaf9467d97b9c91b28528e653b247b20"
+  },
+  "blind_profile": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
+   "sha256": "96d63bb5c52ea0bb084eb1b66d5de59874e485fd174e42da90808f47737a8691"
+  },
+  "blind_spectra": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "sha256": "466f6a33e3150eb6ffdfa93424b7353db3b3895a3b7bdfeff1dad760a78e93ee"
+  },
+  "continuity": {
+   "path": "runs/continuity/summary.json",
+   "sha256": "4227500922ec1de3755155b157d2a3206b13cf64cacc7c6ea05076a460d00d5a"
+  },
+  "corpus": {
+   "path": "source_data_files/atmosphere_emulator/five_label/strict_truth_52199.npz",
+   "sha256": "092cf3c4a0c6075c2dde05803bec62b1d0eb6ec36d5794fe400870c505b44284"
+  },
+  "derived_learned": {
+   "path": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz",
+   "sha256": "96e186c347d8afd51f957e5aa9eabba09ca1eac1b5482c571c158c31d799636e"
+  },
+  "derived_learned_summary": {
+   "path": "results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.json",
+   "sha256": "ccc7cf3b600a08294b8ea9a5c3f95100f840c0e42cfdf03f7e440ef2df29e579"
+  },
+  "derived_production": {
+   "path": "results/production_sixfield_errors.npz",
+   "sha256": "e7c8c06af066414a7f5f1fbc7afe40d3cdcb23e3a725db9554cc55c0bdbee9b3"
+  },
+  "dev60_gate": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/dev60_solver/spectral_gate.json",
+   "sha256": "0db76dcc41e607fd1989286b32f5da19afcda23fbdd93bbcc4e61689a28ab506"
+  },
+  "dev60_profile": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/profile_dev60.json",
+   "sha256": "aa12dbbbbf7a7eb4ca2a6a75052b70761b738791a64abf86cb6a91d36f69a52a"
+  },
+  "frozen_policy": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/frozen_blind_policy.json",
+   "sha256": "1e41baef7f529fab11c1db399998b9a2776a1123f0f6dcefc79c9a53b0435488"
+  },
+  "gate_jitter": {
+   "path": "results/spectral_gate_jitter_control.json",
+   "sha256": "63caa24220975953fd3232ea687773847bd7e19433d26c28953ea570b448e70f"
+  },
+  "gate_learned": {
+   "path": "results/paper_physical_seed_20260820/learned/spectral_gate.json",
+   "sha256": "3e5475d6ebea196cbb7636e754dafa493062843b0d3c2ae7ed7f37b6d9bd4b27"
+  },
+  "gate_truth": {
+   "path": "results/paper_physical_seed_20260820/parity/spectral_gate_truth_mT.json",
+   "sha256": "7f7bc438772a731ac25069c8e71a15c60dec1b75a1c2259c363139f59dbf2d3c"
+  },
+  "giant_learned": {
+   "path": "runs/paper_physical_seed_20260820/learned/spectra/learned_reduced_state/t04096.6_g+0.72_m-1.91_a-0.10_x3.87.npz",
+   "sha256": "f56f9a210040addecd37069210bfe86f12a7824504e5a716cb1d243b68715463"
+  },
+  "giant_released": {
+   "path": "runs/paper_physical_seed_20260820/learned/spectra/production_six_field/t04096.6_g+0.72_m-1.91_a-0.10_x3.87.npz",
+   "sha256": "0143553ddb0bbf84f004ad0e47fb082d69985710bd77da442ad11b7e74a0626f"
+  },
+  "jitter": {
+   "path": "results/convergence_metrics_production_jitter.json",
+   "sha256": "ba027e1e38107d7952b17b975902e14ba959c47d0a9e12f1cc48d8eb5dfa8eb4"
+  },
+  "learned": {
+   "path": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+   "sha256": "5e0238098f5811de7738d6e8fcf5b9eb5d94fe85a8fa9505ad3513769179e27e"
+  },
+  "learned_checkpoint_asset": {
+   "path": "artifacts/reduced_state_emulator/checkpoint_monotone.pt",
+   "sha256": "f85a860b27975acd6af8188ba17f6101521d42ab1040095caf5713c1ee0ae1e0"
+  },
+  "learned_records": {
+   "path": "runs/paper_physical_seed_20260820/learned/records/learned_reduced_state/records.jsonl",
+   "sha256": "504ea0990eb8b86997bb2526886de73ee89774e83f24b8d6fc05c39d317b3f8f"
+  },
+  "parity": {
+   "path": "results/paper_physical_seed_20260820/parity/convergence_metrics_reduced_state_parity.json",
+   "sha256": "32e9245254ba2f3af43fe454cdd0337892a1b734741f3fd4b1964790c2f3a1f2"
+  },
+  "parity_reduced_records": {
+   "path": "runs/paper_physical_seed_20260820/parity/records/reduced_state_reconstruction/records.jsonl",
+   "sha256": "0b7866c0e21c50e2d0721a4362269f0f7b6b32e2f09861efadb347a80702fa24"
+  },
+  "parity_truth_records": {
+   "path": "runs/paper_physical_seed_20260820/parity/records/full_truth_oracle/records.jsonl",
+   "sha256": "13ffd28b8c57b451fa1e826a25dbf8f7c61d8cce5b6264167b19177a1cd79486"
+  },
+  "physical_campaign": {
+   "path": "results/paper_physical_seed_20260820/campaign.json",
+   "sha256": "4a185ae697ebb7f922757f26f2720dfab89c2fe764fa802af373bc47ca56cc78"
+  },
+  "production": {
+   "path": "results/convergence_metrics_production_baseline.json",
+   "sha256": "27b80a1a68ae664f47017851157538f81c2395fe1836070e0025b9f06352b84b"
+  },
+  "production_records": {
+   "path": "runs/reduced_state_emulator/production_six_field/records.jsonl",
+   "sha256": "ba59f5414b40a053284d4e4973c57502049ba45b4ed62d2fd4b3c553218e9545"
+  },
+  "recon": {
+   "path": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "sha256": "c1cd6398242b3cb227d5798e1ec4fe45b6e3bdb2b4530614879dba650a8ff6fb"
+  },
+  "resolution": {
+   "path": "results/paper_physical_seed_20260820/depth_resolution/convergence_metrics_depth_resolution.json",
+   "sha256": "a9b82016e9baef3b9f013c5450ec4c38eacfa03ffe285d6c3a55f9ff731770da"
+  },
+  "training": {
+   "path": "results/reduced_state_emulator_training.json",
+   "sha256": "54c6f293c196a3dd7a782ef3607c8063ba0a1bc1c8e250d881c4ed0c0f46c716"
+  }
+ }
+}

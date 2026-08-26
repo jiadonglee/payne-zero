@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 
 
@@ -99,3 +101,79 @@ def temperature_changes_within_limits(
         maximum_all_layer_change
     )
     return bool(deep_ok and all_ok)
+
+
+@dataclass(frozen=True)
+class ConvergenceStopDecision:
+    """What one iteration's residual does to the solver's stop state."""
+
+    consecutive_converged_iterations: int
+    converged: bool
+    force_exact_opacity: bool
+
+
+def evaluate_convergence_stop(
+    *,
+    enable_convergence_stop: bool,
+    iteration_index: int,
+    minimum_iterations_before_convergence: int,
+    required_consecutive_converged_iterations: int,
+    temperature_change_within_limit: bool,
+    opacity_recomputed: bool,
+    consecutive_converged_iterations: int,
+) -> ConvergenceStopDecision:
+    """Apply the stop policy to one completed iteration.
+
+    THE OPACITY-LAGGING INVARIANT, enforced here and nowhere else:
+
+        ``converged`` is never ``True`` for an iteration with
+        ``opacity_recomputed=False``.
+
+    A lagged iteration measured its temperature change against an opacity
+    operator built from an *earlier* atmosphere, so its residual is not
+    evidence about the true fixed point. The policy therefore treats a lagged
+    iteration as unable to create confidence but still able to destroy it:
+
+    - it never increments ``consecutive_converged_iterations`` and never sets
+      ``converged``;
+    - it still resets the counter when the state is visibly still moving,
+      because a large change is real information regardless of which operator
+      produced it;
+    - when it *looks* converged the counter is left untouched and
+      ``force_exact_opacity`` is raised, which pushes the next iteration back
+      onto exact opacity so the candidate fixed point is re-tested against the
+      true operator instead of being accepted or discarded on stale evidence.
+
+    With opacity lagging off, ``opacity_recomputed`` is always ``True`` and
+    this reduces, branch for branch, to the historical stop policy.
+    """
+
+    if not opacity_recomputed:
+        if not temperature_change_within_limit:
+            return ConvergenceStopDecision(
+                consecutive_converged_iterations=0,
+                converged=False,
+                force_exact_opacity=False,
+            )
+        return ConvergenceStopDecision(
+            consecutive_converged_iterations=int(consecutive_converged_iterations),
+            converged=False,
+            force_exact_opacity=True,
+        )
+
+    if (
+        enable_convergence_stop
+        and int(iteration_index) >= int(minimum_iterations_before_convergence)
+        and temperature_change_within_limit
+    ):
+        consecutive = int(consecutive_converged_iterations) + 1
+    else:
+        consecutive = 0
+    converged = bool(enable_convergence_stop) and consecutive >= int(
+        required_consecutive_converged_iterations
+    )
+    return ConvergenceStopDecision(
+        consecutive_converged_iterations=consecutive,
+        converged=converged,
+        force_exact_opacity=False,
+    )

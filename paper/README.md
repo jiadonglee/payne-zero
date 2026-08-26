@@ -1,0 +1,150 @@
+# Payne Zero Project II — manuscript
+
+A&A manuscript on the reduced `(m,T)(τ)` atmosphere state. Everything here is
+generated from result artifacts already in the repository; no experiment in this
+directory recomputes physics.
+
+## Build
+
+```bash
+cd /Users/jdli/Project/payne-zero
+
+# numbers.tex + tables/*.tex + numbers.json, straight from results/*.json
+# (PYTHONPATH is needed: one quantity is recomputed with continuity.closure)
+PYTHONPATH=. .venv/bin/python \
+  -m experiments.analytic_initializer.build_paper_dev60_comparison
+PYTHONPATH=. .venv/bin/python paper/collect_numbers.py
+
+# figs/*.pdf at A&A column widths.  The figure code lives in
+# payne_zero_figures/paper/, alongside the lab-report plotting it shares a
+# style and loader layer with; see payne_zero_figures/README.md.
+#
+# This step needs matplotlib, which .venv does not carry; .venv is the solver
+# environment and is required for the step above because one quantity is
+# recomputed with numba kernels.
+MPLCONFIGDIR=/tmp/mpl /Users/jdli/anaconda3/bin/python \
+  -m payne_zero_figures.paper.figures
+
+cd paper && latexmk -pdf main.tex
+```
+
+The current warm-start flowchart in Fig.~\ref{fig:state} is
+`paper/figs/fig_two_warm_starts_one_solver.png`. The earlier Canva export
+(`DAHSqwMV_kw`) and generated `fig_state.pdf` remain as unused provenance
+artifacts.
+
+## Why the numbers are generated
+
+`notes/reduced_state_progress.md` is a live lab notebook. Its own header warns
+that the accuracy and spectral numbers in its upper sections "describe
+superseded models", and it interleaves at least eight rejected candidate
+checkpoints with the ones that stand. Transcribing numbers from that prose into
+a manuscript silently mixes checkpoints.
+
+So `collect_numbers.py` reads the JSON and NPZ artifacts directly and emits both
+the inline macros and the complete table bodies, each recorded in `numbers.json`
+with its source path and SHA-256. The provenance appendix of the paper is that
+record.
+
+```bash
+PYTHONPATH=. .venv/bin/python paper/collect_numbers.py --check  # non-zero on drift
+```
+
+One consequence worth knowing: the derived-field comparison table is built from
+`results/paper_physical_seed_20260820/learned/learned_reduced_state_derived_errors.npz`,
+**not** from
+`results/field_consistency_dev.json`. The latter scores a different, later
+checkpoint (`physical_fitall_hard_cpu`), and using it alongside the solver
+comparison would put two different networks in one results section.
+
+The main-text initializer comparison intentionally includes only the released
+baseline, the learned two-field initializer, and the frozen sealed-test
+candidate. The analytic arm, resolution controls, additional diagnostic
+figures, hashes, and training details are retained in the manuscript appendix
+and in the repository records. Each generated table caption identifies the
+asset used:
+
+The representative spectrum figure in the main text is a separate
+representation test. It compares spectra synthesized after restarting from the
+full six-field truth with spectra synthesized after discarding four fields,
+rebuilding them from the same exact `(m,T)` coordinates, and restarting the
+unchanged solver. It reads the 60+60 completed parity spectra under
+`runs/paper_physical_seed_20260820/parity/spectra/`; it is not a learned-network
+comparison.
+
+| where | model |
+| --- | --- |
+| learned-profile, solver, and spectral results | the 4×512 monotone two-field network |
+| analytic comparison table and figure | the analytic-parity formula: 2,407 logical floats; current NPZ has 2,417 float and 564 structural integer entries |
+| sealed blind-test section | the 2026-08-19 post-opening physical-seed rerun of the previously sealed 200-star holdout (`results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed`); this confirms runtime seed independence but is not a new blind claim |
+
+This separation is editorial: the appendix preserves the complete audit trail,
+while the main text carries only the comparisons needed for the scientific
+argument.
+
+## Physical-seed paper refresh
+
+All development, representation, resolution, and spectral artifacts affected by
+rematerialization are regenerated under
+`results/paper_physical_seed_20260820/` and
+`runs/paper_physical_seed_20260820/`. The frozen two-field prediction is
+unchanged; the candidate arm no longer queries the six-field checkpoint at
+inference, while the frozen production arm is reused as the comparison.
+
+The resumable stage driver is:
+
+```bash
+PYTHONPATH=. .venv-linux/bin/python \
+  experiments/reduced_state_emulator/run_paper_physical_seed_refresh.py \
+  --workers 24
+```
+
+The completed `campaign.json` records the host, source/output hashes, thread
+limits, and the explicit reuse of the 2026-08-19 blind result.
+
+On the refreshed development-60 run, 59 stars rematerialize within the
+eight-pass, `1e-3` dex pressure tolerance and 56 produce converged learned-arm
+products. The missing rematerialization (corpus index `6152`) is retained in
+`learned_reduced_state_derived_errors.json` and counted as a candidate failure;
+dependent-field distributions are conditional on the 59 successful
+rematerializations. A spectral-gate exit status of 1 records a scientific gate
+failure and is not an execution error.
+
+The analytic-parity comparison is a third experimental arm. It uses the
+unchanged parameter asset and a dedicated solver run on the same
+development-60 indices as the monotone network:
+
+```bash
+PYTHONPATH=. .venv/bin/python \
+  experiments/analytic_initializer/run_h2_solver_funnel.py \
+  --arm parity --count 60 \
+  --indices-from \
+  results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json \
+  --per-star-timeout 900 \
+  --resume \
+  --out results/analytic_initializer/paper_dev60_parity.json
+```
+
+The run writes physics results; `build_paper_dev60_comparison` only joins those
+frozen records to the learned products and emits the JSON/NPZ used by the table
+and figure. The analytic arm has no spectral or sealed-blind result.
+
+## `aa.cls` provenance
+
+A&A distributes its LaTeX package from `aanda.org`, which refuses automated
+downloads (HTTP 403), and it is not on CTAN. The `aa.cls` (v9.0) and `aa.bst`
+here were taken from the `bardsoftware/template-AA` mirror on GitHub.
+
+**Before submission, replace both with the current release (v9.4, March 2026)
+from <https://www.aanda.org/for-authors/latex-issues>.**
+
+## Open items before submission
+
+- Author list, affiliations and acknowledgements are placeholders — see the
+  `TODO` markers at the top of `main.tex`.
+- `refs.bib`: the page number for Lucy (1964) in SAO Special Report 167 could
+  not be confirmed from a primary source and is omitted rather than guessed.
+  Confirm it against ADS and add a `pages` field.
+- The 400-star calibration campaign and the grey-start control launched
+  2026-08-12 are deliberately absent; they were still running. They belong in a
+  revision, not here.

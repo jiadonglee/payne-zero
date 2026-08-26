@@ -49,6 +49,24 @@ class AtmosphereConfig:
     maximum_deep_layer_relative_temperature_change: float = 5.0e-4
     maximum_all_layer_relative_temperature_change: float | None = None
     molecular_convection_thermal_tracks_perturbation: bool = True
+    # Keep every ``stride``-th point of the 30000-point opacity-sampling grid
+    # (``continuum_opacity.build_opacity_sampling_grid``). The opacity stage
+    # costs time linear in the number of sampled points, so this trades
+    # frequency resolution for wall time. 1 is the production grid and the only
+    # value that reproduces released results.
+    opacity_frequency_grid_stride: int = 1
+    # Opacity lagging (off by default; the default path is bit-identical to the
+    # historical solver). When enabled, iterations that are not on the recompute
+    # schedule reuse the previous exact iteration's opacity slabs instead of
+    # recomputing them. The convergence stop is never allowed to fire on such an
+    # iteration -- see ``runner.opacity_recompute_scheduled`` and the stop
+    # decision in ``runner._run_atmosphere_model``.
+    enable_opacity_lagging: bool = False
+    opacity_recompute_interval: int = 2
+    # Experimental global damping of the temperature correction. The
+    # production value is 1.0; values below 1.0 are only for solver-policy
+    # experiments and do not change the default path.
+    temperature_correction_damping: float = 1.0
 
 
 DEFAULT_OPACITY_FLAGS = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0]

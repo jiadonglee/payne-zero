@@ -13,3 +13,32 @@ runs/
 results/
 tmp/
 tutorial_output/
+
+.venv/
+.venv-linux/
+
+# Runtime data installed by `payne-zero-install-data`, not source. These are
+# reproducible from the release assets listed in runtime_data_manifest.json.
+atmosphere_emulator/
+atmosphere_tables/
+synthesis_tables/
+source_catalogs/
+
+# Generated training corpus (191 MB). Produced by running the reference solver;
+# its SHA-256 is recorded in every checkpoint and report that consumed it.
+source_data_files/atmosphere_emulator/
+
+# Experiment outputs. `runs/` and `results/` above are the current convention;
+# these four are the pre-`runs/` top-level layout kept for the 2026-08-08/10
+# ablations. All are regenerable and none are referenced by any report.
+artifacts/
+products/
+spectra/
+records/
+logs/
+
+# Generated figures (regenerable via experiments/reduced_state_emulator/make_figures.py)
+figures/
+
+# Working snapshots
+*.zip
