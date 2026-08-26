@@ -8,13 +8,17 @@ handoff with only named physical constants:
   Ca, Mg, and Fe;
 * H-minus bound-free/free-free opacity;
 * hydrogen Balmer/Paschen bound-free opacity;
-* Kramers free-free/bound-free opacity and electron scattering.
+* a Kramers free-free fallback gated by the Saha hydrogen-ionization fraction;
+  the old ungated Kramers bound-free term is deliberately absent.
 
 The law is evaluated in local ``(T, P)`` and keeps opacity positive by summing
 positive components.  The hydrostatic branch integrates the coupled equation
 ``dm/dtau = 1/kappa(T, g*m)`` in ``log(tau), log(m)`` coordinates, so it does
 not use a pressure fixed-point iteration or a fitted polynomial extrapolation.
 The constants are exposed in a dataclass so any later calibration is explicit.
+The H-minus free-free branch is the standard low-order Rosseland estimate
+used in stellar-atmosphere teaching texts.  This is still a warm-start
+candidate, not a replacement for the production opacity tables.
 """
 
 from __future__ import annotations
@@ -61,15 +65,29 @@ class TextbookOpacityConstants:
     magnesium_per_hydrogen_solar: float = 3.98e-5
     iron_per_hydrogen_solar: float = 3.16e-5
 
-    # Opacity cross sections and coefficients.  The H-minus free-free
-    # coefficient is an intentionally low-order Rosseland-mean approximation;
-    # it is not a fitted corpus polynomial.
+    # H-minus bound-free abundance closure.  This fixed cross-section is kept
+    # from v1 so the v2 ablation isolates the requested free-free change.
     hminus_boundfree_cross_section_cm2: float = 1.0e-17
-    hminus_freefree_coefficient: float = 1.0e-37
-    hydrogen_balmer_cross_section_cm2: float = 6.30e-18
+
+    # H-minus free-free: low-order Rosseland mean estimate.  Its stated
+    # validity is the neutral/partially ionized 3000--7000 K branch; the
+    # linear window prevents it from being extrapolated into the hot branch.
+    hminus_freefree_rosseland_coefficient: float = 2.5e-31
+    hminus_freefree_reference_metal_mass_fraction: float = 0.02
+    hminus_freefree_density_exponent: float = 0.5
+    hminus_freefree_temperature_exponent: float = 9.0
+    hminus_freefree_full_strength_temperature_K: float = 6000.0
+    hminus_freefree_zero_strength_temperature_K: float = 7000.0
+
+    # Neutral-hydrogen Balmer/Paschen bound-free branch.  The Balmer-edge
+    # cross-section is the n=2 value, not the 6.3e-18 cm2 Lyman-edge value.
+    hydrogen_balmer_cross_section_cm2: float = 1.40e-17
     hydrogen_paschen_cross_section_cm2: float = 1.20e-18
-    kramers_coefficient: float = 4.00e25
-    kramers_metal_floor: float = 1.0e-3
+    hydrogen_representative_photon_energy_over_kT: float = 3.8
+
+    # Kramers free-free fallback only.  The H-ionization fraction is the
+    # explicit hot-end window; there is no Kramers bound-free contribution.
+    kramers_freefree_coefficient: float = 3.68e22
 
     # Explicit seed-only calibration convention.  It is not used to fit
     # local opacity; it closes the tau=0 surface anchor before P is available.
@@ -158,6 +176,54 @@ def _composition_scales(
         "Fe": constants.iron_per_hydrogen_solar * metallicity,
     }
     return metal_mass, donors
+
+
+def _hminus_temperature_window(
+    temperature: np.ndarray, constants: TextbookOpacityConstants
+) -> np.ndarray:
+    """Apply the declared neutral-branch validity window continuously."""
+
+    lower = float(constants.hminus_freefree_full_strength_temperature_K)
+    upper = float(constants.hminus_freefree_zero_strength_temperature_K)
+    if not (np.isfinite(lower) and np.isfinite(upper) and upper > lower):
+        raise ValueError("H-minus free-free temperature window is invalid")
+    return np.clip((upper - temperature) / (upper - lower), 0.0, 1.0)
+
+
+def hminus_freefree_rosseland_opacity(
+    labels: np.ndarray,
+    temperature: np.ndarray,
+    gas_pressure: np.ndarray,
+    *,
+    constants: TextbookOpacityConstants = DEFAULT_TEXTBOOK_CONSTANTS,
+) -> np.ndarray:
+    """Evaluate the low-order Gray-style H-minus Rosseland estimate.
+
+    In the neutral/partially ionized branch this is
+
+    ``2.5e-31 (Z/0.02) rho**0.5 T**9`` cm2 g-1.
+
+    The linear 6000--7000 K taper is a declared regime switch, not a fitted
+    correction.  It keeps this cool-atmosphere approximation out of the hot
+    branch, where the H-minus ion is no longer the intended carrier.
+    """
+
+    values, thermal, pressure = _as_profile_inputs(labels, temperature, gas_pressure)
+    state = saha_electron_diagnostics(
+        values, thermal, pressure, constants=constants
+    )
+    rho = state["rho_g_cm3"]
+    metal_mass, _ = _composition_scales(values, constants)
+    metallicity_scale = metal_mass[:, None] / float(
+        constants.hminus_freefree_reference_metal_mass_fraction
+    )
+    estimate = (
+        float(constants.hminus_freefree_rosseland_coefficient)
+        * metallicity_scale
+        * rho ** float(constants.hminus_freefree_density_exponent)
+        * thermal ** float(constants.hminus_freefree_temperature_exponent)
+    )
+    return np.maximum(estimate * _hminus_temperature_window(thermal, constants), 1.0e-30)
 
 
 def saha_electron_diagnostics(
@@ -260,6 +326,11 @@ def textbook_opacity_components(
     electron_density = state["electron_density_cm3"]
     neutral_hydrogen = state["hydrogen_neutral_density_cm3"]
     kT_eV = constants.boltzmann_eV_per_K * thermal
+    representative_energy_over_kT = float(
+        constants.hydrogen_representative_photon_energy_over_kT
+    )
+    if not np.isfinite(representative_energy_over_kT) or representative_energy_over_kT <= 0.0:
+        raise ValueError("representative photon energy must be finite and positive")
 
     # H- equilibrium: H0 + e <-> H-.  The statistical-weight factor is kept
     # explicit rather than hidden in a fit coefficient.
@@ -276,15 +347,14 @@ def textbook_opacity_components(
         )
     )
     hminus_density = neutral_hydrogen * np.clip(hminus_ratio, 0.0, 1.0)
+    # Keep H-minus bound-free unchanged in this ablation.  The requested
+    # Rosseland representative photon energy is applied to the neutral-H
+    # Balmer/Paschen branch below.
     hminus_bf = (
         constants.hminus_boundfree_cross_section_cm2 * hminus_density / rho
     )
-    hminus_ff = (
-        constants.hminus_freefree_coefficient
-        * electron_density
-        * neutral_hydrogen
-        / rho
-        * np.sqrt(thermal / 5000.0)
+    hminus_ff = hminus_freefree_rosseland_opacity(
+        values, thermal, pressure, constants=constants
     )
 
     # Hydrogen n=2/n=3 Boltzmann populations for Balmer/Paschen continua.
@@ -294,22 +364,22 @@ def textbook_opacity_components(
     n3 = neutral_hydrogen * (18.0 / 2.0) * np.exp(
         np.clip(-12.0875 / kT_eV, -700.0, 0.0)
     )
-    stimulated = 1.0 - np.exp(np.clip(-1.0 / kT_eV, -700.0, 0.0))
-    hydrogen_bf = stimulated * (
+    hydrogen_stimulated = 1.0 - np.exp(-representative_energy_over_kT)
+    hydrogen_bf = hydrogen_stimulated * (
         constants.hydrogen_balmer_cross_section_cm2 * n2
         + constants.hydrogen_paschen_cross_section_cm2 * n3
     ) / rho
 
-    metal_mass, _ = _composition_scales(values, constants)
-    kramers = (
-        constants.kramers_coefficient
+    # Only a hydrogen-ionization-gated free-free fallback remains from the
+    # Kramers family.  In particular, there is no ungated metal Kramers
+    # bound-free term: that was the multi-dex failure mode in v1.
+    hydrogen_ionized = state["hydrogen_ionized_fraction"]
+    kramers_freefree = (
+        constants.kramers_freefree_coefficient
         * (1.0 + constants.hydrogen_mass_fraction)
-        * (
-            metal_mass[:, None]
-            + constants.kramers_metal_floor * constants.solar_metal_mass_fraction
-        )
         * rho
         * np.power(thermal, -3.5)
+        * hydrogen_ionized
     )
     electron_scattering = (
         constants.thomson_cross_section_cm2 * electron_density / rho
@@ -318,7 +388,7 @@ def textbook_opacity_components(
         "hminus_boundfree": np.maximum(hminus_bf, 0.0),
         "hminus_freefree": np.maximum(hminus_ff, 0.0),
         "hydrogen_balmer_paschen_boundfree": np.maximum(hydrogen_bf, 0.0),
-        "kramers_freefree_boundfree": np.maximum(kramers, 0.0),
+        "kramers_freefree": np.maximum(kramers_freefree, 0.0),
         "electron_scattering": np.maximum(electron_scattering, 0.0),
     }
     components["total"] = np.maximum(
