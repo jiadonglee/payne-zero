@@ -54,9 +54,12 @@ archive/
 SDSS_MARCS_atmospheres.h5
 refcheck/
 
-# Downloaded third-party manuscript/reference material
-paper/arXiv-*/
-paper/downloaded_refs/
+# Paper II is a private working tree.  Keep the separate Paper I translation
+# tracked, but do not publish the Paper II source, generated tables, or figures.
+paper/*
+!paper/translation/
+!paper/translation/**
+payne_zero_figures/paper/
 
 # LaTeX build cache (final named PDFs may still be versioned explicitly)
 *.aux

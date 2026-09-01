@@ -1,79 +1,111 @@
-# 当前分支相对原版 Payne Zero 的扩展
+# Extensions in This Branch Compared with Upstream Payne Zero
 
-更新日期：2026-09-01
+Snapshot date: 2026-09-01
 
-当前分支：`codex/sync-20260826`
+Branch: `codex/sync-20260826`
 
-对比基线：`tingyuansen/payne-zero` 的 `origin/main@9c44001`
+Comparison base: `tingyuansen/payne-zero` at `origin/main@9c44001`
 
-## 一句话结论
+## Overview
 
-原版 Payne Zero 已经能计算一维 LTE 恒星大气和合成光谱。这个分支没有替换原版的生产默认值，而是在它上面加了一整套研究层：用同一个真实求解器比较不同初始大气、研究只保留柱质量和温度的两场表示、开发第一性原理解析初值、尝试 M 星低温延伸、建立可微分的 PyTorch 双生求解器，并把实验门槛、失败结果和论文数字统一保存下来。
+Upstream Payne Zero already computes one-dimensional LTE stellar atmospheres
+and synthetic spectra. This branch does not replace its production defaults.
+It adds a research layer for comparing alternative atmosphere initializers
+with the same certified solver, studying a reduced two-field atmosphere
+representation, developing first-principles analytic warm starts, testing
+bounded extensions toward M stars, and training through a differentiable
+PyTorch twin.
 
-## 主要多出来的内容
+## Main additions
 
-| 方向 | 这个分支新增了什么 | 主要位置 |
+| Area | Added in this branch | Main locations |
 |---|---|---|
-| 统一基准与可复现实验 | 增加环境记录、标签采样、扰动、参考求解、重启比较和机器报告，保证不同初值是在同一个 Payne Zero 求解器与同一停止规则下比较。 | `bench/`, `continuity/` |
-| 两场大气表示 | 新增 `(m,T)(τ)` 的重采样、物理重建、训练、预测、重启和求解器适配。其余压力、电子密度、不透明度和辐射加速度由原有物理过程重新生成。 | `reduced_state/`, `experiments/reduced_state_emulator/` |
-| 学习型初值 | 增加单步残差、solver-in-the-loop、物理标签、候选混合、独立验证、分辨率控制和光谱门槛等实验脚本。 | `experiments/reduced_state_emulator/` |
-| 解析初值 | 增加 Hopf、灰大气、对流修正、累计光深、熵闭合、静力多项式和多臂对照等候选；所有候选最终都回到原求解器验证。 | `experiments/analytic_initializer/` |
-| 教科书不透明度 | 从 v2/v3 扩展到 v4–v4r6：加入局部 Saha 电离、金属电子供体、H⁻、H/He 连续吸收、散射、频率节点 Rosseland 调和平均及静力积分，并保留 oracle 仅作诊断。 | `experiments/analytic_initializer/textbook_opacity.py` 及配套运行脚本 |
-| M 星延伸 | 增加原生 MARCS 节点读取、只传递 `(m,T)` 的重建、温度延续、M 矮星/巨星有界案例、训练语料构建、候选评估和 MARCS-seeded v1r2 预注册。 | `experiments/reduced_state_emulator/m_star_*`, `cool_star_step_test.py` |
-| 可微分双生求解器 | 新增 PyTorch 版本的初始化器、EOS、连续谱、谱线、辐射转移和温度修正，用于反向传播与训练；它明确不是认证生产求解器，报告的收敛仍由真实 Payne Zero 路径给出。 | `payne_zero_diffatm/` |
-| 生产求解器研究接口 | 在不改变默认路由的前提下，增加可控 warm start、温度修正策略、收敛诊断和研究运行配置。 | `payne_zero_atmosphere/` |
-| 论文与图表 | 新增 Paper II 稿件、数字收集器、来源哈希、自动表格、论文图、可直接查看的 PDF，以及 Paper I 中英对照注释版。 | `paper/`, `payne_zero_figures/` |
-| 测试 | 原版测试之外，新增解析初值、两场重建、可微分双生、M 星流程、论文数字和各种控制实验的测试。 | `tests/` |
+| Reproducible benchmarks | Environment capture, label sampling, perturbations, reference solves, restart comparisons, and machine-readable reports. Alternative initializers are compared with the same Payne Zero solver and stopping rules. | `bench/`, `continuity/` |
+| Two-field atmosphere representation | Resampling, physical reconstruction, training, prediction, restart, and solver adapters for `(m,T)(tau)`. Pressure, electron density, opacity, and radiative acceleration are rematerialized through existing physics. | `reduced_state/`, `experiments/reduced_state_emulator/` |
+| Learned warm starts | One-step residual models, solver-in-the-loop training, physical labels, candidate blending, independent validation, resolution controls, and spectral gates. | `experiments/reduced_state_emulator/` |
+| Analytic warm starts | Hopf, grey-atmosphere, convective, cumulative-optical-depth, entropy, hydrostatic-polytropic, and multi-arm comparison candidates. Every candidate is ultimately tested with the real solver. | `experiments/analytic_initializer/` |
+| Textbook opacity experiments | v2/v3 were extended through v4-v4r6 with local Saha ionization, metal electron donors, H-minus and hydrogen/helium continua, scattering, frequency-node Rosseland harmonic means, and hydrostatic integration. Oracle-only quantities remain diagnostic. | `experiments/analytic_initializer/textbook_opacity.py` and associated runners |
+| Bounded M-star work | Native MARCS-node loading, `(m,T)`-only rematerialization, temperature continuation, fixed M-dwarf/M-giant cases, cool-corpus construction, candidate evaluation, and a preregistered MARCS-seeded v1r2 protocol. | `experiments/reduced_state_emulator/m_star_*`, `cool_star_step_test.py` |
+| Differentiable solver twin | PyTorch implementations of the initializer, EOS, continuum, lines, radiative transfer, and temperature correction for gradient-based training. This twin is not the certified production solver. | `payne_zero_diffatm/` |
+| Research interfaces in the production solver | Controlled warm-start injection, temperature-correction policies, convergence diagnostics, and research run configuration without changing default routing. | `payne_zero_atmosphere/` |
+| Evidence visualizations | Reusable plotting and report-generation tools for initializer comparisons and failure diagnostics. | `payne_zero_figures/reports/` |
+| Tests | Additional coverage for analytic initializers, two-field reconstruction, the differentiable twin, M-star workflows, and registered controls. | `tests/` |
 
-## 已经得到的关键结果
+## Key results so far
 
-### 1. 两场表示与 warm start
+### Two-field representation and warm starts
 
-这个分支已经把“网络预测”和“真实物理收敛”拆开：
+The branch separates prediction from physical convergence:
 
-- 网络或解析式只负责给出初值；
-- 依赖场重新由 Payne Zero 的物理模块生成；
-- 最终是否成功，仍看未替换的真实求解器、完整通量误差和预先固定的门槛；
-- sealed holdout、开发集、诊断集和 post-hoc 对照在记录中分开保存。
+- a network or analytic construction supplies only the initial state;
+- dependent fields are rebuilt with Payne Zero physics;
+- success is decided by the unchanged solver, full flux diagnostics, and
+  prospectively fixed gates;
+- development, diagnostic, post-hoc, and sealed-holdout evidence are kept
+  separate.
 
-因此，分支证明的是若干表示与初值在特定样本上的表现，不是“有限值就等于物理正确”，也不是已可替换生产初始化器。
+These results support specific representation and warm-start claims on their
+tested samples. They do not show that every finite output is physically valid,
+and they do not authorize replacing the production initializer.
 
-### 2. v4r6 解析初值
+### v4r6 analytic warm start
 
-在统一 60 次迭代预算的 development-60 三臂比较中：
+Under a matched 60-iteration budget on development-60:
 
-| 初值 | 总收敛 | 冷星 | 热星 |
+| Initializer | Total converged | Cool | Hot |
 |---|---:|---:|---:|
-| `m_grey + T_conv` 解耦初值 | 54/60 | 24/27 | 30/33 |
-| 灰大气初值 | 52/60 | 21/27 | 31/33 |
-| 原耦合对流初值 | 49/60 | 18/27 | 31/33 |
+| Decoupled `m_grey + T_conv` | 54/60 | 24/27 | 30/33 |
+| Grey `m_grey + T_grey` | 52/60 | 21/27 | 31/33 |
+| Coupled convective | 49/60 | 18/27 | 31/33 |
 
-解耦初值通过了绝对 warm-start 门槛，但相对灰大气的冷星配对净增益只有 `+3`，没有达到预注册的 `>= +4`。最终状态是 `STOP_POLICY60_MATCHED_DEVELOPMENT`：不放宽阈值，不打开 fresh-open、光谱、生产切换或 sealed holdout。
+The decoupled initializer passed every absolute warm-start gate. Its paired
+cool-star net gain over the grey arm was `+3`, however, below the preregistered
+requirement of `>= +4`. The final status is therefore
+`STOP_POLICY60_MATCHED_DEVELOPMENT`. The threshold was not relaxed, and no
+fresh-open sample, spectral promotion, production switch, or sealed holdout was
+authorized.
 
-### 3. M 星有界案例与训练尝试
+### Bounded M-star work
 
-- 八个固定太阳丰度 MARCS M 星节点中，直接 MARCS `(m,T)` 初值有 5/8 个真实求解器收敛，温度延续主路径有 4/8 个收敛；这只是八个代表点，不代表完整 M 星参数空间支持。
-- M-star emulator v1 和 v1r1 都在训练前因冷星语料门槛不足而 `FAIL_STOP`。最终训练集只有 14 个巨星、0 个矮星，候选网络没有开始训练，sealed track、旧域保留测试、Korg 和生产路由都没有打开。
-- v1r2 目前是新的 MARCS-seeded 100-row 预注册方案。MARCS 只作初值，训练真值必须是 Payne Zero 自身收敛结果；预注册文件本身不等于已经完成训练或验证。
+- On eight fixed solar-composition native MARCS M-star nodes, the direct MARCS
+  `(m,T)` start converged in 5/8 cases and the primary temperature-continuation
+  route converged in 4/8. This is evidence for eight representative points, not
+  broad M-star parameter-space support.
+- M-star emulator v1 and v1r1 both stopped before training because the frozen
+  cool-corpus gate failed. The final training split contained 14 giants and
+  zero dwarfs. No candidate network, sealed track, old-domain retention test,
+  Korg comparison, or production routing change followed.
+- v1r2 is currently a preregistered MARCS-seeded 100-row protocol. MARCS is
+  used only as an initializer; admitted training truth must be a converged
+  Payne Zero result. A preregistration is not a completed validation.
 
-## 和原版的边界
+## Scientific and production boundaries
 
-以下内容没有因为这个分支而改变：
+The following remain unchanged:
 
-- 原版三个初始化器家族及默认生产路由仍然保留；
-- 可微分 twin、解析初值和 M 星候选都没有成为生产默认值；
-- 开发集上的收敛改善不等于光谱一致、通量闭合、全参数域有效或生产就绪；
-- 已失败的预注册门槛保持原样，没有按结果事后调低；
-- 大型 `runs/`、完整 `results/`、MARCS HDF5、运行时目录和下载的参考文献不是源码，不随普通 Git 提交发布。
+- the three upstream initializer families and default production routing;
+- the requirement that convergence, flux closure, spectral parity, domain
+  coverage, and production readiness be evaluated separately;
+- failed preregistered thresholds, which were not moved after results were
+  observed;
+- the status of the differentiable twin, analytic initializers, and M-star
+  candidates as research paths rather than production defaults.
 
-## 本次 GitHub 快照包含什么
+## What this GitHub snapshot contains
 
-本分支提交源码、测试、预注册与 closeout 记录、论文源文件、生成的数字/表格/图和小型机器可读结果。以下内容只保留在本地或外部计算节点：
+The branch includes source code, tests, preregistrations, closeout records,
+report plotting, and selected compact machine-readable results.
 
-- `runs/` 与大体积求解器产品；
-- 完整 M-star NPZ 轨迹和训练语料；
-- `SDSS_MARCS_atmospheres.h5`；
-- `archive/` 历史归档；
-- 下载的论文、参考检查图片、LaTeX 缓存和编辑器/agent 状态。
+The following remain local or on the compute nodes:
 
-这些排除项不影响当前源码和结论记录，但如果要从零重放全部数值实验，仍需要按各预注册/closeout 文件中的哈希与路径取回相应数据。
+- large `runs/` products and full solver trajectories;
+- complete M-star NPZ products and training corpora;
+- `SDSS_MARCS_atmospheres.h5`;
+- the historical `archive/`;
+- downloaded references, reference-check images, build caches, and local
+  editor or agent state;
+- the private Paper II manuscript and its dedicated figures.
+
+Replaying every numerical campaign from scratch therefore requires retrieving
+the data identified by the hashes and paths in the corresponding
+preregistration and closeout records.

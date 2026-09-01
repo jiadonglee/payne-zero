@@ -1,12 +1,9 @@
-"""Guardrails for the consolidated figure package.
+"""Guardrails for the public report-figure package.
 
-The package was created by moving eleven plotting scripts into one place and
-deleting their duplicated helpers.  The risk in that kind of change is silent:
-two of the scripts used *the same variable names for different colours*
-(``LEARNED`` is burnt orange in the manuscript and blue in the evidence
-figures), and four of them had ``_configure_style`` functions that differed by
-a single rcParam.  A careless merge would recolour published figures without
-raising anything.
+The package was created by moving report scripts into one place and deleting
+their duplicated helpers.  The risk in that kind of change is silent: scripts
+used similar variable names for different colours, and several
+``_configure_style`` functions differed by a single rcParam.
 
 These tests pin the things a merge could quietly break.  They need only
 matplotlib and numpy, not the solver environment.
@@ -43,10 +40,6 @@ def test_report_module_imports(name):
     """Every migrated script still imports, so the move did not strand one."""
 
     assert importlib.import_module(f"payne_zero_figures.reports.{name}")
-
-
-def test_paper_module_imports():
-    assert importlib.import_module("payne_zero_figures.paper.figures")
 
 
 def test_paper_and_evidence_palettes_stay_distinct():
