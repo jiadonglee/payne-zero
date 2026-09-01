@@ -1,0 +1,154 @@
+{
+  "arm_artifacts": {
+    "textbook_v4r6": {
+      "path": "results/analytic_initializer/textbook_opacity_v4r6_convective_dev60_policy60_20260829.json",
+      "sha256": "69a77248656264a624f34d4c0bef8a21005d0789e88c9c02c4f2e6fbbe33f911"
+    },
+    "textbook_v4r6_decoupled": {
+      "path": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+      "sha256": "58c679cb207fa7edde7774d4449e8ce2853068f7c4e819922406238115f422e6"
+    },
+    "textbook_v4r6_grey": {
+      "path": "results/analytic_initializer/textbook_opacity_v4r6_grey_dev60_policy60_20260829.json",
+      "sha256": "e730a496a6b41d82f1f2ad537a264876d18db1e8835dd76029ddb0a42f574db4"
+    }
+  },
+  "authorizes_fresh_open_execution": false,
+  "decision": "STOP_POLICY60_MATCHED_DEVELOPMENT",
+  "gate": {
+    "authorizes_fresh_open_execution": false,
+    "candidate_cool": {
+      "converged_count": 24,
+      "error_count": 0,
+      "not_converged_count": 3,
+      "star_count": 27,
+      "timeout_count": 0
+    },
+    "candidate_counts": {
+      "converged_count": 54,
+      "error_count": 0,
+      "not_converged_count": 6,
+      "star_count": 60,
+      "timeout_count": 0
+    },
+    "candidate_hot": {
+      "converged_count": 30,
+      "error_count": 0,
+      "not_converged_count": 3,
+      "star_count": 33,
+      "timeout_count": 0
+    },
+    "checks": {
+      "absolute_cool": true,
+      "absolute_hot": true,
+      "absolute_total": true,
+      "complete_records": true,
+      "cool_net_gain_vs_grey": false,
+      "finite_seeds": true,
+      "hot_net_loss_vs_grey": true,
+      "solver_errors": true,
+      "timeouts": true,
+      "total_net_gain_vs_grey": true
+    },
+    "decision": "STOP_POLICY60_MATCHED_DEVELOPMENT",
+    "finite_seed_count": 60,
+    "paired_vs_convective": {
+      "all": {
+        "both_success": 46,
+        "candidate_only": 8,
+        "control_only": 3,
+        "control_success_count": 49,
+        "losses_among_control_successes": 3,
+        "neither": 3,
+        "net_gain": 5,
+        "shared_count": 60
+      },
+      "cool": {
+        "both_success": 16,
+        "candidate_only": 8,
+        "control_only": 2,
+        "control_success_count": 18,
+        "losses_among_control_successes": 2,
+        "neither": 1,
+        "net_gain": 6,
+        "shared_count": 27
+      },
+      "hot": {
+        "both_success": 30,
+        "candidate_only": 0,
+        "control_only": 1,
+        "control_success_count": 31,
+        "losses_among_control_successes": 1,
+        "neither": 2,
+        "net_gain": -1,
+        "shared_count": 33
+      }
+    },
+    "paired_vs_grey": {
+      "all": {
+        "both_success": 48,
+        "candidate_only": 6,
+        "control_only": 4,
+        "control_success_count": 52,
+        "losses_among_control_successes": 4,
+        "neither": 2,
+        "net_gain": 2,
+        "shared_count": 60
+      },
+      "cool": {
+        "both_success": 18,
+        "candidate_only": 6,
+        "control_only": 3,
+        "control_success_count": 21,
+        "losses_among_control_successes": 3,
+        "neither": 0,
+        "net_gain": 3,
+        "shared_count": 27
+      },
+      "hot": {
+        "both_success": 30,
+        "candidate_only": 0,
+        "control_only": 1,
+        "control_success_count": 31,
+        "losses_among_control_successes": 1,
+        "neither": 2,
+        "net_gain": -1,
+        "shared_count": 33
+      }
+    },
+    "thresholds": {
+      "absolute_cool_min": 23,
+      "absolute_hot_min": 29,
+      "absolute_timeouts_max": 6,
+      "absolute_total_min": 54,
+      "cool_net_gain_vs_grey_min": 4,
+      "hot_net_loss_vs_grey_max": 2,
+      "total_net_gain_vs_grey_min": 0
+    }
+  },
+  "policy": "v4r6_analytic_warm_start_policy60_v1",
+  "runtime_invariants": {
+    "environment": {
+      "NUMBA_NUM_THREADS": null,
+      "NUMBA_THREADING_LAYER": "workqueue"
+    },
+    "hostname": "Node-06",
+    "iterations": 60,
+    "numba": "0.66.0",
+    "numpy": "2.4.6",
+    "operating_system": "Linux-5.14.0-611.54.3.el9_7.x86_64-x86_64-with-glibc2.34",
+    "per_star_timeout_seconds": 900,
+    "policy": "v4r6_analytic_warm_start_policy60_v1",
+    "python": "3.12.9",
+    "sample": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+    "sample_sha256": "5e0238098f5811de7738d6e8fcf5b9eb5d94fe85a8fa9505ad3513769179e27e",
+    "source_git_diff_sha256": "eba51792d75efcb3dcc1d8ff7c94889330c7d14c68fb77add969488de0dc87dd",
+    "source_git_head": "d8d044b4e7fdd570fd1f06f2d9cc8c33da71d894",
+    "source_manifest": "results/analytic_initializer/textbook_opacity_v4r6_policy60_source_manifest_20260829.json",
+    "source_manifest_sha256": "fee015711e42bbca970e7e68ff66da57feb81eb21c786706a08739a8dfeffaa8",
+    "trials": 1
+  },
+  "source_manifest": "results/analytic_initializer/textbook_opacity_v4r6_policy60_source_manifest_20260829.json",
+  "source_manifest_sha256": "fee015711e42bbca970e7e68ff66da57feb81eb21c786706a08739a8dfeffaa8",
+  "status": "matched_development_characterization_complete"
+}

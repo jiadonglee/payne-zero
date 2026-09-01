@@ -1,0 +1,166 @@
+\section{归一化光谱拟合 Normalized Spectrum Fitting}\label{sec:fitter}
+
+如果大气与合成计算足够快，物理前向模型本身就可以放进光谱优化器中求值。直接合成可以反复探索标签；但若每次试探都收敛一个新大气，计算就会被大气求解主导。因此我们用初始化器提供初始深度结构，每次试探都重新计算布居、谱线不透明度与辐射转移，而把大气收敛保留给候选极小点及任何实质性修正。\textbf{拟合中不进入任何“标签到流量”的光谱模拟器。}
+
+\begin{EN}
+If atmosphere and synthesis calculations are fast enough, the physical forward
+model itself can be evaluated inside a spectrum optimizer. Direct synthesis can
+explore labels repeatedly, while converging a new atmosphere at every trial
+would dominate the calculation. We therefore use the initializer to supply the
+starting depth structure, recompute populations, line opacity, and radiative
+transfer at every trial, and reserve atmosphere convergence for the candidate
+minimum and any material correction. No label-to-flux spectral emulator enters
+the fit.
+\end{EN}
+
+我们首先在一个受控的归一化光谱上测试这一策略，其生成模型与拟合模型完全相同。该测试在引入谱线数据与巡天仪器失配之前，先单独检验标签恢复与大气修正。
+
+\begin{EN}
+We first test this strategy on a controlled normalized spectrum whose
+generating and fitted models are identical. The test isolates label recovery
+and atmosphere correction before introducing line-data and survey-instrument
+mismatch.
+\end{EN}
+
+\begin{physbox}{“快速搜索 + 物理收敛”的两级策略}
+这是全文拟合策略的枢纽，值得看清其分工：\textbf{快速阶段}（GPU 上每次约 1 秒）从学习型初值直接合成光谱，在标签空间里做局部最小二乘下山；它用到的“大气”未经完整物理迭代，因此存在小误差。\textbf{裁决阶段}在快速搜索收敛后，于该候选点真正收敛物理大气、重新合成，并量化快速阶段造成的光谱差 $\Delta f$；若修正预测的收益超过阈值 $\delta Q_{\min}$，就再收敛一次大气确认。这样，成千上万次试探都走便宜的快速通道，昂贵的物理收敛只发生一到两次——而最终被接受的解一定来自收敛大气。这是“机器学习加速探索、物理负责裁决”原则在拟合环节的又一次体现。
+\end{physbox}
+
+快速搜索从初始标签向量出发。一条直接光谱加每个标签一个有界扰动定义局部光谱响应；加权线性最小二乘提出有界的标签更新，直接合成线搜索只在目标下降时才接受 \citep{NocedalWright2006}。发布的拟合器每次迭代重建该响应；图~\ref{fig:fitter_convergence} 的短诊断在连续接受的步长之间复用初始响应。响应用有限差分获得，因为完整的大气到光谱计算尚未构成单一 PyTorch 计算图；解析响应可以替代这些差分而不改变物理大气计算。其中 $N_{\rm good}$ 为保留像素数，目标 $Q$ 为每有效像素的平均卡方。当没有任何有界线搜索试探能降低 $Q$ 时，快速循环停止。
+
+\begin{EN}
+The fast search begins at the initial label vector. One direct spectrum and one
+bounded perturbation per label define a local spectral response. A weighted
+linear least-squares step proposes a bounded label update, and a direct-synthesis
+line search retains it only when the objective improves
+\citep{NocedalWright2006}. The released fitter rebuilds this response at each
+iteration. The short Figure~\ref{fig:fitter_convergence} diagnostic reuses its
+initial response between successive accepted steps. We obtain the response by
+finite differences because the complete atmosphere-to-spectrum calculation
+does not yet form one PyTorch computational graph. An analytic response could
+replace these differences without changing the physical atmosphere calculation.
+Here $N_{\rm good}$ is the number of retained pixels. The objective $Q$ is the
+mean chi-square per valid pixel.
+The fast loop stops when no bounded line-search trial lowers $Q$.
+\end{EN}
+
+第一个收敛大气的作用不只是检验该候选点。记 $f_{\rm fast}$ 与 $f_{\rm phys}$ 为快速极小点处大气收敛前、后的光谱。我们把 $\Delta f=f_{\rm phys}-f_{\rm fast}$ 在一个有界局部步长内固定，并为每个活跃标签重建光谱响应；随后用一个高斯—牛顿步求解加权线性最小二乘，给出预计能降低像素残差的标签变化组合。每个活跃标签都参与这一修正；暴露了逐元素丰度坐标的拟合因此可以在第一次物理计算之后调整这些坐标。
+
+\begin{EN}
+The first converged atmosphere does more than test this candidate. Let
+$f_{\rm fast}$ and $f_{\rm phys}$ denote the spectra before and after physical
+atmosphere convergence at the fast minimum. We hold
+$\Delta f=f_{\rm phys}-f_{\rm fast}$ fixed over one bounded local step and
+rebuild the spectral response for every active label. A Gauss--Newton step then
+solves the weighted linear least-squares problem for the combination of label
+changes predicted to reduce the pixel residuals. Every active label participates
+in this correction. Fits that expose element-by-element abundance coordinates
+may therefore adjust them after the first physical calculation.
+\end{EN}
+
+这一局部修正只假设 $\Delta f$ 在局部信赖域内变化缓慢。只有当预测的 $Q$ 下降超过 $\delta Q_{\min}$ 时，才把提案送入第二个收敛大气；本受控诊断取 $\delta Q_{\min}=0.005$（每有效像素平均卡方）。只有当该物理光谱真的降低了同一目标时才接受提案。算法~1 总结了此受控诊断使用的单次修正路径；发布的精细化版本只在预测下降超过 $\delta Q_{\min}$ 时重复该计算，并可在物理评估次数上限内继续做有界修正。
+
+\begin{EN}
+This local correction assumes only
+that $\Delta f$ varies slowly across the local trust region. We send the
+proposal to a second converged atmosphere only when its predicted decrease in
+$Q$ exceeds $\delta Q_{\min}$. For this controlled diagnostic,
+$\delta Q_{\min}=0.005$ in mean chi-square per valid pixel. We accept the
+proposal only when that physical spectrum lowers the same objective.
+Algorithm~1 summarizes the
+single-correction path used for this controlled diagnostic. The released
+refinement repeats this calculation only when the predicted decrease in $Q$
+exceeds $\delta Q_{\min}$ and can continue bounded corrections up to its cap on
+physical evaluations.
+\end{EN}
+
+受控案例是一颗留出的非太阳丰度 K 巨星，五个初始标签均有偏移，噪声为 $\mathrm{S/N}=100$ 的独立高斯噪声。它使用 $R_{\rm grid}=20{,}000$ 对数网格上的 1500--1700 nm 归一化光谱，无仪器线扩展函数或其他致宽。拟合最小化每有效像素的平均卡方，并省略观测光谱所需的掩模、连续谱、速度、致宽与变化逆方差。其无噪声真值来自收敛大气加直接合成，因此标签恢复与快速阶段近似都已知。最终物理模型把 $T_{\rm eff}$ 恢复到 2 K 以内，$\log g$ 与两个丰度坐标到 0.003 dex 以内，微观湍流到 0.04 km s$^{-1}$ 以内。
+
+\begin{EN}
+The controlled example is a held-out non-solar K giant with offsets in all five
+initial labels and independent Gaussian noise at $\mathrm{S/N}=100$. It uses a
+normalized 1500--1700~nm spectrum on a logarithmic grid with
+$R_{\rm grid}=20{,}000$, with no instrumental line-spread function or other
+broadening. The fit minimizes the mean chi-square per valid pixel and omits
+the masks, continuum, velocity, broadening, and varying inverse variances needed
+for observed spectra. Its noiseless truth comes from a converged atmosphere and
+direct synthesis, so both label recovery and the fast-stage approximation are
+known. The final physical model recovers $T_{\rm eff}$ within 2~K, $\log g$ and both
+abundance coordinates within
+0.003~dex, and microturbulence within 0.04~km~s$^{-1}$.
+\end{EN}
+
+图~\ref{fig:fitter_convergence} 上图追踪被接受的标签轨迹，下图比较最终物理光谱与模拟观测，残差与注入噪声相符。第一个收敛大气已很接近模拟真值；为演示修正路径，该诊断仍走了一个有界标签步并用第二个收敛大气确认。常规使用中，只有预测下降超过 $\delta Q_{\min}$ 时才走这一步。五标签搜索在单张 H100 上约 20 秒；收敛大气检查在多核 CPU 上运行，占去剩余的主要耗时。这一近乎精确的恢复在已知物理模型上确立了优化器。下一步处理观测光谱中存在的模型—数据失配，即谱线表定标。
+
+\begin{EN}
+Figure~\ref{fig:fitter_convergence} traces the accepted label trajectory in
+the upper panels and compares the final physical spectrum with the mock
+observation in the lower panels, where the residuals match the injected noise.
+The first converged atmosphere is already close to the mock truth. To
+demonstrate the correction path, this diagnostic nevertheless takes one bounded
+label step and confirms it with a second converged atmosphere. In routine use,
+the refinement takes such a step only when its predicted decrease in $Q$
+exceeds $\delta Q_{\min}$.
+The five-label search
+takes about 20~s on one H100, while the converged-atmosphere checks run on
+multicore CPUs and dominate the remaining wall time. This near-exact recovery
+establishes the optimizer on a known physical model. We next address the
+model--data mismatch present in observed spectra through line-list calibration.
+\end{EN}
+
+\begin{physbox}{卡方、响应矩阵与高斯—牛顿步}
+拟合的数学骨架：目标 $Q$ 是加权残差平方和（卡方）除以像素数。在每个当前点，通过对每个标签做小扰动、重新合成光谱，测得“标签 $\rightarrow$ 光谱”的局部线性响应（即导数矩阵/雅可比的列）。把光谱残差投影到这组响应上解线性最小二乘，就得到预计最能降低残差的标签步长——这就是\textbf{高斯—牛顿}思想：用一阶导数近似二阶曲率，避免昂贵的 Hessian 计算。每一步都用真实合成验证目标确实下降（线搜索），步长有界（信赖域），保证不会跳到模型不可信的区域。有限差分响应每维需要一次额外合成——12 维就是 13 条光谱——所以“每次试探都便宜”是该策略可行的前提。
+\end{physbox}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figure_07.pdf}
+\caption{对 $\mathrm{S/N}=100$、真值已知的归一化模拟光谱做受控五标签拟合。上图在 $T_{\rm eff}$--$\log g$ 与 $[\mathrm{M}/\mathrm{H}]$--$[\alpha/\mathrm{M}]$ 平面追踪被接受的快速搜索候选（圆点）、由第一个收敛大气给出的可选修正（菱形）以及收敛大气加合成的最终解（方块）；颜色为累计模型时间，空心星为真值。下图在代表性波长区间比较模拟观测与最终物理模型，阴影为 $1\sigma$ 噪声带。恢复的光谱与标签使用直接合成，无任何标签到流量模拟器。（Controlled five-label fit to a normalized mock spectrum.）}
+\label{fig:fitter_convergence}
+\end{figure}
+
+\begin{notebox}{算法 1 说明（内容保留英文伪代码）}
+受控直接光谱拟合流程：定义每有效像素平均卡方 $Q$ → 从初始标签反复做“直接合成 + 有界最小二乘步 + 线搜索”直到无法下降 → 在快速极小点收敛物理大气 $\mathbf{x}_{\rm phys}$ 并合成 $f_{\rm phys}$，暂定为解 → 固定 $\Delta f=f_{\rm phys}-f_{\rm fast}$ 重建响应并提出有界修正 $\boldsymbol{\theta}_{\rm p}$ → 仅当预测 $Q$ 下降超过 $\delta Q_{\min}$ 才在 $\boldsymbol{\theta}_{\rm p}$ 收敛第二个大气并合成 $f_{\rm prop}$，若 $Q(f_{\rm prop})<Q(f_{\rm phys})$ 则接受 → 返回 $(\boldsymbol{\theta}_\star,\mathbf{x}_\star,f_\star)$。
+\end{notebox}
+
+\begin{table}[t]
+\centering
+\begin{minipage}{\columnwidth}
+\centering
+\textbf{Algorithm 1. Controlled direct spectrum fit}\par
+\vspace{2pt}
+\noindent\rule{\columnwidth}{0.5pt}
+\vspace{2pt}
+\begin{algorithmic}[1]
+\Require flux $y_p$, weights $w_p$, initial labels $\boldsymbol{\theta}_0$,
+threshold $\delta Q_{\min}$
+\Ensure labels $\boldsymbol{\theta}_\star$, atmosphere state $\mathbf{x}_\star$,
+spectrum $f_\star$
+\State Define $Q(f)\gets N_{\rm good}^{-1}\sum_{p\in{\rm good}}w_p(y_p-f_p)^2$
+\State $\boldsymbol{\theta}\gets\boldsymbol{\theta}_0$
+\Repeat
+  \State Evaluate direct $f_{\rm fast}$ and its local response
+  \State Propose a bounded least-squares step
+  \State Retain it only if direct synthesis lowers $Q$
+\Until{no bounded trial lowers $Q$}
+\State $\boldsymbol{\theta}_{\rm f}\gets\boldsymbol{\theta}$
+\State Solve $\mathbf{x}_{\rm phys}$ at $\boldsymbol{\theta}_{\rm f}$ and synthesize $f_{\rm phys}$
+\State Set $(\boldsymbol{\theta}_\star,\mathbf{x}_\star,f_\star)
+  \gets(\boldsymbol{\theta}_{\rm f},\mathbf{x}_{\rm phys},f_{\rm phys})$
+\State Fix $\Delta f\gets f_{\rm phys}-f_{\rm fast}$
+\State Rebuild the response
+\State Propose bounded correction $\boldsymbol{\theta}_{\rm p}$
+\If{its predicted decrease exceeds $\delta Q_{\min}$}
+  \State Solve $\mathbf{x}_{\rm prop}$ at $\boldsymbol{\theta}_{\rm p}$ and synthesize $f_{\rm prop}$
+  \If{$Q(f_{\rm prop})<Q(f_{\rm phys})$}
+    \State Set $(\boldsymbol{\theta}_\star,\mathbf{x}_\star,f_\star)
+      \gets(\boldsymbol{\theta}_{\rm p},\mathbf{x}_{\rm prop},f_{\rm prop})$
+  \EndIf
+\EndIf
+\State \Return $(\boldsymbol{\theta}_\star,\mathbf{x}_\star,f_\star)$
+\end{algorithmic}
+\vspace{2pt}
+\noindent\rule{\columnwidth}{0.5pt}
+\end{minipage}
+\end{table}
+

@@ -1,0 +1,19 @@
+{
+  "campaign": "m_star_emulator_v1r1_policy60",
+  "frozen": true,
+  "gate_hash": "a6f0b55deec8085784394a239f3f7aac4c6dd95f765e0b38f4fb50f472a5a16e",
+  "protocol_hash": "42b1e8bf45f4a89c92901ab4ea76edefab807afdb7296be945169d0a4d7afbd6",
+  "source": {
+    "campaign": "m_star_emulator_v1",
+    "gate_hash": "66614735dda12c76116c80441316465f3a9c6b47dd395ac711adc4659e8e96cc",
+    "path": "results/m_star_emulator_v1/flux_gate.json",
+    "sha256": "aba9a2acbde9931833fac9e34cc93b1a650fdab112bd5233cc8a5c77c693e1e7"
+  },
+  "status": "pass",
+  "thresholds": {
+    "maximum_absolute_flux_error_percent": 23.151468755609834,
+    "median_absolute_flux_error_percent": 0.23421537419224742,
+    "p95_absolute_flux_error_percent": 9.557343255085982
+  },
+  "thresholds_refit": false
+}

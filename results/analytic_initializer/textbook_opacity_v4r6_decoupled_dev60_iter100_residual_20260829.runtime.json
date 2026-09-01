@@ -1,0 +1,25 @@
+{
+  "arm": "textbook_v4r6_decoupled",
+  "authorizes_fresh_open": false,
+  "candidate": "v4r6_decoupled_mgrey_tconv_v1",
+  "fifteen_iter_control": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_20260828.json",
+  "fifteen_iter_control_sha256": "81211e9e61cf9e2ab39a517d3bc4c455a9a1fd702a9a92db35d70abd7609afb0",
+  "frozen_15iter_decision": "FAIL_STOP_DEVELOPMENT",
+  "frozen_60iter_decision": "ITER60_DIAGNOSTIC_COMPLETE",
+  "iter60_control": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_iter60_20260829.json",
+  "iter60_control_sha256": "9926fd75ba1ba948407a37c3886803e177f5cfe033d8754e6e2f64f42c7d595f",
+  "iterations": 100,
+  "per_star_timeout_seconds": 3600,
+  "residual_indices": [
+    6152,
+    33051,
+    33053,
+    44167,
+    46124,
+    48708
+  ],
+  "source_manifest": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_source_manifest_20260828.json",
+  "source_manifest_sha256": "ebc932f2402d15a936cd1a96465c15262f4f5197ad3636794fe24245db7f152c",
+  "timeout_raised_because_residuals_are_wallclock": true,
+  "trials": 1
+}

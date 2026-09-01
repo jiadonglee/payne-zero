@@ -1,0 +1,2270 @@
+{
+  "cases": [
+    {
+      "case_id": "m_dwarf_t3000",
+      "class": "M-dwarf",
+      "continuation_full_carry_diagnostic": {
+        "case_id": "m_dwarf_t3000",
+        "case_role": "continuation_full_carry_diagnostic",
+        "converged": false,
+        "delta_temperature": 500.0,
+        "error": "full-carry continuation stopped because a previous step failed",
+        "failure_reason": "full-carry continuation stopped because a previous step failed",
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": null,
+        "iterations": null,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3000.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_full_carry",
+        "primary_pass": false,
+        "product_path": null,
+        "product_written": false,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 0.0,
+        "solver_converged": false,
+        "source_temperature": 3500.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": false,
+          "finite": false,
+          "monotone_column_mass": false,
+          "positive": false,
+          "valid": false
+        },
+        "status": "blocked_by_previous_step",
+        "structure_difference_to_native_marcs": null,
+        "survives": false,
+        "survives_solver": false,
+        "target_temperature": 3000.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "within_15_iterations": false
+      },
+      "continuation_primary": {
+        "case_id": "m_dwarf_t3000",
+        "case_role": "continuation_primary",
+        "converged": false,
+        "delta_temperature": 500.0,
+        "error": "continuation stopped because the MARCS 4000 K anchor or a previous step failed",
+        "failure_reason": "continuation stopped because the MARCS 4000 K anchor or a previous step failed",
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": null,
+        "iterations": null,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3000.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_reduced",
+        "primary_pass": false,
+        "product_path": null,
+        "product_written": false,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 0.0,
+        "solver_converged": false,
+        "source_temperature": 3500.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": false,
+          "finite": false,
+          "monotone_column_mass": false,
+          "positive": false,
+          "valid": false
+        },
+        "status": "blocked_by_previous_step",
+        "structure_difference_to_native_marcs": null,
+        "survives": false,
+        "survives_solver": false,
+        "target_temperature": 3000.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "within_15_iterations": false
+      },
+      "direct": {
+        "case_id": "m_dwarf_t3000",
+        "case_role": "direct",
+        "converged": false,
+        "delta_temperature": null,
+        "error": "solver did not satisfy its formal convergence criterion",
+        "failure_reason": "solver did not satisfy its formal convergence criterion",
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 30,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3000.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "marcs_input_diagnostics": {
+          "native_indices": [
+            6,
+            4,
+            10,
+            11,
+            2
+          ],
+          "native_layers": 56,
+          "native_tau5000_range": [
+            5.497939810084063e-07,
+            74.8858871459961
+          ],
+          "payne_receives": [
+            "column_mass",
+            "temperature"
+          ]
+        },
+        "method": "marcs_direct_reduced",
+        "primary_pass": false,
+        "product_path": null,
+        "product_written": false,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "direct",
+        "seconds": 280.1923289820552,
+        "solver_converged": false,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.21334038638085853,
+            "deep_layer_relative_temperature_change": 0.0849178367258309,
+            "maximum_absolute_flux_error_percent": 154508713.8683529,
+            "total_seconds": 280.1803940203972
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.21334038638085853,
+            "deep_layer_relative_temperature_change": 0.0849178367258309,
+            "maximum_absolute_flux_error_percent": 154508713.8683529
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.35481303712286794,
+            "deep_layer_relative_temperature_change": 0.1406827345052505,
+            "maximum_absolute_flux_error_percent": 4367.121688281016
+          }
+        },
+        "source_temperature": null,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_fail",
+        "structure_difference_to_native_marcs": null,
+        "survives": false,
+        "survives_solver": false,
+        "target_temperature": 3000.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3000.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "native_marcs_indices": [
+        6,
+        4,
+        10,
+        11,
+        2
+      ],
+      "selected_product_path": null,
+      "selected_route": null,
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+    },
+    {
+      "case_id": "m_dwarf_t3300",
+      "class": "M-dwarf",
+      "continuation_full_carry_diagnostic": {
+        "case_id": "m_dwarf_t3300",
+        "case_role": "continuation_full_carry_diagnostic",
+        "converged": false,
+        "delta_temperature": 200.0,
+        "error": "solver did not satisfy its formal convergence criterion",
+        "failure_reason": "solver did not satisfy its formal convergence criterion",
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 30,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3300.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_full_carry",
+        "primary_pass": false,
+        "product_path": null,
+        "product_written": false,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 213.93907189415768,
+        "solver_converged": false,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.12034384011388148,
+            "deep_layer_relative_temperature_change": 0.13680781832922237,
+            "maximum_absolute_flux_error_percent": 2478497.2804743224,
+            "total_seconds": 213.92268007807434
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.12034384011388148,
+            "deep_layer_relative_temperature_change": 0.13680781832922237,
+            "maximum_absolute_flux_error_percent": 2478497.2804743224
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.0523858031179352,
+            "deep_layer_relative_temperature_change": 0.05528178375788398,
+            "maximum_absolute_flux_error_percent": 218.13479529919277
+          }
+        },
+        "source_temperature": 3500.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_fail",
+        "structure_difference_to_native_marcs": null,
+        "survives": false,
+        "survives_solver": false,
+        "target_temperature": 3300.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "continuation_primary": {
+        "case_id": "m_dwarf_t3300",
+        "case_role": "continuation_primary",
+        "converged": false,
+        "delta_temperature": 200.0,
+        "error": "solver did not satisfy its formal convergence criterion",
+        "failure_reason": "solver did not satisfy its formal convergence criterion",
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 30,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3300.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_reduced",
+        "primary_pass": false,
+        "product_path": null,
+        "product_written": false,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 214.12985096592456,
+        "solver_converged": false,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.03801402324513104,
+            "deep_layer_relative_temperature_change": 0.03951619271350115,
+            "maximum_absolute_flux_error_percent": 2913846.9455437823,
+            "total_seconds": 214.12138466909528
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.03801402324513104,
+            "deep_layer_relative_temperature_change": 0.03951619271350115,
+            "maximum_absolute_flux_error_percent": 2913846.9455437823
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.05243657997253294,
+            "deep_layer_relative_temperature_change": 0.05533833289070293,
+            "maximum_absolute_flux_error_percent": 236.0548453544413
+          }
+        },
+        "source_temperature": 3500.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_fail",
+        "structure_difference_to_native_marcs": null,
+        "survives": false,
+        "survives_solver": false,
+        "target_temperature": 3300.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "direct": {
+        "case_id": "m_dwarf_t3300",
+        "case_role": "direct",
+        "converged": false,
+        "delta_temperature": null,
+        "error": "solver did not satisfy its formal convergence criterion",
+        "failure_reason": "solver did not satisfy its formal convergence criterion",
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 30,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3300.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "marcs_input_diagnostics": {
+          "native_indices": [
+            6,
+            4,
+            10,
+            11,
+            5
+          ],
+          "native_layers": 56,
+          "native_tau5000_range": [
+            6.403243446584383e-07,
+            80.85372161865234
+          ],
+          "payne_receives": [
+            "column_mass",
+            "temperature"
+          ]
+        },
+        "method": "marcs_direct_reduced",
+        "primary_pass": false,
+        "product_path": null,
+        "product_written": false,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "direct",
+        "seconds": 250.0865113507025,
+        "solver_converged": false,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.03861955373344541,
+            "deep_layer_relative_temperature_change": 0.04017093740924461,
+            "maximum_absolute_flux_error_percent": 4142892.4377748766,
+            "total_seconds": 250.07464675977826
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.03861955373344541,
+            "deep_layer_relative_temperature_change": 0.04017093740924461,
+            "maximum_absolute_flux_error_percent": 4142892.4377748766
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.347295869197329,
+            "deep_layer_relative_temperature_change": 0.14889907274667272,
+            "maximum_absolute_flux_error_percent": 190.44807369096316
+          }
+        },
+        "source_temperature": null,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_fail",
+        "structure_difference_to_native_marcs": null,
+        "survives": false,
+        "survives_solver": false,
+        "target_temperature": 3300.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3300.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "native_marcs_indices": [
+        6,
+        4,
+        10,
+        11,
+        5
+      ],
+      "selected_product_path": null,
+      "selected_route": null,
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+    },
+    {
+      "case_id": "m_dwarf_t3500",
+      "class": "M-dwarf",
+      "continuation_full_carry_diagnostic": {
+        "case_id": "m_dwarf_t3500",
+        "case_role": "continuation_full_carry_diagnostic",
+        "converged": true,
+        "delta_temperature": 250.0,
+        "error": null,
+        "failure_reason": null,
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 18,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3500.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_full_carry",
+        "primary_pass": false,
+        "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_full_carry/t03500.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+        "product_written": true,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 124.1123944693245,
+        "solver_converged": true,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.0014964545082413612,
+            "deep_layer_relative_temperature_change": 0.00029260071316338204,
+            "maximum_absolute_flux_error_percent": 278.4245585502696,
+            "total_seconds": 123.45046649407595
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.0014964545082413612,
+            "deep_layer_relative_temperature_change": 0.00029260071316338204,
+            "maximum_absolute_flux_error_percent": 278.4245585502696
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.05006257388343847,
+            "deep_layer_relative_temperature_change": 0.05227543760059793,
+            "maximum_absolute_flux_error_percent": 45.52699585152017
+          }
+        },
+        "source_temperature": 3750.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_pass",
+        "structure_difference_to_native_marcs": {
+          "column_mass_dex": {
+            "max": 1.2529616866226396,
+            "median": 0.4146863795529414,
+            "p95": 1.0779522835305677
+          },
+          "reference": "converted native MARCS (m,T); diagnostic only",
+          "temperature_relative": {
+            "max": 0.18772675573663827,
+            "median": 0.041450010711857124,
+            "p95": 0.16267039497356525
+          }
+        },
+        "survives": false,
+        "survives_solver": true,
+        "target_temperature": 3500.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "continuation_primary": {
+        "case_id": "m_dwarf_t3500",
+        "case_role": "continuation_primary",
+        "converged": true,
+        "delta_temperature": 250.0,
+        "error": null,
+        "failure_reason": null,
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 18,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3500.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_reduced",
+        "primary_pass": false,
+        "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_reduced/t03500.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+        "product_written": true,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 124.32878457382321,
+        "solver_converged": true,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.0016160479563665242,
+            "deep_layer_relative_temperature_change": 0.0002573057254714353,
+            "maximum_absolute_flux_error_percent": 299.81594660479436,
+            "total_seconds": 123.6590268779546
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.0016160479563665242,
+            "deep_layer_relative_temperature_change": 0.0002573057254714353,
+            "maximum_absolute_flux_error_percent": 299.81594660479436
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.049903758927872154,
+            "deep_layer_relative_temperature_change": 0.05218167899559807,
+            "maximum_absolute_flux_error_percent": 46.914621048923
+          }
+        },
+        "source_temperature": 3750.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_pass",
+        "structure_difference_to_native_marcs": {
+          "column_mass_dex": {
+            "max": 1.2477488484366779,
+            "median": 0.41473292754958435,
+            "p95": 1.07700448749899
+          },
+          "reference": "converted native MARCS (m,T); diagnostic only",
+          "temperature_relative": {
+            "max": 0.18764566424837395,
+            "median": 0.04143770022745913,
+            "p95": 0.16260190121755227
+          }
+        },
+        "survives": false,
+        "survives_solver": true,
+        "target_temperature": 3500.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "direct": {
+        "case_id": "m_dwarf_t3500",
+        "case_role": "direct",
+        "converged": false,
+        "delta_temperature": null,
+        "error": "solver did not satisfy its formal convergence criterion",
+        "failure_reason": "solver did not satisfy its formal convergence criterion",
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 30,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3500.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "marcs_input_diagnostics": {
+          "native_indices": [
+            6,
+            4,
+            10,
+            11,
+            7
+          ],
+          "native_layers": 56,
+          "native_tau5000_range": [
+            2.032825022979523e-06,
+            79.06786346435547
+          ],
+          "payne_receives": [
+            "column_mass",
+            "temperature"
+          ]
+        },
+        "method": "marcs_direct_reduced",
+        "primary_pass": false,
+        "product_path": null,
+        "product_written": false,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "direct",
+        "seconds": 240.3139937124215,
+        "solver_converged": false,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.041288388096507665,
+            "deep_layer_relative_temperature_change": 0.04306653594664494,
+            "maximum_absolute_flux_error_percent": 6028743.245006753,
+            "total_seconds": 240.29998499993235
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.041288388096507665,
+            "deep_layer_relative_temperature_change": 0.04306653594664494,
+            "maximum_absolute_flux_error_percent": 6028743.245006753
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.36786335707622747,
+            "deep_layer_relative_temperature_change": 0.15714017067044786,
+            "maximum_absolute_flux_error_percent": 98.38273416802757
+          }
+        },
+        "source_temperature": null,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_fail",
+        "structure_difference_to_native_marcs": null,
+        "survives": false,
+        "survives_solver": false,
+        "target_temperature": 3500.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3500.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "native_marcs_indices": [
+        6,
+        4,
+        10,
+        11,
+        7
+      ],
+      "selected_product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_reduced/t03500.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "selected_route": "continuation_primary",
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+    },
+    {
+      "case_id": "m_dwarf_t3750",
+      "class": "M-dwarf",
+      "continuation_full_carry_diagnostic": {
+        "case_id": "m_dwarf_t3750",
+        "case_role": "continuation_full_carry_diagnostic",
+        "converged": true,
+        "delta_temperature": 250.0,
+        "error": null,
+        "failure_reason": null,
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 25,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3750.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_full_carry",
+        "primary_pass": false,
+        "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_full_carry/t03750.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+        "product_written": true,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 157.1366807441227,
+        "solver_converged": true,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.0004661329161905714,
+            "deep_layer_relative_temperature_change": 0.00046635029741467165,
+            "maximum_absolute_flux_error_percent": 18.57559732093366,
+            "total_seconds": 156.46866718912497
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.0004661329161905714,
+            "deep_layer_relative_temperature_change": 0.00046635029741467165,
+            "maximum_absolute_flux_error_percent": 18.57559732093366
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.04868831246605079,
+            "deep_layer_relative_temperature_change": 0.05118018952575232,
+            "maximum_absolute_flux_error_percent": 34.921926796322694
+          }
+        },
+        "source_temperature": 4000.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_pass",
+        "structure_difference_to_native_marcs": {
+          "column_mass_dex": {
+            "max": 1.300231873505786,
+            "median": 0.35880263032236986,
+            "p95": 1.1035626441853117
+          },
+          "reference": "converted native MARCS (m,T); diagnostic only",
+          "temperature_relative": {
+            "max": 0.3234728494562804,
+            "median": 0.061967403540482774,
+            "p95": 0.2981954229658504
+          }
+        },
+        "survives": false,
+        "survives_solver": true,
+        "target_temperature": 3750.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "continuation_primary": {
+        "case_id": "m_dwarf_t3750",
+        "case_role": "continuation_primary",
+        "converged": true,
+        "delta_temperature": 250.0,
+        "error": null,
+        "failure_reason": null,
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 24,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3750.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "method": "marcs_continuation_reduced",
+        "primary_pass": false,
+        "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_reduced/t03750.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+        "product_written": true,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "4000-3750-3500-3300-3000K",
+        "seconds": 189.98794063460082,
+        "solver_converged": true,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.001863335548952278,
+            "deep_layer_relative_temperature_change": 0.00048419947838718,
+            "maximum_absolute_flux_error_percent": 19.66589537364281,
+            "total_seconds": 189.32100192829967
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.001863335548952278,
+            "deep_layer_relative_temperature_change": 0.00048419947838718,
+            "maximum_absolute_flux_error_percent": 19.66589537364281
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.04868488994596969,
+            "deep_layer_relative_temperature_change": 0.05117640772383465,
+            "maximum_absolute_flux_error_percent": 33.598235632221716
+          }
+        },
+        "source_temperature": 4000.0,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_pass",
+        "structure_difference_to_native_marcs": {
+          "column_mass_dex": {
+            "max": 1.307004360839482,
+            "median": 0.35866308660359997,
+            "p95": 1.1043303371732431
+          },
+          "reference": "converted native MARCS (m,T); diagnostic only",
+          "temperature_relative": {
+            "max": 0.32327692980747197,
+            "median": 0.06180152615469911,
+            "p95": 0.29808124870728386
+          }
+        },
+        "survives": false,
+        "survives_solver": true,
+        "target_temperature": 3750.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": false
+      },
+      "direct": {
+        "case_id": "m_dwarf_t3750",
+        "case_role": "direct",
+        "converged": true,
+        "delta_temperature": null,
+        "error": null,
+        "failure_reason": null,
+        "flux_imbalance": {
+          "available": false
+        },
+        "initial_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "iterations": 14,
+        "labels": {
+          "alpha_enhancement": 0.0,
+          "effective_temperature": 3750.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0
+        },
+        "marcs_input_diagnostics": {
+          "native_indices": [
+            6,
+            4,
+            10,
+            11,
+            10
+          ],
+          "native_layers": 56,
+          "native_tau5000_range": [
+            5.5744239944033325e-06,
+            70.90877532958984
+          ],
+          "payne_receives": [
+            "column_mass",
+            "temperature"
+          ]
+        },
+        "method": "marcs_direct_reduced",
+        "primary_pass": false,
+        "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_direct_reduced/t03750.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+        "product_written": true,
+        "record_type": "cool_star_step",
+        "recovered_pass": false,
+        "schedule": "direct",
+        "seconds": 104.16204010788351,
+        "solver_converged": true,
+        "solver_diagnostics": {
+          "final_diagnostics": {
+            "all_layer_relative_temperature_change": 0.0037708742486527507,
+            "deep_layer_relative_temperature_change": 0.00016190558066356392,
+            "maximum_absolute_flux_error_percent": 23.423303795348456,
+            "total_seconds": 103.49205925501883
+          },
+          "final_iteration": {
+            "all_layer_relative_temperature_change": 0.0037708742486527507,
+            "deep_layer_relative_temperature_change": 0.00016190558066356392,
+            "maximum_absolute_flux_error_percent": 23.423303795348456
+          },
+          "first_iteration": {
+            "all_layer_relative_temperature_change": 0.49999357665787697,
+            "deep_layer_relative_temperature_change": 0.23963325765869783,
+            "maximum_absolute_flux_error_percent": 46.35413090974707
+          }
+        },
+        "source_temperature": null,
+        "spectral_pass": null,
+        "state_quality": {
+          "available": true,
+          "finite": true,
+          "layers": 80,
+          "monotone_column_mass": true,
+          "positive": true,
+          "valid": true
+        },
+        "status": "solver_pass",
+        "structure_difference_to_native_marcs": {
+          "column_mass_dex": {
+            "max": 1.248595076020921,
+            "median": 0.3576519244058351,
+            "p95": 1.0922253337307979
+          },
+          "reference": "converted native MARCS (m,T); diagnostic only",
+          "temperature_relative": {
+            "max": 0.3318261508463918,
+            "median": 0.062476528030929,
+            "p95": 0.3112306155463041
+          }
+        },
+        "survives": false,
+        "survives_solver": true,
+        "target_temperature": 3750.0,
+        "track": {
+          "alpha_enhancement": 0.0,
+          "carbon_enhancement": 0.0,
+          "log_surface_gravity": 5.0,
+          "metallicity": 0.0,
+          "microturbulence_km_s": 1.0,
+          "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+        },
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+        "warnings": [],
+        "within_15_iterations": true
+      },
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3750.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "native_marcs_indices": [
+        6,
+        4,
+        10,
+        11,
+        10
+      ],
+      "selected_product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_reduced/t03750.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "selected_route": "continuation_primary",
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+    }
+  ],
+  "class": "M-dwarf",
+  "errors": [],
+  "manifest_hash": "db7bfd951e2cb0e52132e7de8da41b94ff17eca9c8d1c3f51fd5ffe6e46b42ba",
+  "records": [
+    {
+      "case_id": "m-dwarf_t4000",
+      "case_role": "anchor",
+      "converged": true,
+      "delta_temperature": null,
+      "error": null,
+      "failure_reason": null,
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 9,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 4000.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_anchor_reduced",
+      "primary_pass": false,
+      "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_anchor_reduced/t04000.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "product_written": true,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "anchor",
+      "seconds": 62.57405948685482,
+      "solver_converged": true,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.005826072599628243,
+          "deep_layer_relative_temperature_change": 0.0003271810134047019,
+          "maximum_absolute_flux_error_percent": 16.875292306904495,
+          "total_seconds": 59.28218070603907
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.005826072599628243,
+          "deep_layer_relative_temperature_change": 0.0003271810134047019,
+          "maximum_absolute_flux_error_percent": 16.875292306904495
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.5130255292715757,
+          "deep_layer_relative_temperature_change": 0.29456395397041457,
+          "maximum_absolute_flux_error_percent": 39.90110344353021
+        }
+      },
+      "source_temperature": null,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_pass",
+      "structure_difference_to_native_marcs": {
+        "column_mass_dex": {
+          "max": 1.3412126466213883,
+          "median": 0.34819542308094514,
+          "p95": 1.101017869028571
+        },
+        "reference": "converted native MARCS (m,T); diagnostic only",
+        "temperature_relative": {
+          "max": 0.3867509186893965,
+          "median": 0.07505149671931274,
+          "p95": 0.3715478935336778
+        }
+      },
+      "survives": false,
+      "survives_solver": true,
+      "target_temperature": 4000.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": true
+    },
+    {
+      "case_id": "m_dwarf_t3000",
+      "case_role": "direct",
+      "converged": false,
+      "delta_temperature": null,
+      "error": "solver did not satisfy its formal convergence criterion",
+      "failure_reason": "solver did not satisfy its formal convergence criterion",
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 30,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3000.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "marcs_input_diagnostics": {
+        "native_indices": [
+          6,
+          4,
+          10,
+          11,
+          2
+        ],
+        "native_layers": 56,
+        "native_tau5000_range": [
+          5.497939810084063e-07,
+          74.8858871459961
+        ],
+        "payne_receives": [
+          "column_mass",
+          "temperature"
+        ]
+      },
+      "method": "marcs_direct_reduced",
+      "primary_pass": false,
+      "product_path": null,
+      "product_written": false,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "direct",
+      "seconds": 280.1923289820552,
+      "solver_converged": false,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.21334038638085853,
+          "deep_layer_relative_temperature_change": 0.0849178367258309,
+          "maximum_absolute_flux_error_percent": 154508713.8683529,
+          "total_seconds": 280.1803940203972
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.21334038638085853,
+          "deep_layer_relative_temperature_change": 0.0849178367258309,
+          "maximum_absolute_flux_error_percent": 154508713.8683529
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.35481303712286794,
+          "deep_layer_relative_temperature_change": 0.1406827345052505,
+          "maximum_absolute_flux_error_percent": 4367.121688281016
+        }
+      },
+      "source_temperature": null,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_fail",
+      "structure_difference_to_native_marcs": null,
+      "survives": false,
+      "survives_solver": false,
+      "target_temperature": 3000.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3300",
+      "case_role": "direct",
+      "converged": false,
+      "delta_temperature": null,
+      "error": "solver did not satisfy its formal convergence criterion",
+      "failure_reason": "solver did not satisfy its formal convergence criterion",
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 30,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3300.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "marcs_input_diagnostics": {
+        "native_indices": [
+          6,
+          4,
+          10,
+          11,
+          5
+        ],
+        "native_layers": 56,
+        "native_tau5000_range": [
+          6.403243446584383e-07,
+          80.85372161865234
+        ],
+        "payne_receives": [
+          "column_mass",
+          "temperature"
+        ]
+      },
+      "method": "marcs_direct_reduced",
+      "primary_pass": false,
+      "product_path": null,
+      "product_written": false,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "direct",
+      "seconds": 250.0865113507025,
+      "solver_converged": false,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.03861955373344541,
+          "deep_layer_relative_temperature_change": 0.04017093740924461,
+          "maximum_absolute_flux_error_percent": 4142892.4377748766,
+          "total_seconds": 250.07464675977826
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.03861955373344541,
+          "deep_layer_relative_temperature_change": 0.04017093740924461,
+          "maximum_absolute_flux_error_percent": 4142892.4377748766
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.347295869197329,
+          "deep_layer_relative_temperature_change": 0.14889907274667272,
+          "maximum_absolute_flux_error_percent": 190.44807369096316
+        }
+      },
+      "source_temperature": null,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_fail",
+      "structure_difference_to_native_marcs": null,
+      "survives": false,
+      "survives_solver": false,
+      "target_temperature": 3300.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3500",
+      "case_role": "direct",
+      "converged": false,
+      "delta_temperature": null,
+      "error": "solver did not satisfy its formal convergence criterion",
+      "failure_reason": "solver did not satisfy its formal convergence criterion",
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 30,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3500.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "marcs_input_diagnostics": {
+        "native_indices": [
+          6,
+          4,
+          10,
+          11,
+          7
+        ],
+        "native_layers": 56,
+        "native_tau5000_range": [
+          2.032825022979523e-06,
+          79.06786346435547
+        ],
+        "payne_receives": [
+          "column_mass",
+          "temperature"
+        ]
+      },
+      "method": "marcs_direct_reduced",
+      "primary_pass": false,
+      "product_path": null,
+      "product_written": false,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "direct",
+      "seconds": 240.3139937124215,
+      "solver_converged": false,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.041288388096507665,
+          "deep_layer_relative_temperature_change": 0.04306653594664494,
+          "maximum_absolute_flux_error_percent": 6028743.245006753,
+          "total_seconds": 240.29998499993235
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.041288388096507665,
+          "deep_layer_relative_temperature_change": 0.04306653594664494,
+          "maximum_absolute_flux_error_percent": 6028743.245006753
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.36786335707622747,
+          "deep_layer_relative_temperature_change": 0.15714017067044786,
+          "maximum_absolute_flux_error_percent": 98.38273416802757
+        }
+      },
+      "source_temperature": null,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_fail",
+      "structure_difference_to_native_marcs": null,
+      "survives": false,
+      "survives_solver": false,
+      "target_temperature": 3500.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3750",
+      "case_role": "direct",
+      "converged": true,
+      "delta_temperature": null,
+      "error": null,
+      "failure_reason": null,
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 14,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3750.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "marcs_input_diagnostics": {
+        "native_indices": [
+          6,
+          4,
+          10,
+          11,
+          10
+        ],
+        "native_layers": 56,
+        "native_tau5000_range": [
+          5.5744239944033325e-06,
+          70.90877532958984
+        ],
+        "payne_receives": [
+          "column_mass",
+          "temperature"
+        ]
+      },
+      "method": "marcs_direct_reduced",
+      "primary_pass": false,
+      "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_direct_reduced/t03750.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "product_written": true,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "direct",
+      "seconds": 104.16204010788351,
+      "solver_converged": true,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.0037708742486527507,
+          "deep_layer_relative_temperature_change": 0.00016190558066356392,
+          "maximum_absolute_flux_error_percent": 23.423303795348456,
+          "total_seconds": 103.49205925501883
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.0037708742486527507,
+          "deep_layer_relative_temperature_change": 0.00016190558066356392,
+          "maximum_absolute_flux_error_percent": 23.423303795348456
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.49999357665787697,
+          "deep_layer_relative_temperature_change": 0.23963325765869783,
+          "maximum_absolute_flux_error_percent": 46.35413090974707
+        }
+      },
+      "source_temperature": null,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_pass",
+      "structure_difference_to_native_marcs": {
+        "column_mass_dex": {
+          "max": 1.248595076020921,
+          "median": 0.3576519244058351,
+          "p95": 1.0922253337307979
+        },
+        "reference": "converted native MARCS (m,T); diagnostic only",
+        "temperature_relative": {
+          "max": 0.3318261508463918,
+          "median": 0.062476528030929,
+          "p95": 0.3112306155463041
+        }
+      },
+      "survives": false,
+      "survives_solver": true,
+      "target_temperature": 3750.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": true
+    },
+    {
+      "case_id": "m_dwarf_t3750",
+      "case_role": "continuation_primary",
+      "converged": true,
+      "delta_temperature": 250.0,
+      "error": null,
+      "failure_reason": null,
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 24,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3750.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_reduced",
+      "primary_pass": false,
+      "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_reduced/t03750.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "product_written": true,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 189.98794063460082,
+      "solver_converged": true,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.001863335548952278,
+          "deep_layer_relative_temperature_change": 0.00048419947838718,
+          "maximum_absolute_flux_error_percent": 19.66589537364281,
+          "total_seconds": 189.32100192829967
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.001863335548952278,
+          "deep_layer_relative_temperature_change": 0.00048419947838718,
+          "maximum_absolute_flux_error_percent": 19.66589537364281
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.04868488994596969,
+          "deep_layer_relative_temperature_change": 0.05117640772383465,
+          "maximum_absolute_flux_error_percent": 33.598235632221716
+        }
+      },
+      "source_temperature": 4000.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_pass",
+      "structure_difference_to_native_marcs": {
+        "column_mass_dex": {
+          "max": 1.307004360839482,
+          "median": 0.35866308660359997,
+          "p95": 1.1043303371732431
+        },
+        "reference": "converted native MARCS (m,T); diagnostic only",
+        "temperature_relative": {
+          "max": 0.32327692980747197,
+          "median": 0.06180152615469911,
+          "p95": 0.29808124870728386
+        }
+      },
+      "survives": false,
+      "survives_solver": true,
+      "target_temperature": 3750.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3500",
+      "case_role": "continuation_primary",
+      "converged": true,
+      "delta_temperature": 250.0,
+      "error": null,
+      "failure_reason": null,
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 18,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3500.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_reduced",
+      "primary_pass": false,
+      "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_reduced/t03500.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "product_written": true,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 124.32878457382321,
+      "solver_converged": true,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.0016160479563665242,
+          "deep_layer_relative_temperature_change": 0.0002573057254714353,
+          "maximum_absolute_flux_error_percent": 299.81594660479436,
+          "total_seconds": 123.6590268779546
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.0016160479563665242,
+          "deep_layer_relative_temperature_change": 0.0002573057254714353,
+          "maximum_absolute_flux_error_percent": 299.81594660479436
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.049903758927872154,
+          "deep_layer_relative_temperature_change": 0.05218167899559807,
+          "maximum_absolute_flux_error_percent": 46.914621048923
+        }
+      },
+      "source_temperature": 3750.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_pass",
+      "structure_difference_to_native_marcs": {
+        "column_mass_dex": {
+          "max": 1.2477488484366779,
+          "median": 0.41473292754958435,
+          "p95": 1.07700448749899
+        },
+        "reference": "converted native MARCS (m,T); diagnostic only",
+        "temperature_relative": {
+          "max": 0.18764566424837395,
+          "median": 0.04143770022745913,
+          "p95": 0.16260190121755227
+        }
+      },
+      "survives": false,
+      "survives_solver": true,
+      "target_temperature": 3500.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3300",
+      "case_role": "continuation_primary",
+      "converged": false,
+      "delta_temperature": 200.0,
+      "error": "solver did not satisfy its formal convergence criterion",
+      "failure_reason": "solver did not satisfy its formal convergence criterion",
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 30,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3300.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_reduced",
+      "primary_pass": false,
+      "product_path": null,
+      "product_written": false,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 214.12985096592456,
+      "solver_converged": false,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.03801402324513104,
+          "deep_layer_relative_temperature_change": 0.03951619271350115,
+          "maximum_absolute_flux_error_percent": 2913846.9455437823,
+          "total_seconds": 214.12138466909528
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.03801402324513104,
+          "deep_layer_relative_temperature_change": 0.03951619271350115,
+          "maximum_absolute_flux_error_percent": 2913846.9455437823
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.05243657997253294,
+          "deep_layer_relative_temperature_change": 0.05533833289070293,
+          "maximum_absolute_flux_error_percent": 236.0548453544413
+        }
+      },
+      "source_temperature": 3500.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_fail",
+      "structure_difference_to_native_marcs": null,
+      "survives": false,
+      "survives_solver": false,
+      "target_temperature": 3300.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3000",
+      "case_role": "continuation_primary",
+      "converged": false,
+      "delta_temperature": 500.0,
+      "error": "continuation stopped because the MARCS 4000 K anchor or a previous step failed",
+      "failure_reason": "continuation stopped because the MARCS 4000 K anchor or a previous step failed",
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": null,
+      "iterations": null,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3000.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_reduced",
+      "primary_pass": false,
+      "product_path": null,
+      "product_written": false,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 0.0,
+      "solver_converged": false,
+      "source_temperature": 3500.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": false,
+        "finite": false,
+        "monotone_column_mass": false,
+        "positive": false,
+        "valid": false
+      },
+      "status": "blocked_by_previous_step",
+      "structure_difference_to_native_marcs": null,
+      "survives": false,
+      "survives_solver": false,
+      "target_temperature": 3000.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3750",
+      "case_role": "continuation_full_carry_diagnostic",
+      "converged": true,
+      "delta_temperature": 250.0,
+      "error": null,
+      "failure_reason": null,
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 25,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3750.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_full_carry",
+      "primary_pass": false,
+      "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_full_carry/t03750.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "product_written": true,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 157.1366807441227,
+      "solver_converged": true,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.0004661329161905714,
+          "deep_layer_relative_temperature_change": 0.00046635029741467165,
+          "maximum_absolute_flux_error_percent": 18.57559732093366,
+          "total_seconds": 156.46866718912497
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.0004661329161905714,
+          "deep_layer_relative_temperature_change": 0.00046635029741467165,
+          "maximum_absolute_flux_error_percent": 18.57559732093366
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.04868831246605079,
+          "deep_layer_relative_temperature_change": 0.05118018952575232,
+          "maximum_absolute_flux_error_percent": 34.921926796322694
+        }
+      },
+      "source_temperature": 4000.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_pass",
+      "structure_difference_to_native_marcs": {
+        "column_mass_dex": {
+          "max": 1.300231873505786,
+          "median": 0.35880263032236986,
+          "p95": 1.1035626441853117
+        },
+        "reference": "converted native MARCS (m,T); diagnostic only",
+        "temperature_relative": {
+          "max": 0.3234728494562804,
+          "median": 0.061967403540482774,
+          "p95": 0.2981954229658504
+        }
+      },
+      "survives": false,
+      "survives_solver": true,
+      "target_temperature": 3750.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3500",
+      "case_role": "continuation_full_carry_diagnostic",
+      "converged": true,
+      "delta_temperature": 250.0,
+      "error": null,
+      "failure_reason": null,
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 18,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3500.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_full_carry",
+      "primary_pass": false,
+      "product_path": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-20260831-v2/results/m_star_science_case_v1/tracks/g+5.00_m+0.00_a+0.00_c+0.00_x1.00/products/marcs_continuation_full_carry/t03500.0_g+5.00_m+0.00_a+0.00_x1.00.npz",
+      "product_written": true,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 124.1123944693245,
+      "solver_converged": true,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.0014964545082413612,
+          "deep_layer_relative_temperature_change": 0.00029260071316338204,
+          "maximum_absolute_flux_error_percent": 278.4245585502696,
+          "total_seconds": 123.45046649407595
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.0014964545082413612,
+          "deep_layer_relative_temperature_change": 0.00029260071316338204,
+          "maximum_absolute_flux_error_percent": 278.4245585502696
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.05006257388343847,
+          "deep_layer_relative_temperature_change": 0.05227543760059793,
+          "maximum_absolute_flux_error_percent": 45.52699585152017
+        }
+      },
+      "source_temperature": 3750.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_pass",
+      "structure_difference_to_native_marcs": {
+        "column_mass_dex": {
+          "max": 1.2529616866226396,
+          "median": 0.4146863795529414,
+          "p95": 1.0779522835305677
+        },
+        "reference": "converted native MARCS (m,T); diagnostic only",
+        "temperature_relative": {
+          "max": 0.18772675573663827,
+          "median": 0.041450010711857124,
+          "p95": 0.16267039497356525
+        }
+      },
+      "survives": false,
+      "survives_solver": true,
+      "target_temperature": 3500.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3300",
+      "case_role": "continuation_full_carry_diagnostic",
+      "converged": false,
+      "delta_temperature": 200.0,
+      "error": "solver did not satisfy its formal convergence criterion",
+      "failure_reason": "solver did not satisfy its formal convergence criterion",
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "iterations": 30,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3300.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_full_carry",
+      "primary_pass": false,
+      "product_path": null,
+      "product_written": false,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 213.93907189415768,
+      "solver_converged": false,
+      "solver_diagnostics": {
+        "final_diagnostics": {
+          "all_layer_relative_temperature_change": 0.12034384011388148,
+          "deep_layer_relative_temperature_change": 0.13680781832922237,
+          "maximum_absolute_flux_error_percent": 2478497.2804743224,
+          "total_seconds": 213.92268007807434
+        },
+        "final_iteration": {
+          "all_layer_relative_temperature_change": 0.12034384011388148,
+          "deep_layer_relative_temperature_change": 0.13680781832922237,
+          "maximum_absolute_flux_error_percent": 2478497.2804743224
+        },
+        "first_iteration": {
+          "all_layer_relative_temperature_change": 0.0523858031179352,
+          "deep_layer_relative_temperature_change": 0.05528178375788398,
+          "maximum_absolute_flux_error_percent": 218.13479529919277
+        }
+      },
+      "source_temperature": 3500.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": true,
+        "finite": true,
+        "layers": 80,
+        "monotone_column_mass": true,
+        "positive": true,
+        "valid": true
+      },
+      "status": "solver_fail",
+      "structure_difference_to_native_marcs": null,
+      "survives": false,
+      "survives_solver": false,
+      "target_temperature": 3300.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "warnings": [],
+      "within_15_iterations": false
+    },
+    {
+      "case_id": "m_dwarf_t3000",
+      "case_role": "continuation_full_carry_diagnostic",
+      "converged": false,
+      "delta_temperature": 500.0,
+      "error": "full-carry continuation stopped because a previous step failed",
+      "failure_reason": "full-carry continuation stopped because a previous step failed",
+      "flux_imbalance": {
+        "available": false
+      },
+      "initial_quality": null,
+      "iterations": null,
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3000.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "method": "marcs_continuation_full_carry",
+      "primary_pass": false,
+      "product_path": null,
+      "product_written": false,
+      "record_type": "cool_star_step",
+      "recovered_pass": false,
+      "schedule": "4000-3750-3500-3300-3000K",
+      "seconds": 0.0,
+      "solver_converged": false,
+      "source_temperature": 3500.0,
+      "spectral_pass": null,
+      "state_quality": {
+        "available": false,
+        "finite": false,
+        "monotone_column_mass": false,
+        "positive": false,
+        "valid": false
+      },
+      "status": "blocked_by_previous_step",
+      "structure_difference_to_native_marcs": null,
+      "survives": false,
+      "survives_solver": false,
+      "target_temperature": 3000.0,
+      "track": {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00",
+      "within_15_iterations": false
+    }
+  ],
+  "track": {
+    "alpha_enhancement": 0.0,
+    "carbon_enhancement": 0.0,
+    "log_surface_gravity": 5.0,
+    "metallicity": 0.0,
+    "microturbulence_km_s": 1.0,
+    "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+  },
+  "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+}

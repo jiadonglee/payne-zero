@@ -1,0 +1,24 @@
+{
+  "git_branch": "codex/sync-20260826",
+  "git_diff_sha256": "eba51792d75efcb3dcc1d8ff7c94889330c7d14c68fb77add969488de0dc87dd",
+  "git_dirty": true,
+  "git_head": "d8d044b4e7fdd570fd1f06f2d9cc8c33da71d894",
+  "input_sha256": {
+    "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json": "5e0238098f5811de7738d6e8fcf5b9eb5d94fe85a8fa9505ad3513769179e27e"
+  },
+  "policy": "v4r6_analytic_warm_start_policy60_v1",
+  "run_date": "20260829",
+  "source_sha256": {
+    "experiments/analytic_initializer/run_h2_solver_funnel.py": "bf73ef179b00213fe9f9e5b94d2147d36f692018d5e40aca520ed946c544106e",
+    "experiments/analytic_initializer/run_textbook_opacity_v4r6_policy60_arm.py": "82f7bb0cc00b4695b3edf3339925fa6c61c8326b02dab6b824df038c6f134e2b",
+    "experiments/analytic_initializer/run_textbook_opacity_v4r6_policy60_sequence.py": "bfe021db5818709a121d38cf20ff112ed5efdc09f9fd329973351bb3a89ef097",
+    "experiments/analytic_initializer/score_textbook_opacity_v4r6_policy60_dev60.py": "27ff93e2442e3285383eaaf915cb0246442ad0b7dc01eade9b99e9547093942d",
+    "experiments/analytic_initializer/textbook_opacity.py": "9176cf6842ec7465040f63da0cc7ecfeac83eb6cb59986402bd8453529125778",
+    "experiments/analytic_initializer/textbook_opacity_v4r6_decoupled_gates.py": "f394b3eee0753bbe86ed643142dfc69ef8291fd43d7df72d19e9da8f70fc607f",
+    "experiments/analytic_initializer/textbook_opacity_v4r6_policy60.py": "01aa11e92618f1fa59e9466a72263f58559948f3425ac7a86965ce4e0c9964cd",
+    "experiments/analytic_initializer/write_textbook_opacity_v4r6_policy60_source_manifest.py": "bd64067756c4c708444aed8e7a1af612a93a52c1349e890cdbaf924a26fee669",
+    "notes/textbook_opacity_v4r6_policy60_matched_dev60_preregistration_20260829.md": "42fabfdb7f29adcc128d47a5a1bfa18eeb898834f35c971758455dd0e83962ac",
+    "tests/test_textbook_opacity_v4r6_decoupled.py": "3d23ed09c5a84402a9a43a6ca05850669dde84b8630f5b534cab56b8cc63535a",
+    "tests/test_textbook_opacity_v4r6_policy60.py": "24409bf85f9fc5b461dac462ac59750b4c44d49fcdeecbe34955d33fbfd46a8e"
+  }
+}

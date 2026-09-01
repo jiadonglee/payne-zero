@@ -146,7 +146,16 @@ def test_a_supplied_reduced_state_routes_to_the_formula_path(monkeypatch) -> Non
         funnel, "_solve_production",
         lambda *a, **k: called.setdefault("path", "production") or {"converged": True},
     )
-    for arm in ("analytic", "compact600", "parity", "physical"):
+    for arm in (
+        "analytic",
+        "compact600",
+        "parity",
+        "physical",
+        "textbook_v4r3",
+        "textbook_v4r6",
+        "textbook_v4r6_grey",
+        "textbook_v4r6_decoupled",
+    ):
         called.clear()
         funnel._solve_payload(
             {
@@ -159,6 +168,40 @@ def test_a_supplied_reduced_state_routes_to_the_formula_path(monkeypatch) -> Non
             }
         )
         assert called["path"] == "analytic", f"{arm} went down the emulator path"
+
+
+def test_payload_iterations_reach_the_formula_solver(monkeypatch) -> None:
+    import numpy as np
+
+    from experiments.analytic_initializer import run_h2_solver_funnel as funnel
+
+    seen: dict[str, int] = {}
+
+    def fake_analytic(*_args, **kwargs):
+        seen["iterations"] = int(kwargs["iterations_per_trial"])
+        return {"converged": True}
+
+    monkeypatch.setattr(funnel, "_solve_analytic", fake_analytic)
+    monkeypatch.setattr(
+        funnel,
+        "_solve_production",
+        lambda *_a, **_k: {"converged": True},
+    )
+    payload = {
+        "arm": "textbook_v4r6_decoupled",
+        "labels": np.zeros(5),
+        "mass": np.ones(3),
+        "temperature": np.ones(3),
+        "log_opacity": np.zeros(3),
+        "tau": np.ones(3),
+        "iterations_per_trial": 60,
+    }
+    funnel._solve_payload(payload)
+    assert seen["iterations"] == 60
+    seen.clear()
+    del payload["iterations_per_trial"]
+    funnel._solve_payload(payload)
+    assert seen["iterations"] == 15
 
 
 def test_no_reduced_state_routes_to_the_emulator() -> None:

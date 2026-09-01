@@ -1,0 +1,172 @@
+{
+  "campaign": "m_star_emulator_v1",
+  "frozen": true,
+  "gate_hash": "66614735dda12c76116c80441316465f3a9c6b47dd395ac711adc4659e8e96cc",
+  "minimum_reference_success_count": 12,
+  "multiplier": 1.25,
+  "protocol_hash": "bc767110116b14a614a871c9d14bb06581f415ee02946b429d2039d6c7feb72c",
+  "reference_attempt_count": 16,
+  "reference_success_count": 15,
+  "roles": [
+    "train",
+    "validation"
+  ],
+  "source_records": [
+    {
+      "iterations": 6,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 1.3939351307371544,
+        "median_absolute_flux_error_percent": 0.0343044984531697,
+        "p95_absolute_flux_error_percent": 0.911370086701375
+      },
+      "node_id": "g+0.50_m+0.00_a+0.00_c+0.00_x2.00_t4500",
+      "split_role": "train"
+    },
+    {
+      "iterations": 6,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 1.2284057165149633,
+        "median_absolute_flux_error_percent": 0.06184518555966033,
+        "p95_absolute_flux_error_percent": 0.7377241973471014
+      },
+      "node_id": "g+0.50_m+0.00_a+0.00_c+0.00_x2.00_t4000",
+      "split_role": "train"
+    },
+    {
+      "iterations": 3,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 2.523602237485498,
+        "median_absolute_flux_error_percent": 0.09708158187786532,
+        "p95_absolute_flux_error_percent": 1.4277588571209932
+      },
+      "node_id": "g+1.50_m+0.00_a+0.00_c+0.00_x2.00_t4500",
+      "split_role": "train"
+    },
+    {
+      "iterations": 4,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 2.00538804096278,
+        "median_absolute_flux_error_percent": 0.08889693661296856,
+        "p95_absolute_flux_error_percent": 1.3299766366620587
+      },
+      "node_id": "g+1.50_m+0.00_a+0.00_c+0.00_x2.00_t4000",
+      "split_role": "train"
+    },
+    {
+      "iterations": 3,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 2.1383843276762438,
+        "median_absolute_flux_error_percent": 0.13848076888898547,
+        "p95_absolute_flux_error_percent": 0.7306989510188814
+      },
+      "node_id": "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t4500",
+      "split_role": "validation"
+    },
+    {
+      "iterations": 4,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 3.370296364726302,
+        "median_absolute_flux_error_percent": 0.015776610466185167,
+        "p95_absolute_flux_error_percent": 1.445337405016934
+      },
+      "node_id": "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t4000",
+      "split_role": "validation"
+    },
+    {
+      "iterations": 4,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 2.548179686814431,
+        "median_absolute_flux_error_percent": 0.003679095778422078,
+        "p95_absolute_flux_error_percent": 0.9218533190101939
+      },
+      "node_id": "g+2.50_m+0.00_a+0.00_c+0.00_x2.00_t4500",
+      "split_role": "train"
+    },
+    {
+      "iterations": 5,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 3.1362686053677957,
+        "median_absolute_flux_error_percent": 0.07064846262581642,
+        "p95_absolute_flux_error_percent": 1.0531032340347286
+      },
+      "node_id": "g+2.50_m+0.00_a+0.00_c+0.00_x2.00_t4000",
+      "split_role": "train"
+    },
+    {
+      "iterations": 3,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 13.037470419650191,
+        "median_absolute_flux_error_percent": 0.13831785458553011,
+        "p95_absolute_flux_error_percent": 3.891907320382962
+      },
+      "node_id": "g+4.50_m+0.00_a+0.00_c+0.00_x1.00_t4500",
+      "split_role": "train"
+    },
+    {
+      "iterations": 8,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 7.805771336174634,
+        "median_absolute_flux_error_percent": 0.04479590888921607,
+        "p95_absolute_flux_error_percent": 6.270153730880035
+      },
+      "node_id": "g+4.50_m+0.00_a+0.00_c+0.00_x1.00_t4000",
+      "split_role": "train"
+    },
+    {
+      "iterations": 4,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 7.50275968615087,
+        "median_absolute_flux_error_percent": 0.15416653293227345,
+        "p95_absolute_flux_error_percent": 2.3543797742354404
+      },
+      "node_id": "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t4500",
+      "split_role": "validation"
+    },
+    {
+      "iterations": 14,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 5.71085289520598,
+        "median_absolute_flux_error_percent": 0.10077294503560938,
+        "p95_absolute_flux_error_percent": 3.8542759198961045
+      },
+      "node_id": "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t4000",
+      "split_role": "validation"
+    },
+    {
+      "iterations": 4,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 13.874712649231075,
+        "median_absolute_flux_error_percent": 0.18737229935379793,
+        "p95_absolute_flux_error_percent": 3.17000977406872
+      },
+      "node_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00_t4500",
+      "split_role": "train"
+    },
+    {
+      "iterations": 10,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 15.381454867747928,
+        "median_absolute_flux_error_percent": 0.09951460295053724,
+        "p95_absolute_flux_error_percent": 6.088979095716836
+      },
+      "node_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00_t4000",
+      "split_role": "train"
+    },
+    {
+      "iterations": 8,
+      "metrics": {
+        "maximum_absolute_flux_error_percent": 18.521175004487866,
+        "median_absolute_flux_error_percent": 0.06308162843457818,
+        "p95_absolute_flux_error_percent": 7.645874604068786
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t4500",
+      "split_role": "train"
+    }
+  ],
+  "status": "pass",
+  "thresholds": {
+    "maximum_absolute_flux_error_percent": 23.151468755609834,
+    "median_absolute_flux_error_percent": 0.23421537419224742,
+    "p95_absolute_flux_error_percent": 9.557343255085982
+  }
+}

@@ -23,9 +23,11 @@
 
 % TODO: confirm affiliations before submission (both authors share the MPIA
 % address below; Ting's second affiliation is TBD).
-\title{A Solver-Consistent Two-Field Representation for 1D LTE Model-Atmosphere Initialization}
+\title{Two-Field Physics Is Enough to Represent One-Dimensional LTE Stellar Atmospheres: Learned and Emulator-Independent Initialization}
+\titlerunning{Two-field stellar-atmosphere initialization}
 
 \author{Jiadong Li\inst{1}, Yuan-Sen Ting\inst{1,2}}
+\authorrunning{J. Li \& Y.-S. Ting}
 
 \institute{Max Planck Institute for Astronomy\\
   \email{jdli@mpia.de}}
@@ -34,31 +36,39 @@
 \date{Received ---; accepted ---}
 
 \abstract
-{A stellar atmosphere is commonly stored as a set of depth-dependent fields,
-yet those fields are not independent: the equation of state, hydrostatic
-balance, opacity and radiative transfer couple them tightly. We investigate
-whether this physical structure admits a reduced description in terms of two
-depth-dependent coordinates alone, column mass and temperature, with the
-remaining fields reconstructed by the atmosphere solver itself. Framing the
-problem in this way separates the dimensionality of the physical state from
-the accuracy of any model trained to predict it. At the representation level,
-the converged two-coordinate state attains the same structural and spectral
-fidelity as the released six-field state. A learned predictor of the two
-coordinates, rematerialized from labels and hydrostatic balance without
-querying the six-field emulator at inference, reduces solver iterations and
-oscillations on development data, and this speed advantage survives a sealed
-holdout, whereas the profile and spectral reliability of the predictor do
-not. Within the tested label range,
-the two-coordinate representation is therefore physically sufficient, while
-the learned initializer has not yet reached the reliability required to
-replace the production model. These findings indicate that further
-improvements should target the solver's physical basin of attraction rather
-than an increase in the number of independently predicted fields.}
+{A one-dimensional LTE stellar atmosphere is commonly initialized through six
+depth-dependent fields. Four of these fields, however, are constrained by the
+equation of state, opacity, radiative transfer, and hydrostatic equilibrium
+once the column mass $m(\tau)$ and temperature $T(\tau)$ are specified. We
+separate the sufficiency of this two-field representation from the harder
+problem of predicting a useful initial state. Reconstructing the four
+dependent fields from exact converged $(m,T)$ profiles preserves both the
+atmospheric structure and the emergent spectrum. On a 60-star development
+sample, a learned two-field initializer reduces the mean iteration count from
+\NprodIterMean\ to \NlearnedIterMean. An independent 200-star test confirms this
+computational advantage, but also shows larger tail errors in the predicted
+profiles and spectra and a slightly lower fraction of usable atmospheres than
+the six-field initializer. We further construct a hydrostatic
+grey--convective initializer directly from stellar labels, without an
+atmosphere emulator. Most development stars converge from this physical
+approximation, but successful calculations require
+\NphysicalDevIterMean\ iterations on average, substantially more than for the
+learned start. A subsequent comparison on the same 200 stars shows the same
+accuracy--cost trade-off. In a separate \NMstarCases-node, solar-composition
+MARCS experiment below 4000 K, a temperature sequence reaches a
+\NMstarDwarfCoolestContinuation\,K dwarf missed by direct initialization, but
+its \NMstarDwarfFluxCoolest\% all-layer flux imbalance shows that formal
+convergence does not yet establish a physically acceptable cool atmosphere.
+Thus $(m,T)$ is sufficient as a physical representation. Learned predictions
+reach the convergence basin efficiently but are not yet robust across the
+sampled label range, whereas the emulator-independent construction is
+physically informative but slower and less reliable.}
 
 \keywords{stars: atmospheres --
   methods: numerical --
   radiative transfer --
   techniques: spectroscopic --
+  stars: late-type --
   stars: fundamental parameters}
 
 \maketitle
@@ -67,59 +77,57 @@ than an increase in the number of independently predicted fields.}
 \section{Introduction}
 \label{sec:intro}
 
-Most abundance measurements from survey spectra rest on a precomputed grid of
-model atmospheres, whether ATLAS \citep{kurucz1970, castelli2003}, MARCS
-\citep{gustafsson2008} or PHOENIX \citep{hauschildt1999, husser2013},
-because computing a dedicated atmosphere for every star has historically been
-too expensive for routine analysis. The errors introduced by interpolating
-within such grids have been characterized for decades
-\citep{meszaros2013}. Payne Zero \citep[hereafter Paper~I]{ting2026} removed
-much of this cost by reorganizing the Kurucz calculation so that spectral
-synthesis runs on a GPU while the atmosphere iteration runs on multicore
-CPUs, reducing the time for a converged atmosphere to a few seconds and
-making direct physical fitting of survey spectra practical.
+Large spectroscopic surveys usually rely on grids of precomputed stellar
+atmospheres, such as ATLAS \citep{kurucz1970, castelli2003}, MARCS
+\citep{gustafsson2008}, or PHOENIX
+\citep{hauschildt1999, husser2013}. Interpolation within such grids is fast,
+but its accuracy depends on the density and geometry of the grid
+\citep{meszaros2013}. Payne Zero \citep[hereafter Paper~I]{ting2026} instead
+accelerates the underlying Kurucz calculation, making it feasible to compute
+an atmosphere for each set of stellar labels. In this regime, the
+number of iterations needed for convergence becomes an important part of the
+computational cost.
 
-Once the atmosphere solve takes seconds rather than hours, its cost is set by
-the number of iterations required to converge, and therefore by the state
-from which the iteration starts. Paper~I supplies a learned initializer for
-this purpose, a neural network that maps stellar labels to a starting
-atmosphere from which the solver then iterates, and at the same time
-identifies initialization as the least satisfactory part of the method. The
-present paper takes up that problem from a different direction. Rather than
-enlarging the network or its training set, we first ask which quantities the
-network needs to predict at all.
+The iteration count depends on the initial atmospheric structure. Paper~I
+uses a neural network to predict this structure from the stellar labels.
+However, a model atmosphere is not an arbitrary collection of profiles. At
+each of \NgridLayers\ depth points, the solver stores column mass $m$,
+temperature $T$, gas pressure $P_{\rm gas}$, electron density $n_{\rm e}$,
+Rosseland mean opacity $\kappa_{\rm R}$, and radiative acceleration
+$g_{\rm rad}$. Once the stellar labels and the profiles $m(\tau)$ and
+$T(\tau)$ are specified, the equation of state, opacity calculation,
+radiative transfer, and hydrostatic equilibrium constrain the remaining four
+fields. Predicting all six profiles independently can therefore introduce
+combinations that are individually plausible but mutually inconsistent.
 
-A converged Payne Zero atmosphere is stored as six fields on each of
-\NgridLayers\ depth points: column mass $m$, temperature $T$, gas pressure
-$P_{\rm gas}$, electron density $n_{\rm e}$, Rosseland mean opacity
-$\kappa_{\rm R}$ and radiative acceleration $g_{\rm rad}$. A learned
-initializer that predicts all six therefore reproduces quantities that the
-physics already ties together: given the depth coordinate, the composition
-and the two thermodynamic profiles, the equation of state fixes the electron
-density, the opacity tables fix $\kappa_{\rm R}$, and the transfer solution
-fixes $g_{\rm rad}$. Nothing in the training procedure forces a six-output
-network to respect those relations. Each field is compared with its own
-target, so the network can fit all six well and still return an electron
-density that the equation of state would not produce for the temperature and
-column mass returned alongside it. Such a state is not simply an inaccurate
-atmosphere: because in general no single pair of profiles $(m,T)$ yields the
-six predicted fields jointly, it corresponds to no atmosphere that the
-solver's own physics could produce. The solver nevertheless iterates on a
-state whose fields are tied to one another, and how it behaves when they are
-not is the subject of Sect.~\ref{sec:consistency}.
+This observation motivates a reduced representation in which only
+$m(\tau)$ and $T(\tau)$ are supplied. The remaining fields are reconstructed
+with the atmosphere solver's own microphysics while the two supplied
+profiles are held fixed. The closure is iterated to self-consistency before
+the ordinary temperature correction begins. We distinguish the
+\emph{two-field representation}, which is the pair $(m,T)$, from the
+\emph{two-field physical initializer}, which also includes this
+self-consistent reconstruction and the subsequent atmosphere iteration. The
+distinction is important: a representation may be sufficient even when an
+approximate predictor does not place every star within the convergence basin.
 
-We therefore retain only the two coordinates $m(\tau)$ and $T(\tau)$ and
-rebuild the other four fields by running the solver's own equation of state,
-opacity, transfer and hydrostatic closure on the unchanged production grid.
-Whether this succeeds is decided not by the choice of coordinates but by the
-internal consistency of the rebuilt state. A single pass through that chain
-leaves the four derived fields mutually inconsistent, and the solver's
-ordinary iteration then carries the atmosphere away from the branch that its
-coordinates specify. We instead iterate the chain to self-consistency,
-holding $m$ and $T$ fixed throughout and reading the derived fields out
-before any temperature correction is applied. Rebuilt in this way, the
-reduced state proves sufficient at every level at which we are able to test
-it.
+The same representation also allows a complementary physical construction.
+We derive $m(\tau)$ and $T(\tau)$ from an Eddington-grey atmosphere,
+hydrostatic equilibrium, approximate Rosseland opacity, and a Saha-aware
+convective adjustment. This initializer contains no fitted atmospheric
+profiles and is independent of the neural atmosphere emulator. Its
+convergence therefore tests whether the
+solver can be initialized from a compact physical approximation rather than
+from an interpolated or learned atmosphere.
+
+Cool M-star atmospheres provide a stringent boundary test because molecular
+equilibrium, opacity, and convection strongly shape their thermal structure
+\citep{gustafsson2008,husser2013}. The two-field representation also suggests
+a physical continuation experiment: a converged warmer atmosphere can supply
+$(m,T)$ for a nearby effective temperature, after which the dependent fields
+are reconstructed before the next solve. This tests whether neighbouring cool
+atmospheres occupy a connected solution branch; it does not extrapolate the
+learned initializer beyond its training support.
 
 Several lines of related work approach this construction without coinciding
 with it. Interpolation of precomputed atmosphere grids is the classical way
@@ -134,39 +142,43 @@ itself, with the governing equations entering the loss, have also been
 demonstrated \citep[][Kurucz-a1, an arXiv preprint and workshop
 paper]{li2025kurucza1}. All of these approaches replace or sidestep the
 solver, whereas here the prediction is used only to start the original solver
-and acceptance is measured by what the solver itself does with it.
+and is assessed through the subsequent convergence trajectory and final
+atmosphere.
 
-The paper addresses three questions, each supported by a different strength
-of evidence. The first is a representation question: are two of the six
-stored fields sufficient to rebuild the other four, with no predictor
-involved at all? The second is a learning question: can a network predict
-those two coordinates well enough to provide a useful warm start? The third
-is a generalization question: does a frozen policy built in this way survive
-a sealed holdout? The answers are affirmative, affirmative and negative,
-respectively, and we report them separately because each rests on a different
-experiment.
+We address four questions. First, do exact converged $(m,T)$ profiles retain
+enough information to reconstruct the full atmosphere and its spectrum?
+Second, can a neural predictor of these two profiles reduce the cost of
+convergence without compromising the final atmosphere? Third, can an
+emulator-independent physical approximation reach the same convergence
+basin? Fourth, can temperature continuation in the reduced coordinates reach
+selected M-star atmospheres below the 4000 K corpus boundary, and are those
+atmospheres in flux balance? We separate the representation test from the two
+initialization tests, and we assess the learned initializer on an independent
+200-star sample that was not used during model development.
 
 The remainder of the paper is organized as follows. Section~\ref{sec:solver}
 gives the minimal solver description needed to define the reduced state, and
-Sect.~\ref{sec:reduced} defines the rematerialization path.
+Sect.~\ref{sec:reduced} defines the physical reconstruction.
 Section~\ref{sec:data} describes the evaluation design.
 Section~\ref{sec:results} tests representation sufficiency, compares the
-learned two-field initializer with the released baseline, and reports the
-sealed holdout. Detailed solver diagnostics, the analytic initializer and
-provenance records are collected in the appendices.
+learned two-field initializer with the six-field reference, evaluates the
+grey--convective construction, examines the cool M-star boundary, and reports
+the independent learned test and post-hoc physical comparison. Additional
+solver diagnostics, the fitted analytic initializer, and reproducibility
+information are collected in the appendices.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{The solver and its state}
+\section{Atmosphere solver}
 \label{sec:solver}
 
-\subsection{The carried state and its closure}
+\subsection{Atmospheric state and physical closure}
 \label{sec:state}
 
-The production solver computes a plane-parallel, hydrostatic, one-dimensional
+The reference solver computes a plane-parallel, hydrostatic, one-dimensional
 LTE atmosphere on a fixed Rosseland optical-depth grid,
 \begin{equation}
   \tau_{\rm std}(i) = 10^{-6.875 + 0.125\,i}, \qquad
-  i=0,\ldots,\NgridLayers-1 .
+  i=0,\ldots,\NgridLayers-1.
   \label{eq:grid}
 \end{equation}
 It stores six depth-dependent profiles,
@@ -177,10 +189,9 @@ It stores six depth-dependent profiles,
   \label{eq:state}
 \end{equation}
 namely column mass, temperature, gas pressure, electron density, Rosseland
-mean opacity and radiative acceleration. The solver also carries iteration
-variables and opacity information that are not part of this physical
-projection; the distinction matters because initialization acts on the
-complete state.
+mean opacity and radiative acceleration. Additional numerical variables and
+frequency-dependent opacities are retained during iteration but are not part
+of this six-profile representation.
 
 The closure couples these fields through the equation of state, opacity and
 radiative transfer. In particular,
@@ -191,13 +202,13 @@ radiative transfer. In particular,
   P_{\rm gas} &= g\,m-P_{\rm rad}. \label{eq:hse}
 \end{align}
 Here $\chi_\nu$ is the total extinction per unit mass and $F_\nu$ is the
-monochromatic flux. The production branch disables turbulent pressure; the
-microturbulent velocity remains a spectral-broadening parameter. At fixed
+monochromatic flux. Turbulent pressure is neglected, while microturbulence
+enters the opacity calculation as a line-broadening parameter. At fixed
 labels and fixed $(m,T)$, the equation of state, opacity and transfer routines
 therefore determine the other four stored fields. This physical closure is the
 reason a six-field initializer can contain mutually inconsistent quantities.
 
-\subsection{Energy balance and the temperature correction}
+\subsection{Energy balance}
 \label{sec:correction}
 
 The ordinary solver does more than synchronize the closure: it changes $T$ and
@@ -206,19 +217,18 @@ $m$ until the total flux is constant,
   F_{\rm rad}(m)+F_{\rm conv}(m)=\sigma T_{\rm eff}^{4},
   \qquad
   \epsilon_F =
-  \frac{F_{\rm rad}+F_{\rm conv}}{\sigma T_{\rm eff}^{4}}-1 .
+  \frac{F_{\rm rad}+F_{\rm conv}}{\sigma T_{\rm eff}^{4}}-1.
   \label{eq:energy}
 \end{equation}
-The production temperature corrections and damping rules are unchanged from
-Paper~I and are not modified here. What matters for the present argument is
-that a temperature correction also remaps the column-mass coordinate, so that
-an internally inconsistent state can drift away from the coordinates supplied
-at the handoff.
+We use the temperature correction and damping scheme of Paper~I without
+modification. Each correction also remaps the column-mass coordinate.
+Consequently, inconsistencies among the initial profiles can alter both
+$T(\tau)$ and $m(\tau)$ during the first iteration.
 
-\subsection{The iteration as a map}
+\subsection{Fixed-point iteration}
 \label{sec:map}
 
-Writing $\mathbf{x}$ for the complete carried state, one production pass can be
+Writing $\mathbf{x}$ for the complete atmospheric state, one iteration can be
 summarized as
 \begin{equation}
   \begin{aligned}
@@ -244,265 +254,244 @@ temperature change,
   <5\times10^{-4},
   \label{eq:stop}
 \end{equation}
-with a floor of three iterations. The stopping criterion, retry policy and
-restart strategy are those of the production solver described in Paper~I.
-
-All comparisons below use three levels of evidence: profile agreement, restart
-behavior of the unmodified solver, and spectral agreement of converged
-products. The spectral acceptance bar is calibrated against the solver's own
-production retry start; detailed definitions and the corresponding control are
-given in Appendix~\ref{app:gates}.
-\section{The reduced state}
+with a minimum of three iterations. All calculations use the convergence
+criterion and iteration scheme described in Paper~I.
+\section{Two-field physical representation}
 \label{sec:reduced}
 
-\subsection{The two reduced coordinates}
+\subsection{Choice of independent profiles}
 
-We take the state of a layer to be the pair $(m, T)$ and treat the remaining
-four fields as functionals of the pair, the composition and the depth grid:
+We use $(m,T)$ as the two independent depth-dependent coordinates and treat
+the remaining fields as functionals of those coordinates, the stellar labels
+and the fixed depth grid:
 \begin{equation}
   \bigl(P_{\rm gas}, n_{\rm e}, \kappa_{\rm R}, g_{\rm rad}\bigr)
   = \mathcal{F}\bigl[m(\tau), T(\tau); \theta\bigr],
   \label{eq:reduced}
 \end{equation}
-where $\theta$ denotes the stellar labels. Equation~(\ref{eq:reduced}) is not an
-approximation introduced here: it is the same chain of physics the solver
-executes internally on every iteration. What changes is only which quantities
-are stored, predicted and handed across an interface.
+where $\theta$ denotes the stellar labels. The operator $\mathcal{F}$ consists
+of the same equation of state, opacity calculation, radiative transfer, and
+hydrostatic closure used during the atmosphere iteration, but is evaluated
+without changing $m$ or $T$. Thus two independent profiles determine the four
+remaining profiles through the physical closure. The six stored profiles
+therefore occupy a constrained functional subspace parameterized by two
+depth-dependent functions, rather than six independently variable functions.
 
-Figure~\ref{fig:state} shows the construction. $\mathcal{F}$ is evaluated by
-calling the solver's own routines in their production order --- equation of
-state and chemical populations, continuum and line opacity, the radiative
-transfer solution, and finally the hydrostatic closure of
-Eq.~(\ref{eq:hse}). One pass through this chain is not self-consistent: the
-opacities and populations are evaluated at the pressure the pass started with,
-and the pressure is corrected only at the final step, from the radiation
-pressure the transfer solution has just supplied. The chain is therefore
-iterated before the atmosphere is handed to the solver. The representation
-controls use \NsyncPasses\ fixed passes. The learned candidate uses the
-adaptive production path, stopping when the pressure change falls below
-\NsyncPressureTolerance\,dex and allowing at most \NsyncMaxPasses\ passes.
-Throughout this process $m$ and $T$ are never modified: they are the
-coordinates, and the passes act only on the quantities derived from them.
+Figure~\ref{fig:state} compares three ways to initialize the same solver. The
+six-field neural initializer predicts all six stored fields. The learned
+two-field initializer predicts only $(m,T)$ and synchronizes the four
+dependent fields at fixed coordinates. The hydrostatic grey--convective
+initializer instead constructs $m$, $T$, and an approximate Rosseland opacity
+directly from the stellar labels. All three initial states then enter the same
+atmosphere iteration.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\hsize]{fig_two_warm_starts_one_solver.png}
-  \caption{Two warm starts feeding the same production solver. The released
-    baseline predicts all six stored fields, whereas the proposed emulator
-    predicts only $m$ and $T$. For the two-field arm, the equation of state,
-    opacity, radiative transfer and hydrostatic closure synchronize
-    $P_{\rm gas}$, $n_{\rm e}$, $\kappa_{\rm R}$ and $g_{\rm rad}$ at fixed
-    $(m,T)$ before the unchanged energy iteration begins. The two-field arm
-    needs no second predictor: the first synchronization pass is seeded from
-    the labels and hydrostatic balance alone ($P_{\rm gas}=g\,m$, with
-    positive $n_{\rm e}$ and $\kappa_{\rm R}$ placeholders and
-    $g_{\rm rad}=0$), and subsequent passes recompute all four fields from the
-    solver's own equation of state, opacity, transfer and closure routines.}
+  \includegraphics[width=\hsize]{fig_state.pdf}
+  \caption{Three initialization paths for the same atmosphere solver.
+    \emph{(a)} The six-field network predicts all six stored fields directly.
+    \emph{(b)} The two-field network predicts only $m(\tau)$ and $T(\tau)$.
+    At fixed $(m,T)$, the equation of state, opacity, radiative
+    transfer and hydrostatic closure are repeated until the pressure is
+    self-consistent. \emph{(c)} The emulator-independent construction retains
+    the grey-atmosphere column mass, applies a convective temperature
+    adjustment, and evaluates the opacity at
+    $(T_{\rm conv},P=g\,m_{\rm grey})$. The temperature adjustment does not
+    trigger a second integration of the column-mass coordinate. All three
+    paths use the same stellar labels, depth grid, solver, and convergence
+    criterion.}
   \label{fig:state}
 \end{figure*}
 
 \subsection{Synchronization to self-consistency}
 \label{sec:consistency}
 
-The decisive implementation choice is to make the rebuilt state
-self-consistent before the solver sees it. In the earlier two-field handoff
-described in Sect.~\ref{sec:intro}, a single population/opacity/transfer
-synchronization was applied and the ordinary iteration was then started; the
-column mass in the most sensitive upper layer moved by about 13 per cent even
-though converged temperature and mass profiles had been supplied. Since the
-supplied profiles were exact, this displacement cannot be attributed to
-prediction error: it indicates that the map itself has moved to a different
-branch.
+One evaluation of $\mathcal{F}$ is insufficient. The populations and opacities
+are evaluated at the input gas pressure, while the transfer solution changes
+the radiation pressure and hence the gas pressure implied by
+Eq.~(\ref{eq:hse}). If the energy iteration starts immediately, its first
+temperature correction acts on that inconsistency. Even when the exact
+converged $(m,T)$ profiles are supplied, a single closure evaluation therefore
+changes the uppermost column-mass layers.
 
-The mechanism lies in the coupling inside $\mathcal{F}$. The gas pressure is
-corrected only once the transfer solution has supplied the radiation pressure,
-whereas the opacities and populations that drive the transfer solution depend
-on the pressure with which the pass began, so that a single pass through the
-chain cannot be self-consistent. The residual inconsistency is then acted upon
-by the solver's first temperature correction and by the grid remapping that
-accompanies it, which displaces the column mass. The displacement appears at
-the top of the atmosphere, where the optical-depth closure is seeded not by
-quadrature but by the closed form
+The inconsistency is largest at the top boundary, where optical depth is
+initialized by
 \begin{equation}
   \tau_{0} = \kappa_{0}\,m_{0},
   \label{eq:seed}
 \end{equation}
-which approximates $\int_{0}^{m_0}\kappa\,{\rm d}m$ by assuming $\kappa$ is
-constant above the first grid point. Equation~(\ref{eq:seed}) is a convention
-rather than a numerical approximation that improves with resolution; it
-determines where the drift appears and why repairing the closure cannot remove
-it. The record of the earlier attempt supports the same interpretation:
-additional synchronization passes reduced the closure residual from $0.279$ to
-$0.0034$\,dex while the branch drift remained unchanged, and reseeding the
-surface radiation pressure had no effect.
+which assumes constant opacity above the first grid point. This approximation
+localizes the largest residual to the surface layers. Repeating the closure
+reduces the residual substantially, whereas modifying the initial radiation
+pressure alone does not.
 
-The rematerialization of Sect.~\ref{sec:reduced} is designed to remove
-precisely this failure mode. In the candidate path, synchronization continues
-until the pass-to-pass change in gas pressure falls below $10^{-3}$\,dex; the
-representation controls retain their recorded fixed-pass protocol. In both
-cases $m$ and $T$ are pinned to the reduced state throughout, and the four
-fields are read out on the production grid of Eq.~(\ref{eq:grid}) before any
-temperature correction or remapping is applied.
-Appendix~\ref{app:resolution} examines the two grid-side remedies directly and
-shows that both a finer representation of the coordinates and a finer
-quadrature fail to produce a systematic improvement.
+We therefore hold $m$ and $T$ fixed, repeat the four physical stages,
+and monitor the largest pass-to-pass change in $\log_{10}P_{\rm gas}$. The
+exact-coordinate calculations use \NsyncPasses\ passes. The learned
+initializer stops below \NsyncPressureTolerance\,dex, with at most
+\NsyncMaxPasses\ passes. Cases that do not reach this tolerance do not proceed
+to the atmosphere iteration and are reported as reconstruction failures. The
+four dependent fields are evaluated before any temperature
+correction or remapping. Appendix~\ref{app:resolution} tests the remaining
+grid and top-boundary limitations.
 
-\subsection{A monotone column-mass parameterization}
-
-When the two coordinates come from a network rather than from a converged
-atmosphere, one structural property has to be guaranteed rather than learned.
-Column mass must increase monotonically with depth; a profile that does not is
-rejected outright by the rematerialization, not merely degraded. The production
-grid is uniform in $\log_{10}\tau$, with a spacing of $0.125$ dex. We predict a
-positive increment in $\log_{10}m$ for each step on this grid:
-\begin{equation}
-  \ell_0 = a(\theta), \qquad
-  \Delta\ell_j = \epsilon + \mathrm{softplus}\bigl(s_j(\theta)\bigr), \qquad
-  \ell_j = \ell_0 + \sum_{k=1}^{j}\Delta\ell_k ,
-  \label{eq:monotone}
-\end{equation}
-where $\ell_j=\log_{10}m_j$ and
-$\mathrm{softplus}(x)=\log(1+e^x)$ is the smooth positive activation. The
-network predicts the anchor $a(\theta)$ and the layer scores $s_j(\theta)$ from
-the stellar labels $\theta$. The floor is $\epsilon=10^{-6}$ dex per layer, so
-each increment is strictly positive. In the code, each score also includes a
-fixed offset from the mean training-set increment. The cumulative sum makes
-monotonicity structural. Section~\ref{sec:learned} gives the ablation that
-justifies the cost of doing so.
-
-% The compact non-neural initializer is retained as an appendix diagnostic rather
-% than treated as a co-equal main-text result.
-\section{Data and evaluation protocol}
+\section{Atmosphere sample and evaluation}
 \label{sec:data}
 
-\subsection{Corpus and samples}
+\subsection{Atmosphere sample and data splits}
 
-All experiments draw on \NcorpusStars\ converged solver-output atmospheres on the
+All experiments draw on \NcorpusStars\ converged atmosphere models on the
 grid of Eq.~(\ref{eq:grid}). The five-label support spans
 $4000$--$10\,500$\,K in effective temperature, $0.7$--$5.3$ in $\log g$,
 $-2.5$ to $+0.5$ in $[\rm M/H]$, $-0.1$ to $+0.5$ in
 $[\alpha/\rm M]$, and $0.5$--$4.0$\,km\,s$^{-1}$ in microturbulence.
 The learned model is trained on the corpus training split and assessed on a
-development-60 sample excluded from training and validation. The sealed-200
-holdout is disjoint from those rows and was fixed before the final policy was
-opened. It is the only sample used to assess generalization.
+60-star development sample excluded from training and validation. A separate
+200-star test sample is disjoint from all training, validation, and
+development rows. It was selected before the final model was evaluated and is
+an independent test for the learned initializer. The same 200 stars had
+already been examined before the hydrostatic grey--convective initializer was
+introduced. Their subsequent use for that method is therefore a post-hoc
+comparison rather than independent evidence.
 
 The corpus contains only atmospheres that converged in fewer than thirty
 iterations. Every convergence claim is therefore conditional on the region
 already represented by this corpus; the experiments do not test whether a new
 initializer rescues labels for which the solver fails from the outset.
 
-\subsection{Initializers compared}
+A separate cool-star boundary sample is not drawn from this corpus. It consists
+of \NMstarCases\ native MARCS atmospheres at solar composition:
+\NMstarDwarfCases\ dwarfs with $\log g=5.0$ and
+$\xi=1$\,km\,s$^{-1}$, and \NMstarGiantCases\ giants with
+$\log g=1.5$ and $\xi=2$\,km\,s$^{-1}$. Each gravity sequence contains
+$T_{\rm eff}=3000$, 3300, 3500, and 3750\,K. This sparse grid is designed to
+contrast high- and low-gravity atmospheres below the 4000\,K corpus boundary;
+it is not a representative sample of the M-star population.
 
-The main text compares three initializers. The released six-field network is the
-Paper~I production baseline and predicts all six profiles directly. The learned
-two-field initializer predicts only $m$ and $T$ and derives the remaining fields
-through the solver-consistent rematerialization path. The sealed candidate is a
-later frozen policy built on the same two-field representation and qualified on
-development data before the sealed holdout was opened. Detailed asset records,
-including the analytic comparison, are given in Appendix~\ref{app:assets}.
-In the refreshed candidate-arm calculations, rematerialization starts from the
-labels and hydrostatic balance, and no six-field-emulator checkpoint is queried
-at inference. This is runtime independence, not training independence: the
-training targets are converged full atmospheres, and the frozen policy was
-qualified against products from the production arm.
-It is also not exact numerical seed invariance: the adaptive stop is applied
-to pressure, so the other rematerialized fields can retain differences of
-order the stated synchronization tolerance.
+\subsection{Initialization methods}
 
-\subsection{Evaluation protocol}
+We compare three classes of initialization. The Paper~I reference model
+predicts all six profiles directly. The learned two-field model predicts only
+$(m,T)$ and obtains the remaining profiles from the physical reconstruction
+of Sect.~\ref{sec:reduced}. Its final configuration was selected using the
+development sample before it was applied to the independent test sample. The
+grey--convective initializer supplies $(m,T,\kappa_{\rm R})$ from physical
+approximations with no fitted atmospheric profiles. It is evaluated first on
+the development sample and then, without changing the construction or
+numerical limits, on the same 200-star sample. A compact fitted
+analytic approximation is included as an additional comparison in
+Appendix~\ref{app:analytic}.
 
-We evaluate each candidate at three levels. The profile level compares
-$(m,T)$ with the converged truth. The solver level restarts the unmodified
-solver and records convergence, iteration count, contraction and
-non-monotonic trajectories. The spectral level compares converged products over
-\NgateWindowLo--\NgateWindowHi\,nm at $R=\NgateResolution$, using the reference
-gate implementation and the acceptance bar \NgateBar. Because the solver's
-converged product depends on its starting state, the bar is calibrated against
-the production retry start; the control and full metric definitions are given
-in Appendix~\ref{app:gates}.
+For the learned two-field model, reconstruction begins from the stellar labels
+and $P_{\rm gas}=gm$; no predicted field from the six-field model is used.
+This independence applies to inference, not to training: the target
+$(m,T)$ profiles come from converged full atmospheres. The synchronization
+criterion is defined through gas pressure, so the dependent fields are
+self-consistent only to the stated numerical tolerance.
+
+For the physical experiment, the grey, coupled convective, and
+grey--convective initializers are compared on the same 60 stars. Each
+calculation is followed for at most \NvfourPolicyIterationLimit\ iterations
+and \NvfourPolicyTimeoutSeconds\,s. These common limits define the reported
+non-convergences and timeouts. The comparison isolates the effect of retaining
+the grey column mass when the temperature profile is adjusted for convection.
+
+For the cool-star experiment, each MARCS node is first tested by supplying its
+native $(m,T)$ profiles directly to the Payne Zero physical closure. A second
+calculation begins at 4000\,K and proceeds through
+$3750\rightarrow3500\rightarrow3300\rightarrow3000$\,K. Only $(m,T)$ is
+transferred between neighbouring temperatures; the dependent fields are
+reconstructed at every step. Both calculations use the unchanged convergence
+criterion and a 30-iteration limit. Carrying the full atmospheric state between
+steps is retained only as a control and does not determine the reported
+atmospheres.
+
+\subsection{Performance measures}
+
+We quantify performance at three levels. Profile accuracy is measured against
+the converged atmosphere. Numerical behavior is characterized by the
+convergence fraction, iteration count, residual contraction, and frequency of
+non-monotonic trajectories. Finally, converged spectra are compared over
+\NgateWindowLo--\NgateWindowHi\,nm at $R=\NgateResolution$. We retain
+\NgateBar\ as a common reference level across the experiments. The reference
+solver can itself exceed this value when restarted from a different converged
+state, so crossing it is reported as a discrepancy rather than treated as
+a universal pass--fail boundary. Appendix~\ref{app:gates} gives the complete
+definitions.
+
+For the M-star boundary sample, no spectrum is yet available. We therefore
+report the maximum absolute relative flux error over all depth layers at the
+final solver iteration. This quantity tests flux balance independently of the
+temperature-based stopping rule; no post-hoc flux threshold is imposed.
+
 \section{Results}
 \label{sec:results}
 
-The representation and learned-initializer results below use the
-development-\NevalStars\ sample, which was available throughout the
-construction of the method; the original sealed-200 opening is the only
-measurement that bears on generalization. Every development artifact that
-executes rematerialization was regenerated from the physical seed for this
-paper revision; the frozen two-field predictions and the released six-field
-comparison products were not changed.
+The representation and initialization experiments use the
+\NevalStars-star development sample. The independent learned test and the
+post-hoc physical comparison use the same 200 stars, with the different
+interpretations established in Sect.~\ref{sec:data}.
 
 \subsection{Representation sufficiency}
 \label{sec:sufficiency}
 
-We first show that two fields are sufficient to carry the state, removing the
-predictor from the question entirely: taking the converged $(m,T)$ profiles of
-each evaluation star, we discard the other four fields and rebuild them
-through $\mathcal{F}$. This isolates the representation question from the
-separate question of whether a network can predict the coordinates.
+We first isolate the representation from any prediction error. For each
+evaluation star, we retain the converged $(m,T)$ profiles, discard the other
+four fields, and reconstruct them through $\mathcal{F}$.
 
-Table~\ref{tab:reconstruction} and Fig.~\ref{fig:fields} give the resulting
-comparison. The four rebuilt fields agree with the values to which the solver
-itself converged at $10^{-3}$ or better in the median. The error is smallest
-through the middle of the atmosphere and rises toward both boundaries, and a
-handful of individual layers in a handful of stars reach tens of percent,
-always at the extreme top or bottom of the grid.
+Figure~\ref{fig:reconstruction} gives the resulting comparison. The four
+rebuilt fields agree with the values to which the solver itself converged at
+$10^{-3}$ or better in the median. Across the four fields, the pointwise
+$p_{90}$ errors range from \NreconPninetyLow\ to
+\NreconPninetyHigh. The largest individual errors,
+\NreconMaximumLow--\NreconMaximumHigh, are confined to the extreme upper and
+lower boundary layers.
 
-\input{tables/tab_reconstruction}
+We next restart the solver from the reconstructed atmosphere and, as a
+reference, from the original six-field converged state. Both initializations
+converge for all stars. The
+reconstructed states require \NoracleIterMean\ iterations on average,
+compared with \NsixIterMean\ for the six-field states.
+\NoracleAtFloor\ of \NevalStars\ reconstructed atmospheres reach the
+three-iteration minimum, compared with \NsixAtFloor\ for the reference.
+Only \NoracleGapStars\ stars differ in iteration count, by no more than
+\NoracleGapMax\ iterations.
 
-
-A more demanding test is whether the solver accepts the rebuilt atmosphere as
-a starting state. Table~\ref{tab:oracle} restarts the unmodified solver from
-the rebuilt state and, for comparison, from the full six-field truth; both
-converge on every star. The rebuilt state takes \NoracleIterMean\ iterations
-against \NsixIterMean, and \NoracleAtFloor\ of \NevalStars\ stars reach
-the three-iteration floor exactly, against \NsixAtFloor.
-\NoracleGapStars\ stars show a gap, never exceeding \NoracleGapMax\ additional
-iterations, and none fails. This gap is the honest measure of the regime in
-which two fields remain distinguishable from six.
-
-\input{tables/tab_oracle_restart}
-
-Two cautions apply to Table~\ref{tab:oracle}, both visible in its last
-column. The first concerns the floor: with almost every star already at three
-iterations, the table has very little power to distinguish the arms, and the
-difference between \NoracleIterMean\ and \NsixIterMean\ should not be
-over-interpreted. The second is more consequential. Both arms begin at a
+Because most stars reach the minimum number of iterations, the small
+difference between \NoracleIterMean\ and \NsixIterMean\ is not a meaningful
+measure of convergence speed. Both initial states also begin at a
 first-iteration residual of about \NoracleFirstResidual, already inside the
-$5\times10^{-4}$ convergence threshold, so their contraction ratios and
-non-monotonic fractions describe how the solver behaves at its noise floor
-rather than how it contracts; they must not be compared with arms that start
-an order of magnitude further from the fixed point.
-Section~\ref{sec:learned} maintains this separation throughout.
+$5\times10^{-4}$ convergence threshold. Their contraction ratios and
+non-monotonic fractions therefore characterize numerical fluctuations near
+the fixed point and are not directly comparable to initializations that begin
+farther from convergence.
 
-Iteration counts and profile errors are both internal to the atmosphere; the
-observable question is whether the reduced state changes the emergent
-spectrum. This is where a representation claim can fail silently, since an
-atmosphere can be inaccurate in a way that costs no iterations yet still
-shifts the flux. Comparing the converged product of the rebuilt arm with that
-of the six-field arm over \NgateWindowLo--\NgateWindowHi\,nm, we find that
+We finally test whether the reconstructed state changes the emergent
+spectrum. Comparing the converged spectra obtained from the reconstructed and
+six-field states over \NgateWindowLo--\NgateWindowHi\,nm, we find that
 the normalized flux differs by a median of \NtruthGateMedian, with a maximum
 of \NtruthGateMax\ and \NtruthGateOver\ of \NtruthGateStars\ stars above
-the bar, corresponding to a median roughly \NtruthGateFactor\ times below
-it. Total flux and continuum behave in the same way
+the common reference level; the median is roughly \NtruthGateFactor\ times
+smaller than that level. Total flux and continuum behave in the same way
 (Table~\ref{tab:spectral}, first row). Figure~\ref{fig:representation-spectra}
 shows this comparison directly across the label support, including the star
-with the largest normalized-flux difference. Four of the six stored fields can
-therefore be discarded and rebuilt without any spectroscopically measurable
-change to the star.
+with the largest normalized-flux difference. Within the tested parameter and
+wavelength ranges, the four dependent fields can therefore be reconstructed
+from $(m,T)$ without a measurable change in the emergent spectrum.
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\hsize]{fig_spectra.pdf}
   \caption{Representative converged spectra for the exact two-field
-    representation test. The black curves start from the full six-field truth;
+    representation test. The black curves start from the reference six-field atmosphere;
     the orange curves start after discarding four fields and rebuilding them
     from the same exact $(m,T)$ coordinates through the solver's physical
-    closure. Both arms are then converged by the unchanged production solver
+    closure. Both initial states are then converged with the same atmosphere
+    solver
     and synthesized identically. The left column shows the full
-    \NgateWindowLo--\NgateWindowHi\,nm gate window, the middle column resolves
+    \NgateWindowLo--\NgateWindowHi\,nm interval, the middle column resolves
     one diagnostic feature, and the right column shows the normalized-flux
-    difference against the \NgateBar\ acceptance bar. The rows span the tested
+    difference relative to the \NgateBar\ reference level. The rows span the tested
     label support; the bottom row is the largest normalized-flux difference
     among all \NtruthGateStars\ stars.}
   \label{fig:representation-spectra}
@@ -511,234 +500,503 @@ change to the star.
 % The grid and top-boundary controls are reported in Appendix~\ref{app:resolution};
 % they are diagnostic limits rather than a separate main-text result.
 
+\subsection{Temperature continuation into the M-star regime}
+\label{sec:mstar}
+
+Within this sparse grid, direct starts show a clear gravity dependence
+(Fig.~\ref{fig:mstar-solver} and Table~\ref{tab:mstar}). All
+\NMstarGiantDirectConverged\ of \NMstarGiantCases\ M-giant atmospheres satisfy
+the unchanged temperature criterion, whereas only
+\NMstarDwarfDirectConverged\ of \NMstarDwarfCases\ M-dwarf atmospheres does so.
+The successful dwarf is the warmest node, at 3750\,K.
+
+Temperature continuation changes the numerical boundary for the dwarfs. It
+reaches the \NMstarDwarfCoolestContinuation\,K dwarf after the direct start at
+the same temperature has exhausted the iteration limit. The sequence then
+fails at 3300\,K and therefore does not reach 3000\,K. For the giants,
+continuation reaches 3750 and 3500\,K but fails at 3300\,K, while all four
+direct starts converge. Continuation therefore follows one additional sampled
+point on the high-gravity cool-star branch, but it is not a general improvement
+over direct initialization.
+
+Formal convergence is not the same as a physically satisfactory atmosphere.
+The continued \NMstarDwarfCoolestContinuation\,K dwarf has a maximum all-layer
+flux imbalance of \NMstarDwarfFluxCoolest\%, compared with
+\NMstarDwarfFluxWarm\% at 3750\,K. The retained M-giant atmospheres span
+\NMstarGiantFluxMinimum--\NMstarGiantFluxMaximum\%. The cool-dwarf result
+therefore demonstrates a numerically connected path, not a validated extension
+of the atmosphere grid. Spectral comparisons are still absent, and these eight
+solar-composition nodes do not establish general M-dwarf or M-giant support
+below 4000\,K.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\hsize]{fig_mstar_solver.pdf}
+  \caption{Temperature and gravity dependence of the cool-star boundary test.
+    The left column shows M dwarfs and the right column M giants. The upper
+    panels compare direct MARCS $(m,T)$ starts with the temperature sequence;
+    filled symbols satisfy the unchanged convergence criterion, open symbols
+    reach the 30-iteration limit, and crosses mark temperatures not reached
+    after an earlier failure in the sequence. The lower panels show the maximum
+    all-layer flux imbalance for the retained atmosphere, using the temperature
+    sequence where it converges and the direct start otherwise. The sequence
+    reaches the 3500\,K dwarf missed by the direct start, but the large flux
+    residual prevents interpreting that point as a validated atmosphere.}
+  \label{fig:mstar-solver}
+\end{figure*}
+
+\input{tables/tab_mstar.tex}
+
 \subsection{A learned two-field emulator}
 \label{sec:learned}
 
-We next replace the converged coordinates with the learned two-field initializer. The
-network maps the five stellar labels to $(\log_{10}m,\log_{10}T)$ on the
-production grid and uses the monotone decoder of Eq.~(\ref{eq:monotone}).
-Training and implementation details are recorded in Appendix~\ref{app:assets}.
+We next test the complete two-field physical initializer rather than the
+representation alone. Its network maps the five stellar labels to
+$(\log_{10}m,\log_{10}T)$ on the optical-depth grid; the physical completion
+then supplies the other four fields before the atmosphere iteration.
 
-The two-field emulator is more accurate than the released network in the median
+Column mass must increase monotonically with depth. We impose this condition
+through the output parameterization. On the uniform $\log_{10}\tau$ grid, the
+network predicts an anchor and positive increments,
+\begin{equation}
+  \ell_0 = a(\theta), \qquad
+  \Delta\ell_j = \epsilon + \mathrm{softplus}\bigl(s_j(\theta)\bigr), \qquad
+  \ell_j = \ell_0 + \sum_{k=1}^{j}\Delta\ell_k ,
+  \label{eq:monotone}
+\end{equation}
+where $\ell_j=\log_{10}m_j$, $\epsilon=10^{-6}$\,dex per layer, and the
+network predicts $a$ and $s_j$ from the stellar labels. The cumulative sum
+guarantees a strictly increasing column-mass profile.
+
+Two learned configurations enter the experiments. The development comparison
+uses the \NnetDepth$\times$\NnetWidth\ monotone network directly. Before the
+independent test, the same functional form was retrained with all development
+and independent-test rows excluded and was augmented by two label-local
+corrections. For standardized labels $\mathbf z$, each correction uses
+radial-basis weights
+\begin{equation}
+  w_i(\mathbf z)=
+  \exp\left[-\frac{\lVert\mathbf z-\mathbf c_i\rVert^2}{2\sigma^2}\right],
+\end{equation}
+and forms depth-dependent logarithmic offsets
+$\delta_{T,j}=\sum_iw_i a^{T}_{ij}$ and
+$\delta_{d,j}=\sum_iw_i a^{d}_{ij}$. If
+$d_0=m_0$ and $d_j=m_j-m_{j-1}$, the corrected profiles are
+\begin{equation}
+  T'_j=T_j\,10^{\delta_{T,j}},\qquad
+  d'_j=d_j\,10^{\delta_{d,j}},\qquad
+  m'_j=\sum_{k=0}^{j}d'_k .
+  \label{eq:rbf-correction}
+\end{equation}
+The weights are not normalized; the corrections therefore decay to zero away
+from their centres rather than forming a partition of unity.
+The first correction has three centres, $\sigma=0.30$, and offsets bounded by
+$0.2$\,dex. Its loss is the mean squared logarithmic error in $T$ and $m$
+after one differentiable solver iteration relative to the converged
+six-field atmosphere, plus $0.05$ times the corresponding error of the
+corrected initial profiles relative to the corpus atmosphere. The second has
+20 centres and $\sigma=0.08$; these centres are the remaining profile
+outliers in the development sample and a previously opened 200-star audit
+sample. The independent 200-star sample was excluded from both corrections.
+The base network, both corrections, the independent sample, and all
+comparison rules were fixed before that sample was examined.
+
+The two-field emulator is more accurate than the six-field network in the median
 for the shared coordinates, although the comparison inverts in the tail: its
 $p_{95}$ temperature error is
 \NlearnedTempPfive\ against \NprodTempPfive, and $p_{95}$ column-mass error
 \NlearnedMassPfive\,dex against \NprodMassPfive\,dex.
 
-More importantly, the emulator is also more accurate on the four fields it
-never predicts. Table~\ref{tab:fields} and Fig.~\ref{fig:fields} compare the
-four dependent fields obtained in the three ways on the same requested
-held-out sample; the learned-field distribution is conditional on successful
-physical rematerialization:
-predicting two fields and deriving the remaining four improves on predicting
-all six directly by factors of \NfieldGainLow\ to \NfieldGainHigh, field by
-field. Two predicted fields completed by the solver's physics thus outperform
-six directly predicted fields across the entire state.
+The more consequential comparison concerns the four fields the two-field
+network never predicts. Table~\ref{tab:fields} compares three constructions
+on the same development sample: six fields
+predicted directly, learned $(m,T)$ followed by physical completion, and exact
+$(m,T)$ followed by the same completion. Conditional on successful
+reconstruction, the learned two-field path reduces the dependent-field
+errors by factors of \NfieldGainLow\ to \NfieldGainHigh\ relative to direct
+six-field prediction. The improvement arises from enforcing the equation of
+state, opacity, radiative-transfer, and hydrostatic relations during
+initialization.
 
 \input{tables/tab_derived_fields}
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  \includegraphics[width=0.48\hsize]{fig_reconstruction.pdf}\hfill
-  \includegraphics[width=0.48\hsize]{fig_fields.pdf}
-  \caption{Field reconstruction and learned prediction on the same requested
-    \NevalStars\ held-out stars. The learned dependent-field summaries contain
-    the \NderivedLearnedStars\ stars that rematerialized successfully; the
-    remaining \NderivedLearnedFailures\ failure has no full profile to score.
-    \emph{(a)} Relative errors of the four fields
-    rebuilt from the converged $(m,T)$ profiles, showing the floor set by the physical closure.
-    \emph{(b)} Median errors for all six fields when the released network
-    predicts all six directly, when the learned initializer predicts only
-    $(m,T)$, and when $(m,T)$ are taken from the converged atmosphere. The two-field path derives the four
-    dependent fields more accurately than the released network, while the
-    converged coordinates show the residual floor of the physics path.}
-  \label{fig:fields}
-\end{figure*}
+  \includegraphics[width=\hsize]{fig_reconstruction.pdf}
+  \caption{Relative errors of the four dependent fields reconstructed from
+    the exact converged $(m,T)$ profiles on the \NevalStars-star development
+    sample. Curves show medians by depth; shaded regions extend from the
+    25th to the 90th percentile. This experiment isolates representation
+    sufficiency from initialization error.}
+  \label{fig:reconstruction}
+\end{figure}
 
-The converged-coordinate arm sets the floor imposed by the physics path; the
-learned arm adds the error of predicting the two coordinates.
+The exact-coordinate calculation quantifies the numerical error of the
+physical reconstruction; the difference from the learned calculation is due
+to errors in the predicted $(m,T)$ profiles.
 
 Table~\ref{tab:learned} and Fig.~\ref{fig:convergence} give the comparison
-most relevant for initialization. Against the released initializer on the
-same stars under the same policy, the learned two-field start reduces the
+most relevant for initialization. Against the six-field initializer on the
+same stars and with the same convergence criterion, the learned two-field
+start reduces the
 mean iteration count from \NprodIterMean\ to \NlearnedIterMean\ --- a
 reduction of \NiterReduction\ --- improves the contraction ratio from
 \NprodQ\ to \NlearnedQ, and cuts the fraction of non-monotonic
-trajectories from \NprodNonmono\ to \NlearnedNonmono. All three arms in
+trajectories from \NprodNonmono\ to \NlearnedNonmono. All three initial states in
 that table begin at a comparable distance from the fixed point, so unlike
-Table~\ref{tab:oracle} the contraction columns are directly comparable.
+the exact-coordinate restarts, their contraction statistics are directly
+comparable.
 
 \input{tables/tab_learned_solver}
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\hsize]{fig_convergence.pdf}
-  \caption{The learned two-field start on the unmodified solver. \emph{(a)}
-    The deep-layer residual of Eq.~(\ref{eq:stop}) against iteration number:
-    thin lines are individual stars, thick lines the median over the stars
-    still iterating, drawn only while at least eight remain. The learned start
-    enters the threshold sooner and with less of the oscillation that keeps the
-    released start above it. \emph{(b)} Stopping distributions for the compared
-    starts, with medians marked; the dotted line is the three-iteration floor.
-    \emph{(c)} The paired
-    per-star saving in label space. Purple is where the learned start costs
-    fewer iterations than the released one, orange where it costs more. The
-    saving is not uniform over the support: its Spearman correlation with
-    $T_{\rm eff}$ is $\rho=\NlearnedGainRho$ ($p=\NlearnedGainP$), and above
-    $9000$\,K it averages \NlearnedHotGain\ iterations against
-    \NlearnedRestGain\ over the rest of the range.}
+  \caption{Convergence on the 60-star development sample.
+    \emph{(a)} Complete deep-layer temperature-residual histories for the
+    hydrostatic grey--convective initializer (thin green curves), together
+    with thick medians for the six-field, learned two-field, and physical
+    initializers. The black and orange medians use finite residuals from stars
+    still being iterated. For the physical median, each trajectory remains at
+    its last finite residual after it ends; this keeps the 60-star cohort fixed
+    and prevents an apparent late rise caused only by the changing subset.
+    Red crosses along the upper boundary mark the first non-finite residual in
+    each affected physical-initializer history; the horizontal line is the
+    stopping threshold.
+    \emph{(b)} Fraction of all 60 stars converged by each iteration. Failed
+    stars remain in the denominator, so the physical curve ends at
+    \NphysicalDevConverged/\NphysicalDevStars.
+    \emph{(c)} Iteration count of the converged physical starts across label
+    space; crosses denote the \NphysicalDevNotConverged\ stars that do not
+    converge within \NphysicalIterationLimit\ iterations.}
   \label{fig:convergence}
 \end{figure*}
 
-This improvement comes at a stated cost: the learned initializer fails on
-\NlearnedFailures\ stars against the released initializer's \NprodFailures\ on
-the same \NevalStars\ stars. The refreshed candidate count comprises
-\NlearnedReconstructionFailures\ failures during physical rematerialization
-and \NlearnedSolverFailures\ failures after restart. These are failures of the
-complete learned-initializer path; the exact-coordinate experiment above
-separately shows that they are not evidence against the sufficiency of the
-two-field state itself.
+The learned initializer fails for
+\NlearnedFailures\ stars against the six-field initializer's \NprodFailures\ on
+the same \NevalStars\ stars. Of these,
+\NlearnedReconstructionFailures\ do not reach a self-consistent reconstructed
+state and \NlearnedSolverFailures\ do not converge after initialization. The
+exact-coordinate experiment shows that these cases arise from the predicted
+profiles rather than from an intrinsic insufficiency of the two-field
+representation.
 
-The monotonicity ablation is reported in Appendix~\ref{app:assets}; the main
-text uses the structurally monotone parameterization throughout.
+The direct-output ablation is summarized in
+Appendix~\ref{app:analytic}.
 
-\input{tables/tab_spectral}
+\subsection{A hydrostatic grey--convective initializer}
+\label{sec:vfour}
 
-The converged-coordinate comparison lies far below the acceptance bar. The
-learned comparison is close to the bar, but the production retry-start
-control is larger by a factor of about two in the median and has more
-exceedances. The candidate therefore changes the solver product less than the
-solver's own accepted restart variability, although the control also
-indicates that the spectral bar is not an absolute uniqueness test.
+The learned experiment does not establish that an emulator is necessary. To
+test that question directly, we construct $m(\tau)$ and $T(\tau)$ from the
+stellar labels and physical approximations. The construction combines a grey
+column-mass profile with a convectively adjusted temperature profile. It
+first adopts the Eddington-grey relation
+\citep{mihalas1978,hubeny2014}
+\begin{equation}
+  T_{\rm grey}^4(\tau)
+  = \frac{3}{4} T_{\rm eff}^4\left(\tau+\frac{2}{3}\right)
+\end{equation}
+and integrates
+\begin{equation}
+  \frac{{\rm d}m_{\rm grey}}{{\rm d}\tau}
+  = \frac{1}{\kappa_{\rm R}^{\rm app}
+  (T_{\rm grey},P_{\rm grey})},
+  \qquad P_{\rm grey}=g\,m_{\rm grey}.
+\end{equation}
+The approximate opacity is a Rosseland harmonic mean over fixed quadrature
+nodes. It includes H$^-$ and H\,I bound-free and free-free absorption,
+H$_2^+$ and He$^-$ continua, electron scattering, and H\,I Rayleigh
+scattering; the electron density is obtained from Saha ionization of hydrogen
+and the principal electron donors. Published threshold cross-sections are
+used for the lowest H\,I levels in the cool branch. This opacity is used only
+to construct the initial state; the atmosphere iteration subsequently uses
+the solver's full opacity calculation.
+A Saha-aware adiabatic adjustment then replaces the temperature in convective
+layers \citep{bohmvitense1958}. The solver is initialized with
+\begin{equation}
+  m_{\rm seed}=m_{\rm grey},\qquad
+  T_{\rm seed}=T_{\rm conv},\qquad
+  \kappa_{\rm seed}=
+  \kappa_{\rm R}^{\rm app}(T_{\rm conv},P_{\rm grey}).
+  \label{eq:vfour-seed}
+\end{equation}
+The grey column mass is retained after the convective temperature adjustment;
+it is not re-integrated with the modified temperature. All
+\NphysicalDevFiniteSeeds\ development initial structures are finite and
+positive, and the opacity
+is recomputed consistently from $T_{\rm conv}$ and
+$P_{\rm grey}=g\,m_{\rm grey}$. The construction contains
+\NvfourFittedParameters\ fitted parameters and does not use the atmosphere
+emulator.
 
-\subsection{Sealed blind test}
+On the development sample, the initializer converges for
+\NphysicalDevConverged/\NphysicalDevStars\ stars within
+\NphysicalIterationLimit\ iterations. Among successful calculations, the mean
+is \NphysicalDevIterMean\ iterations, the median is
+\NphysicalDevIterMedian, and the maximum is \NphysicalDevIterMax.
+\NphysicalDevAboveFifteen\ successful stars require more than 15 iterations.
+The remaining \NphysicalDevNotConverged\ stars do not converge within 60
+iterations. Extending those same cases to
+\NphysicalResidualIterations\ iterations does not recover any of them; all
+\NphysicalResidualStars\ reach the \NphysicalResidualTimeoutSeconds-s limit.
+On the \NphysicalDevCommon\ stars for which both the physical and six-field
+starts converge, the corresponding mean costs are
+\NphysicalDevCommonPhysicalMean\ and
+\NphysicalDevCommonReferenceMean\ iterations, with a median physical-minus-
+reference difference of \NphysicalDevCommonDifferenceMedian\ iterations.
+Thus independence from the emulator is obtained at a substantial and
+occasionally prohibitive increase in iteration cost.
+
+To identify which part of the physical construction matters, we compare the
+selected grey--convective start with a grey atmosphere and with a convective
+construction that re-integrates column mass after changing the temperature.
+The grey--convective start converges for
+\NvfourDecoupledConverged/\NvfourMatchedStars\ stars, compared with
+\NvfourGreyConverged/\NvfourMatchedStars\ for the grey start and
+\NvfourConvectiveConverged/\NvfourMatchedStars\ for the coupled convective
+start. Its gains relative to grey are $+\NvfourGainGreyAll$ stars overall and
+$+\NvfourGainGreyCool$ cool stars. The improvement is therefore real but
+uneven across label space. Retaining the grey mass coordinate is empirically
+preferable in this comparison, although these convergence counts alone do not
+identify the physical origin of the difference.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\hsize]{fig_v4r6.pdf}
+  \caption{Comparison of three emulator-independent physical
+    initializations on the 60-star development sample. All calculations use
+    the same stellar labels and numerical settings.
+    \emph{(a)} Convergence on the full, cool, and hot subsets.
+    \emph{(b)} Iteration distributions conditional
+    on convergence. The dashed line marks the earlier
+    \NvfourHistoricalIterationLimit-iteration comparison point.
+    \emph{(c)} Paired net convergence difference between the
+    grey--convective and grey starts; positive values favour the former.}
+  \label{fig:vfour}
+\end{figure*}
+
+The physical seed is deliberately approximate. Its development-sample median
+column-mass error is \NphysicalDevSeedMassMedian\,dex and its median
+temperature error is \NphysicalDevSeedTempMedian. These offsets are visible
+directly in the profile families of Fig.~\ref{fig:profiles}. They do not
+prevent most stars from reaching the same atmosphere, but they explain the
+longer contraction histories in Fig.~\ref{fig:convergence}.
+
+Of the \NphysicalDevStars\ development stars,
+\NphysicalDevSpectra\ have both a converged physical-start atmosphere and a
+reference spectrum; \NphysicalDevSpectraExcluded\ do not enter the spectral
+comparison. The median maximum normalized-flux difference is
+\NphysicalDevSpectraMedian, and \NphysicalDevSpectraOver\ paired spectra exceed
+the common \NgateBar\ reference level. The spectral distribution is
+conditional on convergence and is therefore reported separately from the six
+solver failures.
+
+\subsection{Independent learned test and post-hoc physical comparison}
 \label{sec:blind}
 
-The results presented so far are development results. To test generalization,
-we froze a complete policy on the reduced coordinates and only then opened a
-200-star holdout that had been sealed in advance; neither the frozen
-prediction nor the gate policy was tuned after it was opened. Because the
-candidate had passed the three development gates before freezing, this test
-evaluates transfer rather than another round of model selection.
+The learned model and both local corrections were fixed before the
+independent 200-star sample was examined, and no subsequent result changed
+their parameters. The learned initializer does not retain its development
+profile or spectral accuracy on this sample (Fig.~\ref{fig:blind}). The
+column-mass $p_{95}$ error more than doubles to \NblindMassPfive\,dex, and
+\NblindUnionBlowouts\ stars develop large profile discrepancies
+(Table~\ref{tab:blind}); \NblindSpecOver\ of the \NblindPaired\ paired spectra
+exceed the common reference level.
 
-The first opening used the historical six-field-emulator seed for the four
-fields that rematerialization subsequently overwrites. After the holdout had
-already been opened, we removed that runtime dependency and reran the unchanged
-two-field prediction and solver from the physical seed described in
-Appendix~\ref{app:remat}. The numerical values and orange curves below use this
-post-opening rerun. It is an implementation confirmation on the previously
-sealed sample, not a second blind test; the original gate outcomes are
-unchanged.
+The learned initializer nevertheless remains faster on the independent
+sample: the paired calculations save \NblindPairedDiffMedian\ iterations in
+the median, and the bootstrap 95 per cent interval for the mean saving is
+\NblindPairedDiffCiLo\ to \NblindPairedDiffCiHi. The two local corrections
+change only \NblindAdapterMovedMillidex/\NblindStars\ predictions by more than
+$10^{-3}$\,dex, so the speed difference is primarily a property of the
+underlying two-field network.
 
-The candidate did not transfer (Fig.~\ref{fig:blind}).
-Table~\ref{tab:blind} gives the comparison with the development sample on
-which the candidate had qualified. The profile gate fails on column mass,
-with a $p_{95}$ of \NblindMassPfive\,dex against a limit of
-\NblindMassLimit\,dex, and \NblindTempBlowouts\ temperature and
-\NblindMassBlowouts\ column-mass blow-out stars, \NblindUnionBlowouts\ distinct
-stars in all. The spectral gate fails as well, with \NblindSpecOver\ of
-\NblindPaired\ paired stars above the bar and a maximum of \NblindSpecMax.
+After the sample had been examined, we repeated the learned calculation with
+the four dependent fields reconstructed solely from predicted $(m,T)$ and the
+stellar labels. This removes any dependence on six-field emulator outputs at
+inference while leaving the convergence and spectral conclusions essentially
+unchanged (Table~\ref{tab:blind}). Because this reconstruction check was
+performed after inspecting the sample, it is a post-hoc diagnostic rather
+than a second independent test.
+
+The hydrostatic grey--convective initializer was also developed after this
+sample had been examined. Its formulae and numerical limits were fixed before
+the calculation, and all 200 outcomes are retained. This tests whether the
+development behavior extends across the same label distribution, but it is
+not independent evidence.
+
+The physical initializer produces finite, positive seeds for
+\NphysicalPostFiniteSeeds/\NphysicalPostStars\ stars, but converges less often
+and requires substantially more iterations than the six-field start
+(Table~\ref{tab:physical_initializer}). The failure set---\NphysicalPostTimeouts\
+timeouts and \NphysicalPostNotConverged\ calculation that exhausts the
+iteration budget---is concentrated in temperature:
+\NphysicalPostMidTempFailures\ of these \NphysicalPostFailureCount\ cases lie between
+\NphysicalPostMidTempLow--\NphysicalPostMidTempHigh\,K, although this interval
+contains only \NphysicalPostMidTempStars\ of the 200 stars. The failures show
+no comparable concentration in $\log g$ (Fig.~\ref{fig:blind}c). This
+temperature dependence is consistent with a limitation near the transition
+from appreciable surface convection to predominantly radiative transport,
+rather than with a cool-star or low-gravity boundary alone.
+
+\input{tables/tab_physical_initializer}
+\input{tables/tab_spectral}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\hsize]{fig_fields.pdf}
+  \caption{Profile accuracy of the learned and emulator-independent
+    initializations. \emph{(a)} Errors in the two independent seed profiles
+    before the atmosphere solve. Throughout the figure, column-mass
+    differences are measured in dex and all other differences are relative;
+    filled symbols denote the development sample and open symbols the
+    200-star sample.
+    \emph{(b)} Differences between the converged physical-start atmospheres
+    and the reference atmospheres for all six stored fields. Points are
+    medians over stars of each star's median layer error; bars span the
+    16th--84th percentiles. Panel \emph{(b)} is conditional on convergence and
+    is therefore interpreted together with the full-sample convergence
+    fractions in Table~\ref{tab:physical_initializer}. Provisional closure
+    values used before the solve are not treated as accuracy measurements.}
+  \label{fig:fields}
+\end{figure*}
 
 \input{tables/tab_blind}
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\hsize]{fig_blind.pdf}
-\caption{The previously sealed holdout, rerun after opening with the physical
-    reconstruction seed. \emph{(a)} Iteration histograms on the same 200
-    stars: two candidate reconstructions fail before restart; among the
-    remaining 198, the frozen two-field candidate (orange) keeps its mode at
-    the three-iteration floor, well ahead of the released initializer (grey).
-    \emph{(b)} The spectral acceptance gate on the same frozen policy:
-    cumulative per-star maximum normalized-flux difference on the development
-    sample the candidate qualified on (dashed blue) and on the post-opening
-    physical-seed rerun (orange), against the \NgateBar\ bar. The speed found
-    at the original blind opening is reproduced; the spectral reliability
-    still fails. \emph{(c)} The development-60 and holdout-200 samples in the
-    $T_{\rm eff}$--$\log g$ plane. \emph{(d)} The holdout stars in the
-    $[\mathrm M/\mathrm H]$--$\log g$ plane, marked
-    by which gate each fails: profile blow-outs (red), spectral exceedances
-    (orange), and solver or reconstruction failures (black), with that priority
-    when a star fails more than one gate. The failures are not confined to one
-    corner of the support.}
+\caption{Learned and physical initialization on the same 200-star sample.
+    The learned calculation is the independent test; the
+    hydrostatic grey--convective calculation is a post-hoc comparison.
+    \emph{(a)} Fraction of all 200 stars converged by each iteration; failures
+    remain in the denominator. \emph{(b)} Cumulative normalized-flux
+    differences on the development and 200-star samples. Spectral curves are
+    conditional on both compared atmospheres having converged.
+    \emph{(c)} Iteration count of the converged physical starts over
+    $T_{\rm eff}$ and $\log g$; crosses mark non-convergences or timeouts.
+    \emph{(d)} Maximum pre-solver errors in the seed profiles, measured in dex
+    for $m$ and relatively for $T$.
+    Sample status, convergence accounting, and spectral conditioning are kept
+    separate.}
   \label{fig:blind}
 \end{figure*}
 
-What does survive the blind test is the speed advantage. On the
-\NblindPaired\ paired usable products the candidate converges in
-\NblindCandIters\ mean iterations against \NblindProdIters and reduces the
-non-monotonic fraction from \NblindProdNonmono\ to \NblindCandNonmono. The
-paired saving is \NblindPairedDiffMedian\ iterations in the median, with a
-bootstrap 95 per cent interval of \NblindPairedDiffCiLo\ to
-\NblindPairedDiffCiHi\ for the mean saving. The reliability does not
-transfer: the blind spectral exceedance rate is \NblindSpecOver\ of
-\NblindPaired\, and the candidate also produces fewer usable atmospheres
-than the released initializer. The measured speed-up therefore remains a
-demonstration rather than a production replacement.
+The physical initializer also gives larger conditional spectral differences
+than either learned comparison (Table~\ref{tab:spectral}). Because this
+distribution contains only stars with both converged atmospheres, it must be
+read together with the full-sample convergence fraction.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
 \label{sec:discussion}
 
-The central result is structural rather than statistical. A six-field network can
-make each field individually plausible while producing a state that violates
-the relations enforced by the solver. Predicting only $(m,T)$ and deriving the
-other fields instead gives the solver a coherent state. This explains why the
-two-field initializer improves the dependent-field errors even though its
-two predicted coordinates are not uniformly closer to truth. More importantly,
-the learned start converges faster despite beginning with a larger first
-residual. The tested profile metrics are therefore not basin certificates;
-initialization objectives must ultimately be evaluated through the solver,
-consistent with the broader idea of solver-in-the-loop optimization
-\citep{um2020}.
+The exact-coordinate experiment shows that $m(\tau)$ and $T(\tau)$ contain
+the information needed to reconstruct the remaining stored atmospheric
+profiles within the numerical precision relevant for the emergent spectrum.
+At fixed stellar labels, the equation of state, opacity, radiative transfer,
+and hydrostatic equilibrium constrain $P_{\rm gas}$, $n_{\rm e}$,
+$\kappa_{\rm R}$, and $g_{\rm rad}$. Treating those four quantities as
+independent coordinates is therefore unnecessary for this atmosphere family
+and can introduce inconsistencies that the solver must remove.
 
-These claims remain bounded. The corpus contains only converged atmospheres, the
-baseline is the released rather than the best internal initializer, and the
-reported iteration saving begins after the non-free rematerialization step.
-The spectral gate measures flux agreement over one wavelength window and does
-not test whether stellar labels are recovered by a downstream fit. The sealed
-test confirms that the speed advantage transfers but that profile and spectral
-reliability do not. The reduced representation is therefore validated as a
-solver-consistent warm-start construction within the tested support, not as a
-deployable replacement or a universal atmosphere model. The analytic
-initializer and additional gate controls are retained as development
-diagnostics in the appendix.
+Prediction is harder than representation. The learned two-field model reduces
+the iteration count on both the development and independent samples, but its
+profile and spectral errors have a pronounced independent-sample tail. The
+two local radial-basis corrections affect only
+\NblindAdapterMovedMillidex/\NblindStars\ independent predictions at the
+$10^{-3}$-dex level; the measured speed improvement is therefore associated
+mainly with the base two-field model. Faster convergence is not, by itself,
+evidence of a more accurate final atmosphere. The predictor must be judged
+through both the solver trajectory and the converged state \citep{um2020}.
 
-The remaining physical clue is at the top boundary. The resolution controls in
-Appendix~\ref{app:resolution} show that refining the interior representation or
-quadrature does not remove the hard tail, while the residual is concentrated in
-the fixed surface seed. This makes the boundary condition the leading
-hypothesis, not an established cause. Testing it requires atmospheres extending
-above the current $\tau_{\rm min}$ and a direct change to the seed.
+The grey--convective calculation shows that a learned atmosphere is not
+required to enter the solver basin for most sampled stars. Retaining
+$m_{\rm grey}$ while applying the convective temperature adjustment gives the
+highest convergence fraction among the three physical constructions tested.
+The grey column mass carries the integrated opacity and hydrostatic scaling of
+the initial atmosphere; re-integrating it after changing $T$ perturbs both
+coordinates through the approximate opacity. Preserving $m_{\rm grey}$ may
+therefore retain more of the original hydrostatic structure while the solver
+adjusts the temperature. This interpretation is plausible but not established
+by the convergence counts alone. The practical cost is clear: successful
+development cases require \NphysicalDevIterMean\ iterations on average, and
+failures persist even when the iteration budget is extended.
+
+The cool-star experiment exposes the distinction between entering a numerical
+convergence basin and obtaining an atmosphere in radiative--convective balance.
+Within the eight solar-composition nodes, low-gravity giants are substantially
+easier to initialize directly than high-gravity dwarfs. This contrast may
+reflect the stronger coupling of molecular opacity, pressure, and convection
+in the dense dwarf atmospheres, but the sparse grid cannot identify the
+mechanism. The successful continuation to
+\NMstarDwarfCoolestContinuation\,K nevertheless shows that neighbouring
+solutions in the reduced coordinates can guide the solver where a direct
+MARCS start fails. Its \NMstarDwarfFluxCoolest\% flux imbalance, and the failure
+of the next temperature step, show equally clearly that reaching the
+temperature stopping criterion is not enough. A flux-aware convergence test
+and spectral validation are required before the low-temperature domain can be
+extended.
+
+The scope remains limited by the atmosphere corpus, which contains models
+that originally converged in fewer than thirty iterations. The experiments do
+not show that either initializer recovers regions where the reference method
+fails. The targeted M-star calculation lies outside that corpus but covers only
+eight solar-composition nodes and has no spectral validation. Solver iterations
+also exclude the cost of constructing the initial state, and the spectral
+comparison is restricted to
+\NgateWindowLo--\NgateWindowHi\,nm. Finally, the 200-star physical comparison
+was performed after that sample had been used for model testing, and the
+spectral distributions are conditional on both atmospheres converging. These
+results establish representational
+sufficiency and expose the accuracy--cost trade-off; they do not yet establish
+robustness for routine use.
+
+The residual reconstruction error is concentrated near the upper boundary.
+Appendix~\ref{app:resolution} shows that neither refinement of the interior
+optical-depth grid nor denser quadrature removes this behavior, implicating
+the approximation used above the first depth point. Atmospheres extending to
+smaller optical depth are needed to determine whether a modified surface
+boundary condition reduces this residual. For the physical initializer, the
+next methodological step is to improve the approximate mass-column profile
+while retaining an independent evaluation sample for subsequent testing.
 \section{Conclusions}
 \label{sec:conclusions}
 
-Within the tested five-label support and production solver branch, the
-converged atmosphere can be represented by two coordinates, $m(\tau)$ and
-$T(\tau)$. Rebuilding the other four fields through the solver's own physics
-reproduces the converged structure to $10^{-3}$ or better in the median and
-gives spectral agreement below the calibrated acceptance bar. The essential requirement is
-synchronization at fixed $(m,T)$ before the ordinary temperature correction and
-remapping begin.
+Within the sampled stellar-label range, a converged 1D LTE atmosphere can be
+represented by $m(\tau)$ and $T(\tau)$. Reconstructing the four dependent
+profiles through the solver's physical closure reproduces both the atmospheric
+structure and the emergent spectrum. The closure must be iterated at fixed
+$(m,T)$ before the temperature correction begins.
 
-The learned two-field initializer improves the dependent-field accuracy over
-the released six-field network and reduces the mean iteration count from
-\NprodIterMean\ to \NlearnedIterMean, with fewer non-monotonic trajectories. On
-the sealed 200-star holdout, the speed advantage survives but the profile and
-spectral gates fail. A post-opening rerun reproduces that outcome without
-querying the six-field checkpoint in the candidate arm. We therefore report
-the method as a validated representation and a promising warm-start
-construction, not as a production initializer.
+A learned two-field initializer reduces the mean iteration count from
+\NprodIterMean\ to \NlearnedIterMean\ and produces smoother convergence on
+the development sample. The speed advantage persists on the independent
+200-star sample, whereas the profile and spectral accuracy develop a
+substantial tail. The representation is sufficient, but the present predictor
+is not uniformly reliable across the sampled label range.
 
-The most informative next experiment is therefore not a further interior grid
-refinement or profile-loss ablation but a direct test of the upper boundary
-condition, using atmospheres that extend above the current $\tau_{\rm min}$.
+An emulator-independent grey--convective atmosphere initializes most sampled
+stars successfully, but converged development cases require about
+\NphysicalDevIterMean\ iterations on average and failures remain. A learned
+atmosphere is therefore not physically necessary for initialization, but it
+remains valuable for computational efficiency. The physical route requires an
+independent evaluation before routine use.
+
+Temperature continuation in the reduced coordinates reaches a
+\NMstarDwarfCoolestContinuation\,K M dwarf for which direct initialization
+fails. It does not yet extend the validated physical domain: the sequence fails
+at the next cooler node, and the recovered atmosphere retains a
+\NMstarDwarfFluxCoolest\% all-layer flux imbalance. This result motivates
+continuation as a route into cool-star parameter space while requiring flux
+balance and spectra before any claim of M-dwarf coverage.
 
 \begin{acknowledgements}
   Author contributions: J.~L. designed and ran the experiments, wrote the
   software and the manuscript. Y.-S.~T. contributed the reduced-coordinate idea
   the paper tests and the prior negative results that shaped its design, and
-  made the earlier warm-start campaign available. Both authors reviewed the
+  made the earlier initialization calculations available. Both authors reviewed the
   manuscript.
   % TODO: funding and computing-resource statements.
 \end{acknowledgements}
@@ -749,22 +1007,22 @@ condition, using atmospheres that extend above the current $\tau_{\rm min}$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{appendix}
 
-\section{The rematerialization path}
+\section{Physical reconstruction algorithm}
 \label{app:remat}
 
-Given coordinates $m(\tau)$, $T(\tau)$ and labels $\theta$, the four dependent
-fields are obtained by executing the following steps, all of them the solver's
-own production routines on the grid of Eq.~(\ref{eq:grid}).
+Given $m(\tau)$, $T(\tau)$, and labels $\theta$, the dependent profiles are
+reconstructed on the grid of Eq.~(\ref{eq:grid}) as follows.
 
 \begin{enumerate}
   \item \emph{Seed.} An atmosphere object is constructed carrying $m$ and $T$ on
-    the production grid. The remaining fields are seeded from the labels and
+    the optical-depth grid. The remaining fields are initialized from the labels and
     hydrostatic balance alone: $P_{\rm gas}=g\,m$, with positive $n_{\rm e}$
     and $\kappa_{\rm R}$ placeholders and $g_{\rm rad}=0$. The
     molecular equation of state and the first opacity and transfer passes
-    overwrite these values, so they only fix where the synchronization starts;
-    no second network is involved. A profile whose column mass is not strictly
-    increasing is rejected here rather than repaired.
+    overwrite these values. They therefore define only the starting point of
+    the physical closure; no fields from the six-field model are used. A
+    profile whose column mass is not strictly increasing is not physically
+    admissible and is excluded.
   \item \emph{Populations.} The equation of state is solved for the chemical
     populations and the electron density at each layer.
   \item \emph{Opacity.} Continuum and line opacities are evaluated and combined
@@ -772,145 +1030,184 @@ own production routines on the grid of Eq.~(\ref{eq:grid}).
   \item \emph{Transfer.} The radiative transfer solution supplies the radiation
     pressure and the radiative acceleration $g_{\rm rad}$.
   \item \emph{Closure.} The gas pressure is recomputed from
-    Eq.~(\ref{eq:hse}) with the radiation and turbulent terms now known.
+    Eq.~(\ref{eq:hse}) with the radiation-pressure term now known.
 \end{enumerate}
 
-Steps 2--5 are repeated for a small number of synchronization passes, because a
-single pass is not self-consistent: the populations and opacities of steps~2--3
-are evaluated at the gas pressure the pass started with, and that pressure is
-corrected only in step~5, from the radiation pressure they themselves imply.
-The representation controls use \NsyncPasses\ fixed passes. Candidate-arm
-solver runs use the adaptive path, with a limit of \NsyncMaxPasses\ passes and a
-pressure-change tolerance of \NsyncPressureTolerance\,dex. A failure to meet
-that tolerance is retained as a reconstruction failure rather than silently
-accepted. $m$ and $T$ are not modified at any step, and the depth grid is not
-resampled at any step.
+Steps 2--5 form one closure iteration. They are repeated because the
+populations and opacities in steps~2--3 use the pressure at the start of a
+pass, while step~5 updates that pressure from the radiation field they imply.
+The exact-coordinate calculations use \NsyncPasses\ fixed iterations. The
+learned initializer uses at most \NsyncMaxPasses\ iterations and a
+pressure-change tolerance of \NsyncPressureTolerance\,dex. Initial structures
+that do not reach this tolerance are reported as reconstruction failures.
+Neither $m$ nor $T$ is modified, and the depth grid is unchanged.
 
-\section{Acceptance gate definitions}
+\section{Accuracy and convergence criteria}
 \label{app:gates}
 
-\emph{Profile.} Pointwise relative error in temperature and pointwise absolute
-error in $\log_{10} m$, against the converged truth, over all layers and stars.
-A star is a blow-out if its maximum temperature error exceeds $10$ percent or
-its maximum column-mass error exceeds $0.1$\,dex.
+\emph{Profiles.} We calculate the pointwise relative error in temperature and
+the pointwise absolute error in $\log_{10} m$ relative to the converged
+atmosphere. A star is classified as having a large profile discrepancy if its
+maximum temperature error exceeds $10$ percent or its maximum column-mass
+error exceeds $0.1$\,dex.
 
-\emph{Solver.} The unmodified solver is restarted from the candidate state under
-the production policy. We record the fraction of stars that converge; the
+\emph{Convergence.} The same atmosphere solver is initialized from each tested
+state. We record the fraction of stars that converge; the
 iteration count of the converging trial; the geometric mean of the ratio $q_k =
 r_{k+1}/r_k$ of successive deep-layer temperature residuals; and the fraction of
-trajectories on which $r_k$ is not monotonically decreasing. A product that
+trajectories on which $r_k$ is not monotonically decreasing. A state that
 satisfies the temperature stopping rule but is not finite is counted as a
-failure, not as a convergence.
+non-convergence.
 
-\emph{Spectral.} Both arms' converged atmospheres are synthesized over
+\emph{Spectra.} Converged atmospheres from each pair of initial states are
+synthesized over
 \NgateWindowLo--\NgateWindowHi\,nm at $R = \NgateResolution$ in double
 precision. Three quantities are compared: the maximum absolute difference in
 normalized flux; the maximum absolute difference in total flux, divided by the
-continuum; and the maximum relative difference in the continuum. The acceptance
-bar is \NgateBar\ on each. The production retry-start control in
-Table~\ref{tab:spectral} provides the calibration needed to interpret this bar.
+continuum; and the maximum relative difference in the continuum. The common
+reference level is \NgateBar\ for each quantity. The reference-solver restart
+comparison in Table~\ref{tab:spectral} provides its numerical scale; it is not
+treated as a universal boundary between acceptable and unacceptable
+atmospheres.
 
 \section{Solver behavior by label sampling}
 \label{app:baseline}
 
 Table~\ref{tab:baseline} shows what the unmodified solver does when started
-from the released six-field initializer. The solver and the initializer are
+from the six-field initializer. The solver and the initializer are
 identical in all four rows; only the way in which the stellar labels are drawn
 changes, and the resulting spread is the point of the comparison. Drawing
 labels uniformly across the label ranges the corpus spans gives
 \NboxConverged\ convergence and \NboxFailed\ outright failures, whereas
 resampling the corpus's own label distribution gives \NiidConverged\
-convergence, with a $90$th-percentile iteration count of \NiidPninety. The
-failure rate is set by where in that range the requests fall, not by the
-solver.
+convergence, with a $90$th-percentile iteration count of \NiidPninety. This
+contrast quantifies the sensitivity of convergence statistics to the sampled
+label distribution.
 
 \input{tables/tab_baseline}
 
 \section{Resolution and boundary controls}
 \label{app:resolution}
 
-The representation-resolution control round-trips converged $(m,T)$ curves through
-intermediate optical-depth grids before rematerialization. The restart behavior
-is nearly unchanged across the tested range, even when representation error
-changes by several orders of magnitude. A separate quadrature control increases
-the integration density by sixteen-fold while keeping the surface seed fixed;
-the closure residual is unchanged. The residual therefore belongs to the fixed
-top-boundary seed rather than to the interior grid spacing.
-
-\input{tables/tab_resolution}
-\input{tables/tab_continuity}
+The representation-resolution calculation maps converged $(m,T)$ curves
+through intermediate optical-depth grids before physical reconstruction.
+Increasing the intermediate grid from \NresCoarse\ to \NresFinest\ points
+changes the median column-mass round-trip error from \NresCoarseError\ to
+\NresFinestError, while the solver behavior remains near the three-iteration
+floor. A separate quadrature control increases the integration density by a
+factor of 16 while holding the surface seed fixed. Its top-layer $p_{99}$
+residual changes only from \NcontinuityBasePninetyNine\ to
+\NcontinuityRefinedPninetyNine\,dex, and the maximum from
+\NcontinuityBaseMax\ to \NcontinuityRefinedMax\,dex. The remaining residual is
+therefore associated with the upper boundary rather than the interior grid
+spacing.
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\hsize]{fig_resolution.pdf}
-  \caption{Resolution and boundary controls. Refining the intermediate
-    representation or the quadrature does not change restart behavior or the
-    top-layer closure residual. The hard tail is associated with the fixed
-    surface seed, not with insufficient interior sampling.}
+  \caption{Dependence of reconstruction and convergence on numerical
+    resolution.
+    \emph{(a)} Round-trip representation error as the intermediate grid is
+    refined. \emph{(b)} Mean solver iterations and non-monotonic fraction after
+    physical reconstruction. \emph{(c)} Median, $p_{99}$ and maximum top-layer
+    closure residual under quadrature refinement. \emph{(d)} Solver iterations
+    against the fixed surface-seed residual. Interior refinement changes the
+    representation error but not the convergence behavior or the largest
+    residuals. This control isolates representation and discretization error;
+    it does not compare initialization methods.}
   \label{fig:resolution}
 \end{figure*}
 
-\section{Analytic initializer and additional diagnostics}
+\section{Analytic initializer and additional comparisons}
 \label{app:analytic}
 
-The analytic diagnostic replaces the neural checkpoint with a low-rank formula
+The analytic initializer replaces the neural predictor with a low-rank formula
 for a grey-normalized temperature residual and $\log_{10}\kappa_{\rm R}$.
 Column mass is then obtained by integrating
 ${\rm d}m/{\rm d}\tau=1/\kappa_{\rm R}$. The formula is fitted to the same
-atmosphere family but is evaluated only on the development sample; it has no
-spectral or sealed-holdout result. We retain it here as evidence that a compact
-non-neural warm start can enter the solver basin, not as a competing main-text
-method.
+atmosphere family but is evaluated only on the development sample. It provides
+a compact fitted comparison for profile accuracy and convergence. The
+hydrostatic grey--convective initializer provides the corresponding zero-fit
+physical comparison on the same development stars.
 
-\input{tables/tab_analytic_structure}
 \input{tables/tab_analytic_comparison}
-\input{tables/tab_monotone}
+
+The analytic formula contains \NanalyticConstants\ floating-point
+coefficients and fixed constants, fitted on \NanalyticTrainStars\ atmospheres
+and checked on \NanalyticValStars\ validation atmospheres. Its three
+temperature regimes use complete cubic functions of the stellar labels and
+five Chebyshev modes in depth. The formula is therefore much more compact than
+the neural model, but it remains a fitted description of the same atmosphere
+family.
+
+The monotonic column-mass parameterization is also physically consequential.
+On held-out atmospheres it gives $p_{95}$ errors of \NmonoTempPfive\ in
+temperature and \NmonoMassPfive\,dex in column mass, with
+\NmonoViolations\ non-monotonic profiles. Directly predicting all depth
+points reduces these errors to \NdirectTempPfive\ and
+\NdirectMassPfive\,dex, but produces \NdirectViolations\ inadmissible
+column-mass profiles. We therefore retain the monotonic construction.
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\hsize]{fig_analytic.pdf}
-  \caption{Development-set comparison of the learned and analytic initializers.
-    The analytic formula has larger profile errors and is not evaluated by the
-    spectral or sealed gates.}
+  \caption{Same-star development comparison of the learned initializer,
+    fitted analytic formula, and zero-fit hydrostatic grey--convective
+    initializer. Panels \emph{(a)} and \emph{(b)} show cumulative layer-level
+    temperature and column-mass seed errors, with open circles marking the
+    $p_{95}$ values. Panel \emph{(c)} shows the fraction of all 60 stars
+    converged by each iteration; stars that do not converge remain in the
+    denominator.
+    This separates the advantage of fitting an atmosphere family from the
+    possibility of reaching the solver basin without fitted profiles.}
   \label{fig:analytic}
 \end{figure*}
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\hsize]{fig_profiles.pdf}
-  \caption{Additional profiles from the learned two-field initializer.}
+  \caption{Two-field profiles on the development sample. Rows show column
+    mass and temperature on the optical-depth grid; temperature is plotted
+    logarithmically to retain the full physical-initializer range. Columns colour the
+    same twelve representative stars by $T_{\rm eff}$, $\log g$, and
+    $[\mathrm M/\mathrm H]$. Long-dashed curves are the converged reference
+    atmospheres, solid curves the learned seeds, and dotted curves the
+    hydrostatic grey--convective seeds. The larger physical offsets are
+    intentional approximations, not reconstruction residuals.}
   \label{fig:profiles}
 \end{figure*}
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\hsize]{fig_spectral.pdf}
-  \caption{Additional spectral-gate diagnostics for the development sample and
-    the production retry-start control.}
+  \caption{Spectral differences over
+    \NgateWindowLo--\NgateWindowHi\,nm. \emph{(a)} Cumulative per-star maximum
+    normalized-flux differences for exact $(m,T)$ against the reference
+    six-field atmosphere, learned $(m,T)$ against the six-field initializer,
+    and the physical initializer on the development and 200-star samples. The
+    vertical line marks the common \NgateBar\ reference level. \emph{(b)}
+    Wavelength-binned maximum residuals for the worst paired physical-start
+    spectrum in each sample. Curves include only stars for which both
+    atmospheres converge; exclusion counts are given in
+    Table~\ref{tab:physical_initializer}.}
   \label{fig:spectral}
 \end{figure*}
 
-\section{Implementation and asset records}
+\section{Model configurations}
 \label{app:assets}
 
-The following generated table records the initializer families, training roles
-and frozen assets used by the experiments. These implementation details are
-kept outside the main argument so that the scientific comparison remains
-readable and auditable.
+Table~\ref{tab:families} summarizes the inputs, fitted quantities, and
+evaluation samples for each initialization method.
 
 \input{tables/tab_families}
 
-\section{Provenance}
+\section{Reproducibility of reported quantities}
 \label{app:provenance}
 
-Every number in this paper, including every table body, is generated
-programmatically from the recorded result artifacts; none is transcribed by
-hand. The generator emits a machine-readable record alongside the manuscript
-containing each quantity, its value, and the artifact and hash it came from, and
-it can be re-run in a check mode that fails if any source has changed or any
-emitted value has drifted.
-
-\input{tables/tab_provenance}
+All numerical values and table entries are generated from the saved numerical
+outputs by the same analysis used to construct the tables. A machine-readable
+record accompanying the manuscript links each reported quantity to its sample
+definition and numerical assumptions.
 
 \end{appendix}
 

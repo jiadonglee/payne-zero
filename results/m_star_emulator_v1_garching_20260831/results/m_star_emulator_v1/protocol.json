@@ -1,0 +1,222 @@
+{
+  "boundaries": {
+    "existing_sealed_holdout_opened": false,
+    "korg_run": false,
+    "marcs_is_training_target": false,
+    "new_sealed_tracks_run": false,
+    "production_routing_changed": false
+  },
+  "campaign": "m_star_emulator_v1",
+  "created_for": "ATLAS-only cool-star truth generation and two-field emulator training",
+  "grid": {
+    "alpha_enhancement": 0.0,
+    "dwarf_logg": [
+      4.5,
+      4.75,
+      5.0,
+      5.25,
+      5.5
+    ],
+    "giant_logg": [
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      2.5
+    ],
+    "metallicity": 0.0,
+    "microturbulence_km_s": {
+      "dwarf": 1.0,
+      "giant": 2.0
+    },
+    "target_node_count": 210,
+    "temperature_K": [
+      4000.0,
+      3950.0,
+      3900.0,
+      3850.0,
+      3800.0,
+      3750.0,
+      3700.0,
+      3650.0,
+      3600.0,
+      3550.0,
+      3500.0,
+      3450.0,
+      3400.0,
+      3350.0,
+      3300.0,
+      3250.0,
+      3200.0,
+      3150.0,
+      3100.0,
+      3050.0,
+      3000.0
+    ],
+    "temperature_step_K": 50.0
+  },
+  "paths": {
+    "cool_corpus": "results/m_star_emulator_v1/cool_truth_corpus.npz",
+    "flux_gate": "results/m_star_emulator_v1/flux_gate.json",
+    "protocol": "results/m_star_emulator_v1/protocol.json",
+    "result_root": "results/m_star_emulator_v1",
+    "solar_spine": "results/m_star_emulator_v1/solar_spine"
+  },
+  "protocol_hash": "bc767110116b14a614a871c9d14bb06581f415ee02946b429d2039d6c7feb72c",
+  "reference_flux_gate": {
+    "metrics": [
+      "median_absolute_flux_error_percent",
+      "p95_absolute_flux_error_percent",
+      "maximum_absolute_flux_error_percent"
+    ],
+    "minimum_successful_reference_solves": 12,
+    "multiplier": 1.25,
+    "must_be_frozen_before_spine": true,
+    "roles": [
+      "train",
+      "validation"
+    ],
+    "temperatures_K": [
+      4500.0,
+      4000.0
+    ],
+    "threshold_formula": "1.25 times the maximum successful reference value for each metric"
+  },
+  "solver": {
+    "continuation": "4000 to 3000 K in 50 K reduced/rematerialized (m,T) steps",
+    "independent_restart": "every candidate restarted from its own final (m,T)",
+    "initializer_for_4000_and_4500_K": "released production initializer; extrapolation allowed only to construct the seed",
+    "iteration_cap": 30,
+    "stopping_rule": "unchanged production solver stopping rule",
+    "truth_source": "terminal Payne-Zero ATLAS atmosphere",
+    "within_15_iterations_recorded": true
+  },
+  "source": {
+    "existing_corpus": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-emulator-v1-20260831/source_data_files/atmosphere_emulator/five_label/strict_truth_52199.npz",
+    "existing_corpus_sha256": "092cf3c4a0c6075c2dde05803bec62b1d0eb6ec36d5794fe400870c505b44284",
+    "git_head": "67d21a9c21631ca10c285b7421dfabf0722c06f0",
+    "runner": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-emulator-v1-20260831/experiments/reduced_state_emulator/m_star_bootstrap_v1.py",
+    "runner_sha256": "4a854421df85414930b76066065ee17e40c1dcd0e7966c35a72cc05a93a64b17"
+  },
+  "split": {
+    "realized_fraction": {
+      "sealed": 0.2,
+      "train": 0.6,
+      "validation": 0.2
+    },
+    "reason": "prevent adjacent-temperature leakage; preserve both classes in validation and sealed sets",
+    "sealed_not_run_by_default": true,
+    "tracks": [
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 0.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "train",
+        "track_id": "g+0.50_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 1.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "sealed",
+        "track_id": "g+1.00_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 1.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "train",
+        "track_id": "g+1.50_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 2.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "validation",
+        "track_id": "g+2.00_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 2.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "train",
+        "track_id": "g+2.50_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 4.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "train",
+        "track_id": "g+4.50_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 4.75,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "validation",
+        "track_id": "g+4.75_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "train",
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 5.25,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "sealed",
+        "track_id": "g+5.25_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "train",
+        "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00"
+      }
+    ],
+    "unit": "complete temperature track"
+  },
+  "status": "preregistered_before_heavy_solver",
+  "training_eligibility": {
+    "failed_or_ineligible_rows_retained": true,
+    "finite_positive_monotone_six_field_state": true,
+    "primary_and_restart_must_converge": true,
+    "primary_and_restart_must_pass_frozen_flux_gate": true,
+    "restart_column_mass_p95_dex_max": 0.0077,
+    "restart_temperature_relative_p95_max": 0.003
+  }
+}

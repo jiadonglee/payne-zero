@@ -1,0 +1,491 @@
+\section{模型大气 Model Atmospheres}\label{sec:atmosphere}
+
+大气计算为合成提供深度结构。在给定有效温度、表面重力、化学组成和微观湍流的条件下，它使压强、粒子布居、不透明度、辐射场与对流达到相互自洽。\paynezero\ 用编译后的数组 kernel 实现了此处所用的一维、平面平行 LTE Kurucz 大气计算 \citep{Kurucz2005}。我们未包含可选的 NLTE 或湍流压强分支。
+
+\begin{EN}
+The atmosphere calculation supplies the depth structure used by synthesis. At
+specified effective temperature, surface gravity, composition, and
+microturbulence, it makes the pressure, populations, opacity, radiation field,
+and convection mutually consistent. \paynezero\ implements the
+one-dimensional, plane-parallel LTE Kurucz atmosphere calculation used here
+\citep{Kurucz2005} with compiled array kernels.
+We do not include optional NLTE or
+turbulent-pressure branches.
+\end{EN}
+
+大气结构必须迭代求解，因为其变量构成一个反馈环：温度和压强决定布居，布居决定不透明度，不透明度决定辐射流量与加热；由此产生的流量不平衡又改变下一次迭代所用的温度和深度结构。因此其计算成本既取决于每一趟物理遍历的工作量，也取决于达到自洽结构所需的遍历次数。
+
+\begin{EN}
+Atmospheric structure must be solved iteratively because its variables form a
+feedback loop. Temperature and pressure set the populations, the populations
+set the opacity, and the opacity sets the radiative flux and heating. The
+resulting flux imbalance changes the temperature and depth structure used by
+the next iteration. Its computational cost is therefore set by both the work
+in each physical pass and the number of passes needed to reach a consistent
+structure.
+\end{EN}
+
+\begin{physbox}{为什么大气必须“迭代”求解}
+这是一个“鸡生蛋”问题：要知道每层的温度，需要知道不透明度；要知道不透明度，又需要知道温度、压强和布居。打破循环的办法是\textbf{迭代}：先猜一个结构（例如灰色大气），计算它产生的辐射流量；若各层流量之和不等于应有的 $\sigma_{\rm SB}T_{\rm eff}^4$，说明温度结构不对，据此修正温度，再重复，直到结构不再变化——即到达\textbf{不动点}。这与解方程 $x=\cos x$ 时反复按“取余弦”键的过程同构。迭代总成本 = 每趟成本 × 趟数；本文第 3 节压缩每趟成本（多核并行），第 4 节压缩趟数（学习型初值）。
+\end{physbox}
+
+\subsection{物理计算 The physical calculation}
+
+生产网格在罗斯兰光学深度上取 80 层。我们用六条主廓线概括其物理结构：柱质量 $m$、温度 $T$、气体压强 $P_{\rm gas}$、电子密度 $n_e$、罗斯兰不透明度 $\kappa_{\rm R}$ 和辐射加速度 $g_{\rm rad}$。迭代还携带更新这些廓线所需的辐射压与对流状态。微观湍流 $\xi$ 由请求的标签固定。收敛产物包括合成所需的布居与多普勒宽度。
+
+\begin{EN}
+The production grid contains 80 layers in Rosseland optical depth. We summarize
+its physical structure with six principal profiles. These are column mass $m$,
+temperature $T$, gas pressure $P_{\rm gas}$, electron density $n_e$, Rosseland
+opacity $\kappa_{\rm R}$, and radiative acceleration $g_{\rm rad}$. The
+iteration also carries the radiation-pressure and convection state needed to
+update these profiles. Microturbulence $\xi$ is fixed by the requested labels. The
+converged product includes the populations and Doppler widths needed by
+synthesis.
+\end{EN}
+
+流体静力学平衡把压强与上方物质的重量联系起来。此处采用积分的平面平行形式：
+\begin{equation}
+P_{\rm gas}(m)+P_{\rm rad}(m)
+=g m+P_0 .
+\end{equation}
+\noindent 其中 $P_{\rm rad}$ 为辐射压强，$P_0$ 为表面积分常数。这是本文支持分支的约定，其中湍流压强被关闭。随后，物态方程在每一层联立求解电荷守恒、萨哈电离、玻尔兹曼布居与分子平衡 \citep{Tsuji1973,Mihalas1978,HubenyMihalas2014}。相邻电离级满足
+\begin{equation}
+\begin{aligned}
+\frac{n_{s,r+1}n_e}{n_{s,r}}
+&=\frac{2U_{s,r+1}}{U_{s,r}}
+\left(\frac{2\pi m_e k_{\rm B}T}{h^2}\right)^{3/2} \\
+&\quad\times
+\exp\left[-\frac{\mathcal{I}_{s,r}-\Delta\mathcal{I}_{s,r}}
+{k_{\rm B}T}\right].
+\end{aligned}
+\end{equation}
+\noindent 其中 $\Delta\mathcal{I}_{s,r}$ 是所采用处方中孤立电离能随密度下降的修正量，配分函数包含相应的占据修正。电荷守恒封闭电子密度，分子质量作用定律封闭分子布居 \citep{Tsuji1973,BarklemCollet2016}。这些计算共同给出不透明度计算所需的密度与布居。
+
+\begin{EN}
+Hydrostatic equilibrium relates pressure to the weight of material above each
+layer. In the integrated plane parallel form used here,
+\begin{equation}
+P_{\rm gas}(m)+P_{\rm rad}(m)
+=g m+P_0 .
+\end{equation}
+\noindent Here $P_{\rm rad}$ is the radiation pressure and $P_0$ is the surface
+integration constant. This is the convention for the supported
+branch, in which turbulent pressure is disabled. The equation of state then solves charge
+conservation, Saha ionization, Boltzmann populations, and molecular equilibrium
+at each layer \citep{Tsuji1973,Mihalas1978,HubenyMihalas2014}. Adjacent ion stages obey
+\begin{equation}
+\begin{aligned}
+\frac{n_{s,r+1}n_e}{n_{s,r}}
+&=\frac{2U_{s,r+1}}{U_{s,r}}
+\left(\frac{2\pi m_e k_{\rm B}T}{h^2}\right)^{3/2} \\
+&\quad\times
+\exp\left[-\frac{\mathcal{I}_{s,r}-\Delta\mathcal{I}_{s,r}}
+{k_{\rm B}T}\right].
+\end{aligned}
+\end{equation}
+\noindent Here $\Delta\mathcal{I}_{s,r}$ is the density-dependent lowering of
+the isolated ionization energy in the adopted prescription. Its
+partition functions include the corresponding occupation correction. Charge
+conservation closes the electron density, while
+molecular mass action closes the molecular populations
+\citep{Tsuji1973,BarklemCollet2016}. Together these
+calculations produce the density and populations used by the opacity calculation.
+\end{EN}
+
+\begin{physbox}{流体静力学平衡与萨哈方程}
+\textbf{流体静力学平衡}即“每一层气体既不塌缩也不被吹走”：向下的引力被气体压强与辐射压强的梯度抵消。积分形式 $P_{\rm gas}+P_{\rm rad}=gm+P_0$ 中，$gm$ 正是上方质量柱的重量——压强就是“头顶气体的重量”。这也解释了为什么 $\log g$ 能从光谱中测出：$\log g$ 越大，同样光学深度处压强越高，压强致宽（阻尼翼）越强。\textbf{萨哈方程}描述电离平衡：温度越高，指数因子越偏向电离态；电子密度 $n_e$ 越高，复合越快、电离度越低——这解释了巨星（低密度）比矮星电离度更高的现象。电荷守恒把各元素的电离与自由电子总数联立成非线性方程组，即“物态方程”求解，是连接微观物理与宏观结构的枢纽。
+\end{physbox}
+
+大气求解器用直接不透明度采样来评估谱线覆盖：这一方法在选定的频率上代表海量的原子与分子谱线集合 \citep{JohnsonKrupp1976}。对每一种所请求的丰度混合物，求解器都重新计算物态方程和每一条被代表的原子与分子不透明度 \citep{Kurucz1996,KuruczAtlas12ASCL}。这些内部波长采样决定大气迭代中的辐射加热与流量。
+
+\begin{EN}
+The atmosphere solver evaluates line blanketing by direct opacity sampling, a
+method that represents large atomic and molecular line ensembles at selected
+frequencies \citep{JohnsonKrupp1976}. For each requested abundance mixture,
+the solver recomputes the equation of state and every represented atomic and
+molecular opacity \citep{Kurucz1996,KuruczAtlas12ASCL}. These internal wavelength samples
+determine radiative heating and flux during atmosphere iteration.
+\end{EN}
+
+在每个采样波长处，求解器贯穿所有深度层计算连续与谱线消光 \citep{Mihalas1978}。罗斯兰平均给出与扩散能量输运相关的不透明度：
+\begin{equation}
+\frac{1}{\kappa_{\rm R}}=
+\frac{\displaystyle\int_0^\infty
+      \chi_\nu^{-1}\frac{\partial B_\nu}{\partial T}\,\mathrm{d}\nu}
+     {\displaystyle\int_0^\infty
+      \frac{\partial B_\nu}{\partial T}\,\mathrm{d}\nu},
+\qquad \mathrm{d}\tau_{\rm R}=\kappa_{\rm R}\,\mathrm{d}m .
+\end{equation}
+\noindent 其中 $\chi_\nu$ 为总质量消光。在相同采样波长上的辐射转移给出单色流量、辐射压、辐射加速度与加热积分。特别地，辐射场产生的加速度为
+\begin{equation}
+g_{\rm rad}(m)=\frac{1}{c}\int_0^\infty
+\chi_\nu(m)F_\nu(m)\,\mathrm{d}\nu .
+\end{equation}
+\noindent 在对流活跃的层次，混合长计算提供对流流量 \citep{BohmVitense1958,Mihalas1978,Gustafsson2008}。目标能量平衡及其相对残差为
+\begin{equation}
+\begin{aligned}
+F_{\rm rad}(m)+F_{\rm conv}(m)
+&=\sigma_{\rm SB}T_{\rm eff}^{4}, \\
+\epsilon_F(m)
+&=\frac{F_{\rm rad}(m)+F_{\rm conv}(m)}
+        {\sigma_{\rm SB}T_{\rm eff}^{4}}-1 .
+\end{aligned}
+\end{equation}
+
+\begin{EN}
+At each sampling wavelength, the solver evaluates continuous and line
+extinction through all depth layers \citep{Mihalas1978}. The Rosseland
+mean gives the opacity relevant to diffusive energy transport,
+\begin{equation}
+\frac{1}{\kappa_{\rm R}}=
+\frac{\displaystyle\int_0^\infty
+      \chi_\nu^{-1}\frac{\partial B_\nu}{\partial T}\,\mathrm{d}\nu}
+     {\displaystyle\int_0^\infty
+      \frac{\partial B_\nu}{\partial T}\,\mathrm{d}\nu},
+\qquad \mathrm{d}\tau_{\rm R}=\kappa_{\rm R}\,\mathrm{d}m .
+\end{equation}
+\noindent Here $\chi_\nu$ is the total mass extinction. Radiative transfer at
+the same sampling wavelengths supplies the
+monochromatic flux, radiation pressure, radiative acceleration, and heating
+integrals. In particular, the acceleration from the radiation field is
+\begin{equation}
+g_{\rm rad}(m)=\frac{1}{c}\int_0^\infty
+\chi_\nu(m)F_\nu(m)\,\mathrm{d}\nu .
+\end{equation}
+\noindent In layers where convection is active, a mixing-length calculation supplies
+the convective flux \citep{BohmVitense1958,Mihalas1978,Gustafsson2008}. The target energy balance and its fractional residual are
+\begin{equation}
+\begin{aligned}
+F_{\rm rad}(m)+F_{\rm conv}(m)
+&=\sigma_{\rm SB}T_{\rm eff}^{4}, \\
+\epsilon_F(m)
+&=\frac{F_{\rm rad}(m)+F_{\rm conv}(m)}
+        {\sigma_{\rm SB}T_{\rm eff}^{4}}-1 .
+\end{aligned}
+\end{equation}
+\end{EN}
+
+\begin{physbox}{罗斯兰平均、辐射加速度与能量守恒}
+\begin{itemize}
+\item \textbf{罗斯兰平均}：在大气深处光子走不远就被吸收，辐射输运类似热传导（扩散近似），此时起控制作用的是罗斯兰平均不透明度。它是 $\chi_\nu^{-1}$ 的加权调和平均——意味着\textbf{不透明度小的“窗口”频率主导能量外流}，因为能量总从最容易漏出去的地方漏。
+\item \textbf{辐射加速度 $g_{\rm rad}$}：光子被吸收时把动量交给气体，产生向外的推力。热星中它可接近引力量级（与星风相关）；冷星中很小。它进入流体静力学平衡，等效于减小有效重力。
+\item \textbf{能量守恒判据}：稳态大气的每一层，辐射流量加对流流量必须等于 $\sigma_{\rm SB}T_{\rm eff}^4$（斯特藩—玻尔兹曼定律）。残差 $\epsilon_F$ 就是温度修正的依据：某层流量不够，就提高该层温度。
+\item \textbf{混合长对流}：当辐射温度梯度超过绝热梯度时，气体元像沸水一样上升下沉输运能量。“混合长”理论用一个自由参数（元胞瓦解前走的距离）近似这一三维过程，是冷星大气模型的重要不确定来源。
+\end{itemize}
+\end{physbox}
+
+令 $\mathbf{x}^{(n)}$ 表示进入第 $n$ 趟的完整重映射大气状态。其主廓线为 $m$、$T$、$P_{\rm gas}$、$n_e$、$\kappa_{\rm R}$、$g_{\rm rad}$，并携带下一趟所需的压强与对流量。一趟物理求解迭代的示意依赖关系为
+\begin{equation}
+\begin{aligned}
+\mathbf{x}^{(n)}
+&\longrightarrow
+\left(P_{\rm gas},n_e,\{n_{s,r}\},\{n_{\rm mol}\}\right)^{(n)} \\
+&\longrightarrow
+\chi_\nu^{(n)} \longrightarrow
+\left(J_\nu,F_{\rm rad},g_{\rm rad},\kappa_{\rm R},\tau_{\rm R}\right)^{(n)} \\
+&\longrightarrow \left(F_{\rm conv},\Delta T\right)^{(n)}
+\longrightarrow \left(T,m\right)^{(n+1)} \\
+&\xrightarrow{\ \rm remap\ } \mathbf{x}^{(n+1)},
+\qquad T^{(n+1)}=T^{(n)}+\Delta T^{(n)} .
+\end{aligned}
+\end{equation}
+\noindent 即：流体静力学平衡与物态方程先确定压强与布居，随后不透明度与转移计算确定流量、辐射加速度与温度修正。修正同时更新柱质量。两条被修正的廓线连同其他携带字段一起被重映射到标准罗斯兰网格，下一趟再从该状态重算压强与所有布居。
+
+\begin{EN}
+Let $\mathbf{x}^{(n)}$ denote the full remapped atmosphere state
+entering pass $n$. Its principal profiles are $m$, $T$, $P_{\rm gas}$, $n_e$,
+$\kappa_{\rm R}$, and $g_{\rm rad}$. It also carries the pressure and convection
+quantities needed by the next pass. One physical solver iteration then has the
+schematic dependence
+\begin{equation}
+\begin{aligned}
+\mathbf{x}^{(n)}
+&\longrightarrow
+\left(P_{\rm gas},n_e,\{n_{s,r}\},\{n_{\rm mol}\}\right)^{(n)} \\
+&\longrightarrow
+\chi_\nu^{(n)} \longrightarrow
+\left(J_\nu,F_{\rm rad},g_{\rm rad},\kappa_{\rm R},\tau_{\rm R}\right)^{(n)} \\
+&\longrightarrow \left(F_{\rm conv},\Delta T\right)^{(n)}
+\longrightarrow \left(T,m\right)^{(n+1)} \\
+&\xrightarrow{\ \rm remap\ } \mathbf{x}^{(n+1)},
+\qquad T^{(n+1)}=T^{(n)}+\Delta T^{(n)} .
+\end{aligned}
+\end{equation}
+\noindent Thus hydrostatic balance and the equation of state set pressure and
+populations before the opacity and transfer calculation determines the fluxes,
+radiative acceleration, and temperature correction. The correction also
+updates column mass. Both corrected profiles, together with the other carried
+fields, are remapped to the standard Rosseland grid. The next pass recomputes
+pressure and every population from this remapped state.
+\end{EN}
+
+我们把保留的 Kurucz 工作流程中外部检查器所用的深层结构相继差值范数，改造为逐趟的生产停止判据：
+\begin{equation}
+\epsilon_T=\max_{j\in {\rm deep}}
+\left|\frac{T_j^{(n+1)}-T_j^{(n)}}{T_j^{(n+1)}}\right|
+<5\times10^{-4} .
+\end{equation}
+\noindent 其中 $ {\rm deep}=\{40,\ldots,75\}$ 对应 80 层生产网格。该范数检验深层结构是否已基本停止变化。由于它是局部判据，我们另行单独检查流量平衡与出射光谱。
+
+\begin{EN}
+We adapt the deep-layer successive-structure norm used by the external checker
+in the retained Kurucz workflow into a per-pass production stopping test,
+\begin{equation}
+\label{eq:atmosphere_stop}
+\epsilon_T=\max_{j\in {\rm deep}}
+\left|\frac{T_j^{(n+1)}-T_j^{(n)}}{T_j^{(n+1)}}\right|
+<5\times10^{-4} .
+\end{equation}
+\noindent Here $ {\rm deep}=\{40,\ldots,75\}$ on the 80-layer production grid.
+This norm tests whether the deep structure has ceased changing
+appreciably. Because it is local, we check flux balance and the emergent
+spectrum separately.
+\end{EN}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figure_05.pdf}
+\caption{AMD EPYC 9B45 CPU 上的大气性能。左图比较四类恒星在匹配的三趟运行中的每趟平均耗时（\paynezero\ 用 16 线程）；中图为 1 至 32 线程的每趟耗时；右图把红巨星的一趟分解为各物理阶段，对比原 Kurucz 与 16 线程 \paynezero。后者在四颗星上快 6--7 倍，谱线不透明度是剩余最大开销。（Atmosphere performance on an AMD EPYC 9B45 CPU.）}
+\label{fig:atmosphere_performance}
+\end{figure}
+
+\subsection{从串行迭代到 CPU 并行执行 From serial iteration to parallel CPU execution}
+
+原 Kurucz 大气程序以串行外层迭代执行这一物理循环。每趟迭代中，它先沿深度层循环更新压强与布居、构建谱线不透明度，然后逐个推进 30,000 个不透明度采样波长：在每个波长处计算连续不透明度、贯穿所有层求解辐射转移，并把结果累加进罗斯兰、辐射压与温度修正积分。只有完成这一频率循环之后，才能计算对流和下一个温度结构。
+
+\begin{EN}
+The original Kurucz atmosphere program carries this physical cycle through a serial outer
+iteration. Within each iteration it loops through the depth layers to update
+pressure and populations, constructs line opacity, and then advances through
+the 30,000 opacity sampling wavelengths. At each wavelength it evaluates the
+continuous opacity, solves radiative transfer through all layers, and adds the
+result to the Rosseland, radiation pressure, and temperature correction
+integrals. Only after this frequency loop is complete can convection and the
+next temperature structure be calculated.
+\end{EN}
+
+相继迭代之间无法重叠，因为第 $n$ 趟的温度修正会改变第 $n+1$ 趟的布居与不透明度。但在一趟之内，沿深度、物种、跃迁和不透明度采样波长的工作在归约之前是相互独立的。\paynezero\ 并行化这些块、复用固定输入，并去除重复的解析与中转。
+
+\begin{EN}
+Successive iterations cannot overlap because the temperature correction from
+pass $n$ changes the populations and opacity of pass $n+1$. Within one pass,
+however, work over depth, species, transitions, and opacity-sampling wavelengths
+is independent until the partial results are reduced. \paynezero\ parallelizes
+these blocks, reuses fixed inputs, and removes repeated parsing and staging.
+\end{EN}
+
+\paynezero\ 保持外层大气循环的物理顺序与修正方程不变。在所保留的原程序基准中，求解器精确执行所请求的迭代次数，每批 30 趟；再由单独的检查器比较最后两个结构，必要时启动下一批。\paynezero\ 改为在三趟最低趟数之后，每趟都评估公式~\ref{eq:atmosphere_stop}，到达阈值或配置上限即停止。
+
+\begin{EN}
+\paynezero\ keeps the physical ordering and correction equations of the outer
+atmosphere cycle. In the retained original-program benchmark, the solver executes
+the requested number of iterations exactly. Each batch contains 30 iterations.
+A separate checker then compares the last two structures and launches another
+batch when needed. \paynezero\ instead evaluates
+Equation~\ref{eq:atmosphere_stop} after every pass following a three-pass
+minimum, stopping at the threshold or the configured cap.
+\end{EN}
+
+在每趟内部，性能关键的循环用 Python 编写。Numba 的即时编译把标记为 \texttt{njit} 的函数变成机器码，\texttt{prange} 把独立循环迭代分配给各 CPU 线程。在启用分子的生产路径中，布居与分子平衡 kernel 保持深度有序，而连续频率、谱线不透明度与转移工作使用线程化执行。大多数固定物理表与完整谱线源目录常驻于带类型的进程数组。由于参考求解器已是编译后的 Fortran，仅凭 JIT 编译无法解释提速；更大的 kernel、常驻输入与中间文件中转的消除提供了其余的加速。
+
+\begin{EN}
+Within each pass, the performance-critical loops are written in Python.
+Numba's just-in-time compiler turns functions marked \texttt{njit} into
+machine code, while \texttt{prange} divides independent loop iterations among
+CPU threads. In the molecules-enabled production path, population and
+molecular-equilibrium kernels remain depth-ordered, while continuum-frequency,
+line-opacity, and transfer work use this threaded execution. Most fixed physics tables and the full line-source
+catalogs remain in typed process arrays. Since the reference solver is already
+compiled Fortran, JIT compilation alone does not explain the gain. Larger
+kernels, resident inputs, and removal of intermediate file staging supply the
+remaining reduction.
+\end{EN}
+
+谱线筛选可以说明这些改变。源目录固定，但为不透明度采样保留的子集依赖大气。保留测试只需要每个物种—频率 bin 内布居与连续不透明度的紧凑摘要，以及激发随温度的依赖。令 $C_{jb}$ 为深度 $j$、频率 bin $b$ 处的连续谱阈值：
+\begin{equation}
+C_{jb}=\eta_{\rm sel}
+\frac{\kappa_{\nu_b,{\rm c},j}+\sigma_{\nu_b,{\rm c},j}}
+{1-\exp[-h\nu_b/(k_{\rm B}T_j)]}.
+\end{equation}
+\noindent 其中 $\eta_{\rm sel}=10^{-3}$ 为固定筛选比例。对物种 $s$ 的第 $r$ 电离级，深度依赖被压缩为
+\begin{equation}
+Q_{srb} =
+\max_j\left[
+\frac{(n_{s,r}/U_{s,r})_j}
+{\rho_j\,(\Delta\nu_{\rm D}/\nu)_{jsr}\,C_{jb}}
+\right] .
+\end{equation}
+\noindent 在固定单位换算之内，谱线 $l$ 的中心强度代理为
+\begin{equation}
+R_l=C_0\,\frac{(gf)_l\,Q_{s(l)r(l)b(l)}}{\nu_{b(l)}} .
+\end{equation}
+\noindent 其中 $s(l)$、$r(l)$、$b(l)$ 为谱线 $l$ 所属的物种、电离级与频率 bin，$C_0$ 包含固定的谱线不透明度常数与单位换算。当 $R_l\geq 1$ 且 $R_l\exp[-E_l/(k_{\rm B}T_*)]\geq 1$（$T_*$ 为最深层温度）时保留该谱线。这一保守测试避免丢弃可能在任何一层起作用的谱线。
+
+\begin{EN}
+Line selection illustrates these changes. The source catalog is fixed, but the
+subset retained for opacity sampling depends on the atmosphere. The keep test
+needs only a compact summary of the population and continuum opacity in each
+species and frequency bin, together with the temperature dependence of
+excitation. Let $C_{jb}$ be the continuum threshold at depth $j$ and frequency
+bin $b$,
+\begin{equation}
+C_{jb}=\eta_{\rm sel}
+\frac{\kappa_{\nu_b,{\rm c},j}+\sigma_{\nu_b,{\rm c},j}}
+{1-\exp[-h\nu_b/(k_{\rm B}T_j)]}.
+\end{equation}
+\noindent Here $\eta_{\rm sel}=10^{-3}$ is the fixed selection fraction. For ion stage
+$r$ of species $s$, the depth dependence is reduced to
+\begin{equation}
+Q_{srb} =
+\max_j\left[
+\frac{(n_{s,r}/U_{s,r})_j}
+{\rho_j\,(\Delta\nu_{\rm D}/\nu)_{jsr}\,C_{jb}}
+\right] .
+\end{equation}
+\noindent Up to fixed unit conversions, the central strength proxy for line $l$ is
+\begin{equation}
+R_l=C_0\,\frac{(gf)_l\,Q_{s(l)r(l)b(l)}}{\nu_{b(l)}} .
+\end{equation}
+\noindent Here $s(l)$, $r(l)$, and $b(l)$ are the species, ion stage, and
+frequency bin assigned to line $l$, and $C_0$ contains fixed line-opacity
+constants and unit conversions.
+The line is retained when both $R_l\geq 1$ and
+$R_l\exp[-E_l/(k_{\rm B}T_*)]\geq 1$, where $T_*$ is the deepest layer temperature.
+This conservative test avoids discarding a line that can matter in any layer.
+\end{EN}
+
+编译后的遍历对固定源目录每个大气只做一次这些测试，并为后续迭代保留筛选出的记录。同一模式贯穿整个物理循环：独立工作被编译与并行化，可复用输入保持常驻，物理顺序保持不变。表~\ref{tab:atmosphere_speed} 总结了这些执行变化。
+
+\begin{EN}
+Compiled passes apply these tests once per atmosphere to the fixed source
+catalog and retain the selected records for subsequent iterations. The same
+pattern extends across the physical cycle. Independent work is compiled and
+parallelized, reusable inputs remain resident, and the physical sequence is
+preserved. Table~\ref{tab:atmosphere_speed} summarizes these execution changes.
+\end{EN}
+
+\begin{notebox}{表~\ref{tab:atmosphere_speed} 说明（原文 Table 3，内容保留英文）}
+逐阶段对比大气计算：物理输入（固定物理表与谱线目录常驻内存）、谱线筛选（并行保留测试一次完成，取消筛选文件往返）、布居与连续谱（连续谱 kernel 按频率并行，布居保持深度有序）、谱线不透明度（编译并行块累积）、转移（3 万个频率分块并行求解后归约）。
+\end{notebox}
+
+\begin{table*}[t]
+\centering
+\caption{Execution of the same atmosphere stages in the original Kurucz
+workflow and \paynezero. The final column summarizes how resident data,
+compiled kernels, and multicore frequency parallelism change the computational
+cost.}
+\label{tab:atmosphere_speed}
+\begingroup
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+\footnotesize
+\begin{tabular}{@{}llll@{}}
+\toprule
+\tcell{0.12\textwidth}{\textbf{Stage}} &
+\tcell{0.25\textwidth}{\textbf{Original Kurucz execution}} &
+\tcell{0.28\textwidth}{\textbf{\paynezero\ execution}} &
+\tcell{0.25\textwidth}{\textbf{Effect}} \\
+\midrule
+\tcell{0.12\textwidth}{\textbf{Physical inputs}} &
+\tcell{0.25\textwidth}{Input decks and line catalogs use fixed-width or
+Fortran-unformatted records. Many numerical tables are compiled into the source} &
+\tcell{0.28\textwidth}{Most fixed physics tables and the full line-source
+catalogs are retained as typed in-process arrays} &
+\tcell{0.25\textwidth}{Cached tables and line catalogs avoid repeated parsing,
+although isotope and molecular-equilibrium inputs are still reloaded each pass} \\
+\tcell{0.12\textwidth}{\textbf{Line selection}} &
+\tcell{0.25\textwidth}{A separate first-pass scan writes the
+atmosphere-dependent selected-line file} &
+\tcell{0.28\textwidth}{Once per atmosphere, fused parallel keep tests over each
+catalog family reuse cached columns and bin assignments and return the selected
+catalog in memory. Later passes reuse it} &
+\tcell{0.25\textwidth}{Selection remains atmosphere dependent, without a
+selected-line file round trip} \\
+\tcell{0.12\textwidth}{\textbf{Populations and continuum}} &
+\tcell{0.25\textwidth}{Population and continuum calculations advance through
+serial nested depth, species, and frequency loops} &
+\tcell{0.28\textwidth}{Population and molecular-equilibrium kernels are compiled
+but depth-ordered, while continuum kernels parallelize over sampling frequency} &
+\tcell{0.25\textwidth}{Continuum frequency work uses the configured CPU threads,
+whereas population work remains ordered} \\
+\tcell{0.12\textwidth}{\textbf{Line opacity}} &
+\tcell{0.25\textwidth}{Selected and detailed line records are scanned serially
+and deposited through nested depth and wavelength loops} &
+\tcell{0.28\textwidth}{Compiled parallel chunks accumulate selected and
+detailed transitions on the opacity-sampling grid} &
+\tcell{0.25\textwidth}{The dominant line-opacity work uses the configured CPU
+threads} \\
+\tcell{0.12\textwidth}{\textbf{Transfer}} &
+\tcell{0.25\textwidth}{Each of 30,000 wavelengths is solved and integrated
+before the next} &
+\tcell{0.28\textwidth}{Compiled frequency chunks solve transfer in parallel into
+private accumulators, which are reduced after the parallel region} &
+\tcell{0.25\textwidth}{Independent frequency work is parallel, while the
+outer physical cycle remains ordered} \\
+\addlinespace[2pt]
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table*}
+
+大气计算提供的 GPU 并行性不如合成：频率并行的块与物态方程、归约、对流、修正和重映射交错排列，这些阶段交换很小的深度状态且必须保持有序，而可用的波长批次远小于宽波段合成。因此生产求解器使用多核 CPU kernel。当内存流量与有序阶段开始主导时，线程扩展趋于饱和，饱和点由处理器决定。
+
+\begin{EN}
+The atmosphere offers less GPU parallelism than synthesis. Frequency-parallel
+blocks are interleaved with the equation of state, reductions, convection,
+correction, and remapping. These stages exchange a small depth state and must
+remain ordered, while the available wavelength batch is much smaller than in
+broad spectral synthesis. The production solver therefore uses multicore CPU
+kernels. Thread scaling saturates when memory traffic and the ordered stages
+dominate, with the saturation point set by the processor.
+\end{EN}
+
+\subsection{精度与性能 Accuracy and performance}
+
+图~\ref{fig:synthesis_overview} 中的第一组比较固定大气以单独检验合成；第二组比较中，两个大气求解器在相同恒星标签下各自产生结构再做合成，检验大气差异在最终可观测量中是否仍可忽略。对热矮星、太阳、红巨星和 K 矮星，300--1000 nm 上 99 百分位绝对归一化流量差为 $(0.70,\,2.18,\,5.76,\,2.90)\times10^{-3}$。因此在所测试的参数区间内，大气加合成的完整计算与原 Kurucz 程序保持实用的光谱一致性。
+
+\begin{EN}
+The first comparison in Figure~\ref{fig:synthesis_overview} holds the atmosphere
+fixed to isolate synthesis. In the second, each atmosphere solver produces its
+own structure at the same stellar labels before synthesis, testing whether
+atmosphere differences remain negligible in the final observable. For the hot
+dwarf, Sun, red giant, and K dwarf over 300--1000~nm,
+the 99th-percentile absolute normalized-flux differences are
+$(0.70,\,2.18,\,5.76,\,2.90)\times10^{-3}$. The combined atmosphere and synthesis
+calculation is thus in practical spectral parity with the original Kurucz
+programs across the tested regimes.
+\end{EN}
+
+为了把一趟物理遍历的成本与初始化、停止策略分离开，两种实现从同一结构出发，在同一颗 AMD EPYC 9B45 CPU 上以完全相同的物理输入执行三趟迭代。图~\ref{fig:atmosphere_performance} 总结了匹配的单趟耗时、线程扩展与红巨星阶段分解。该设计测量的是一趟物理遍历的执行，而非初始状态或停止策略的选择。
+
+\begin{EN}
+To isolate the cost of one physical pass from initialization and stopping, both
+implementations begin from the same structure and execute three iterations with
+identical physical inputs on the same AMD EPYC 9B45 CPU.
+Figure~\ref{fig:atmosphere_performance} summarizes the matched iteration walls,
+thread scaling, and red-giant stage breakdown. This design measures the
+execution of one physical pass rather than the choice of starting state or
+stopping policy.
+\end{EN}
+
+对热矮星、太阳、红巨星、K 矮星，原 Kurucz 每趟耗时分别为 15、13、34、38 秒；对应的 16 线程 \paynezero\ 耗时为 2.1、2.2、4.7、5.3 秒，加速 6--7 倍。原程序没有线程并行路径，因此其单核测量是正常运行方式而非外加限制。\paynezero\ 的扩展在约 16 线程处饱和，因为内存流量与有序阶段开始主导。在所测配置中，CPU 推进有序的大气计算，GPU 处理宽得多的合成并行。红巨星的分解显示，原程序的耗时主要由目录输入与谱线筛选主导，而 \paynezero\ 剩余的最大成本是不透明度。因此增益来自常驻数据、并行保留测试与编译不透明度 kernel 在同一 CPU--GPU 工作流中的组合。单趟加速之后，迭代趟数成为剩余的乘性成本。
+
+\begin{EN}
+For the hot dwarf, Sun, red giant, and K dwarf, the original Kurucz walls are
+15, 13, 34, and 38~s per iteration. The corresponding 16-thread \paynezero\
+walls are 2.1, 2.2, 4.7, and 5.3~s, giving factors of 6--7. The original
+program has no thread-parallel execution path, so its single-core measurement
+is its normal operating mode rather than an imposed restriction. Scaling in
+\paynezero\ saturates near 16 threads because memory traffic and ordered stages
+begin to dominate. In the measured configuration, the CPUs advance the ordered
+atmosphere calculation while the GPU handles the much broader synthesis
+parallelism.
+
+The red-giant breakdown shows that the original wall is dominated by catalog
+input and line selection, while opacity is the largest remaining \paynezero\
+cost. The gain therefore combines resident data, a parallel keep test, and
+compiled opacity kernels within one CPU--GPU workflow. Per-iteration
+acceleration leaves the number of iterations as the remaining multiplicative
+cost.
+\end{EN}

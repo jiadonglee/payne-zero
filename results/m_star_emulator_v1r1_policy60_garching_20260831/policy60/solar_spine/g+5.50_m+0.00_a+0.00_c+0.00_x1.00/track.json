@@ -1,0 +1,669 @@
+{
+  "attempted_count": 0,
+  "cases": [
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 4000.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t4000",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 4000.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3950.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3950",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3950.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3900.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3900",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3900.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3850.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3850",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3850.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3800.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3800",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3800.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3750.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3750",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3750.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3700.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3700",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3700.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3650.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3650",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3650.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3600.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3600",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3600.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3550.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3550",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3550.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3500.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3500",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3500.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3450.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3450",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3450.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3400.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3400",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3400.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3350.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3350",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3350.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3300.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3300",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3300.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3250.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3250",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3250.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3200.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3200",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3200.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3150.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3150",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3150.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3100.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3100",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3100.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3050.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3050",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3050.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    },
+    {
+      "class": "dwarf",
+      "failure_reason": "4000 K reference anchor did not converge",
+      "labels": {
+        "alpha_enhancement": 0.0,
+        "effective_temperature": 3000.0,
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0
+      },
+      "node_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t3000",
+      "path_consistency": {
+        "available": false,
+        "passes": false
+      },
+      "primary": null,
+      "primary_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "restart": null,
+      "restart_flux_gate": {
+        "metrics": {},
+        "passes": false
+      },
+      "split_role": "train",
+      "status": "blocked_by_previous_ineligible_step",
+      "temperature_K": 3000.0,
+      "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00",
+      "training_eligible": false
+    }
+  ],
+  "eligible_count": 0,
+  "flux_gate_hash": "a6f0b55deec8085784394a239f3f7aac4c6dd95f765e0b38f4fb50f472a5a16e",
+  "protocol_hash": "42b1e8bf45f4a89c92901ab4ea76edefab807afdb7296be945169d0a4d7afbd6",
+  "track": {
+    "alpha_enhancement": 0.0,
+    "carbon_enhancement": 0.0,
+    "class": "dwarf",
+    "log_surface_gravity": 5.5,
+    "metallicity": 0.0,
+    "microturbulence_km_s": 1.0,
+    "role": "train",
+    "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00"
+  }
+}

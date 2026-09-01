@@ -42,3 +42,30 @@ figures/
 
 # Working snapshots
 *.zip
+
+# Local agent/editor state and checkout-only notes
+.claudian/
+.obsidian/
+MEMORY.md
+
+# Large local research payloads.  Their compact manifests and closeout notes
+# are versioned separately.
+archive/
+SDSS_MARCS_atmospheres.h5
+refcheck/
+
+# Downloaded third-party manuscript/reference material
+paper/arXiv-*/
+paper/downloaded_refs/
+
+# LaTeX build cache (final named PDFs may still be versioned explicitly)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.xdv
+paper/translation/main.pdf

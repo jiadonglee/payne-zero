@@ -1,0 +1,35 @@
+{
+  "campaign": "m_star_emulator_v1",
+  "date": "2026-08-31",
+  "status": "verified",
+  "remote": {
+    "host": "astronode-garching",
+    "root": "/home/jdli/xiasangju/jdli/payne-zero-mstar-emulator-v1-20260831"
+  },
+  "local": {
+    "root": "/Users/jdli/Project/payne-zero/results/m_star_emulator_v1_garching_20260831"
+  },
+  "payload": {
+    "file_count": 105,
+    "byte_count": 111897210,
+    "results": {
+      "file_count": 97,
+      "byte_count": 111889265
+    },
+    "logs": {
+      "file_count": 8,
+      "byte_count": 7945
+    }
+  },
+  "tree_sha256": {
+    "remote": "4a3bbd955f662971e55a752ad1ac0bf8581e8da5194a5e3537cac5e781308376",
+    "local": "4a3bbd955f662971e55a752ad1ac0bf8581e8da5194a5e3537cac5e781308376",
+    "definition": "SHA-256 of the sorted per-file SHA-256 manifest for results/m_star_emulator_v1 and logs"
+  },
+  "corpus": {
+    "path": "results/m_star_emulator_v1/cool_truth_corpus.npz",
+    "byte_count": 26362,
+    "sha256": "8b34a3b852cc7d268dbff4a8d7eba539e56173f2a51036afa0986c0f5ce56656"
+  },
+  "checksums": "TRANSFER_CHECKSUMS.sha256"
+}

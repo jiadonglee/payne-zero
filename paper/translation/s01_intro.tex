@@ -1,0 +1,186 @@
+\section{引言 Introduction}\label{sec:introduction}
+
+大型光谱巡天已经测量、正在测量或即将测量数十万到数百万颗恒星的光谱。主要的银河系巡天项目包括 APOGEE、GALAH、Gaia--ESO、LAMOST、Gaia RVS、SDSS-V、DESI、WEAVE、4MOST 和 PFS \citep{Cui2012,Dalton2012,Gilmore2012,Takada2014,DeSilva2015,Kollmeier2017,Majewski2017,Chiappini2019,Cooper2023,Creevey2023}。这些巡天的科学回报取决于能否把每条光谱转化为恒星性质，包括有效温度、表面重力、化学元素丰度和视向速度。而前向模型的速度与精度为这一分析设定了基本上限。
+
+\begin{EN}
+Large spectroscopic surveys have measured, are measuring, or will soon measure
+spectra for hundreds of thousands to millions of stars. Major Milky Way
+programs include APOGEE, GALAH, Gaia--ESO, LAMOST, Gaia RVS, SDSS-V, DESI,
+WEAVE, 4MOST, and PFS
+\citep{Cui2012,Dalton2012,Gilmore2012,Takada2014,DeSilva2015,
+Kollmeier2017,Majewski2017,Chiappini2019,Cooper2023,Creevey2023}.
+Their scientific return depends on turning
+each spectrum into stellar properties, including effective temperatures,
+surface gravities, chemical abundances, and radial velocities.
+The speed and accuracy of the forward model set a basic limit on that analysis.
+\end{EN}
+
+一个物理前向模型由三个阶段组成。模型大气描述温度、压强、电子密度和化学粒子布居随深度的变化。光谱合成把这一结构与谱线表结合，计算出射辐射。仪器模型再把内禀光谱映射到观测像素上。大气为合成提供热力学与化学状态，因此同一份元素组成同时控制着大气结构和出射光谱。
+
+\begin{EN}
+A physical forward model combines three stages. A model atmosphere describes
+the temperature, pressure, electron density, and chemical populations with
+depth. Spectral synthesis combines this structure with a line list to calculate
+the emergent radiation. An instrument model maps the intrinsic spectrum to the
+observed pixels. The atmosphere supplies the thermodynamic and chemical state
+used by synthesis, so the same composition controls both the atmospheric
+structure and the emergent spectrum.
+\end{EN}
+
+\begin{physbox}{为什么大气结构与光谱必须自洽}
+恒星大气不是一块均匀发光体：从表面向内部，温度、压强和密度都在变化，不同深度的气体对光谱的贡献不同。大气模型要回答的就是“每一层有多热、多密、由什么粒子组成”；光谱合成再回答“这样的分层结构向外发出什么样的光”。二者被同一份元素丰度耦合在一起——改变镁的丰度，不仅改变镁的谱线，还会改变大气里的自由电子供应，从而间接改变其他元素谱线的强度。因此严谨的分析不能只调某条谱线附近的局部模型，而要让丰度变化同时贯穿大气结构和光谱合成。这正是本文反复强调的“自洽”（self-consistent）的含义，也是直接物理拟合区别于局部经验拟合的关键。
+\end{physbox}
+
+所要求的丰度模式作为整体进入物态方程和不透明度。例如，镁既改变自身的谱线，也改变电子供应；而电子供体的变化会改变 H$^-$ 连续谱，进而影响其他元素产生的谱线特征 \citep{John1988,Meszaros2012,Matsuno2024}。碳、氮、氧会重新分配 CO、CN、OH 等分子中的原子，因此可以改变并不属于被扰动元素的光谱特征 \citep{Tsuji1973,Ting2018Oxygen}。来自众多金属的谱线覆盖（line blanketing）改变辐射场，从而改变温度结构 \citep{Gustafsson2008}。不透明度采样大气求解器会针对所要求的化学混合物重新计算粒子布居和不透明度 \citep{Kurucz1996}。
+
+\begin{EN}
+The requested abundance pattern enters the equation of state and opacity as a
+whole. Magnesium, for example, changes both its own lines and the electron
+supply, while electron donors alter the H$^-$ continuum and thereby features
+from other species \citep{John1988,Meszaros2012,Matsuno2024}. Carbon, nitrogen,
+and oxygen redistribute atoms among molecules such as CO, CN, and OH and can
+therefore change spectral features not belonging to the perturbed element
+\citep{Tsuji1973,Ting2018Oxygen}. Line blanketing from many metals changes the
+radiation field and therefore the temperature structure
+\citep{Gustafsson2008}. The opacity-sampling atmosphere solver recomputes the
+populations and opacity for the requested mixture \citep{Kurucz1996}.
+\end{EN}
+
+\begin{physbox}{丰度为什么会“牵一发而动全身”}
+这一段列出了丰度耦合的三条物理通道，值得逐条理解：
+\begin{itemize}
+\item \textbf{电子供应与 H$^-$ 连续谱。}在太阳型及更冷的恒星中，氢几乎全部呈中性，自由电子主要来自镁、硅、铁等容易电离的金属。这些自由电子与中性氢结合形成负氢离子 H$^-$，而 H$^-$ 是光学—近红外波段连续吸收的主要来源。于是增加金属丰度 $\Rightarrow$ 电子增多 $\Rightarrow$ H$^-$ 吸收增强 $\Rightarrow$ 连续谱被压低，所有元素的谱线对比度都会改变——哪怕那些元素本身的丰度没有变。
+\item \textbf{分子平衡。}碳、氮、氧通过 CO、CN、OH 等分子互相“抢夺”原子（CO 结合能极高，会锁死丰度较低的那种元素）。改变 C 或 O 的丰度会重组整个分子体系，从而改变 CN、OH 等分子带的光谱特征。
+\item \textbf{谱线覆盖（line blanketing）。}数百万条金属谱线叠加起来像一块“毛玻璃”，把短波辐射挡住、重新以长波辐射放出，改变大气的辐射场和温度结构。这意味着丰度变化会反过来改变大气本身，而不只是光谱。
+\end{itemize}
+这就是为什么本文坚持“丰度必须作为整体进入计算”，也是逐条谱线孤立测量的经典方法所遗漏的物理。
+\end{physbox}
+
+长久以来，运行时间决定了这项计算的哪些部分能够进入实际分析。经典的等值宽度工作可以在预计算网格内插值得到模型大气，并只围绕一条孤立谱线合成一个很小的波段 \citep{CastelliKurucz2003}。长期沿用与现代的代码和分析框架包括 MOOG、Turbospectrum、FERRE、iSpec、Korg、SME 和 PySME \citep{ValentiPiskunov1996,Plez2012,MOOG2012,BlancoCuaresma2014,PiskunovValenti2017,FERRE2023,Wehrhahn2023,Wheeler2023}。巡天级的全光谱分析则不同，它从宽阔波长区间中提取信息，其中包含孤立谱线、混合（blend）谱线，以及冷星中的分子带 \citep{ValentiFischer2005,Ting2017Prospects}。
+
+\begin{EN}
+Runtime has long determined which parts of this calculation enter an analysis.
+Classical equivalent-width work can obtain a model atmosphere by interpolation
+within a precomputed grid and synthesize a small region around an isolated
+line \citep{CastelliKurucz2003}. Long-standing and modern codes and analysis
+frameworks include MOOG, Turbospectrum, FERRE, iSpec, Korg, SME, and PySME
+\citep{ValentiPiskunov1996,Plez2012,MOOG2012,BlancoCuaresma2014,
+PiskunovValenti2017,FERRE2023,Wehrhahn2023,Wheeler2023}. Full-spectrum survey
+analyses instead draw information from broad wavelength intervals
+containing isolated lines, blends, and, in cool stars, molecular bands
+\citep{ValentiFischer2005,Ting2017Prospects}.
+\end{EN}
+
+对于每一个新的恒星状态，原始的 Kurucz 工作流程以串行程序和中间文件的方式分阶段执行大气与合成计算 \citep{Kurucz2005}。\citet{KimTing2026} 经过验证的 Python 重实现为我们的重新设计提供了直接的软件与物理学谱系。在下文的基准测试中，原始 Fortran 工作流程中依赖标签的大气设置、物理迭代和宽波段合成合计需要数十分钟。若把这一计算放进全光谱优化器中反复执行，单颗星的分析就可能需要数小时。
+
+\begin{EN}
+For each new stellar state, the
+original Kurucz workflow stages atmosphere and synthesis through serial
+programs and intermediate files \citep{Kurucz2005}. The validated Python
+reimplementation of \citet{KimTing2026} provides the direct
+software and physics lineage for our redesign. In the benchmarks below, the
+label-dependent atmosphere setup, physical iterations, and broad synthesis in
+the original Fortran workflow together take tens of minutes. Repeating that
+calculation inside a full-spectrum optimizer can then take hours for one star.
+\end{EN}
+
+光谱模拟器通过对合成光谱库进行插值来避开这一成本；其大气插值误差和流量插值误差都可以被直接测量 \citep{MeszarosAllendePrieto2013}。实现方式包括概率插值（如 Starfish）和神经插值（如 The Payne）\citep{Czekala2015,Ting2019}。但模拟器仍然有有限的训练范围和插值误差，更换物理模型或标签集合就需要重新生成网格 \citep{Rozanski2025a}。当许多种元素的丰度各自独立变化时，标签空间的体积迅速膨胀，训练问题随之变得更难 \citep{Casey2016,Ting2016}。
+
+\begin{EN}
+Spectral emulators avoid this cost by interpolating synthetic libraries, a
+practice whose atmosphere- and flux-interpolation errors can be measured
+directly \citep{MeszarosAllendePrieto2013}. Their
+implementations include probabilistic interpolation, as in Starfish, and
+neural interpolation, as in The Payne \citep{Czekala2015,Ting2019}. An emulator still
+has a finite training range and interpolation error, and a new physical model
+or label set requires a new grid \citep{Rozanski2025a}. The training problem
+becomes harder when many individual abundances vary because the volume of label
+space grows rapidly \citep{Casey2016,Ting2016}.
+\end{EN}
+
+数据驱动模型——例如 The Cannon 及其正则化、跨巡天扩展，StarNet 和 astroNN——则改为从观测参考光谱中学习“标签—流量”或“标签推断”关系 \citep{Ness2015,Casey2016,Ho2017,Fabbro2018,LeungBovy2019}。训练标签之间的相关性会把物理敏感性与天体物理相关性混在一起 \citep{Ting2017LAMOST,Xiang2019}。诸如 Cycle-StarNet 的领域自适应方法在合成与观测光谱域之间建立映射，以减少可重复的系统性差异 \citep{OBriain2021}。但无论隐空间坐标还是域映射，都不一定能指认某个光谱特征究竟对应哪种原子物理输入。
+
+\begin{EN}
+Data-driven models such as The Cannon and
+its regularized and cross-survey extensions, StarNet, and astroNN instead learn
+label--flux or label-inference relations
+from observed reference spectra
+\citep{Ness2015,Casey2016,Ho2017,Fabbro2018,LeungBovy2019}.
+Correlated training labels can mix physical sensitivity with astrophysical
+correlations \citep{Ting2017LAMOST,Xiang2019}. Related domain-adaptation
+methods such as Cycle-StarNet map synthetic and observed spectral domains to
+reduce repeatable discrepancies \citep{OBriain2021}. Neither a latent
+coordinate nor a domain mapping necessarily identifies the atomic input
+responsible for a feature.
+\end{EN}
+
+\begin{physbox}{模拟器、数据驱动模型与“归因”问题}
+这一段是全文的方法论分水岭。三条路线分别是：
+\begin{itemize}
+\item \textbf{光谱模拟器（The Payne、Starfish）}：先用物理模型算一个光谱网格，再用神经网络或高斯过程插值。快，但有插值误差，且每增加一个自由丰度维度，训练网格的体积呈指数增长（“维度灾难”）。
+\item \textbf{数据驱动模型（The Cannon、StarNet、astroNN）}：直接学习“观测光谱 $\rightarrow$ 恒星标签”的经验关系。问题在于\textbf{归因}：银河系里恒星的年龄、金属丰度、$\alpha$ 丰度天然相关，模型可能靠这种统计相关性“猜对”标签，而不是真正识别出元素谱线的物理响应——训练集之外就可能失效。
+\item \textbf{直接物理拟合（本文）}：每次试验都实时计算物理光谱。模型与观测不符时，差异可以被明确归因到具体的物理输入（某条谱线的振子强度、某个阻尼参数、大气结构或缺失的谱线），并逐一检验。
+\end{itemize}
+\end{physbox}
+
+我们可以改用观测光谱来修正具名的物理输入。振子强度决定原子谱线的强度，阻尼参数决定谱线的翼部 \citep{ValentiPiskunov1996,Gray2005}。这些量的来源包括实验室测量、理论计算、数据库评估以及相对基准恒星的定标 \citep{Piskunov1995,Lobel2011,Jofre2014,Ryabchikova2015,Laverick2019,Smith2021}。一个快速且可微分的计算允许许多这类输入被联合调整，同时每项修正始终绑定在一个物理参数上。
+
+\begin{EN}
+We can instead use observed spectra to correct named physical inputs.
+Oscillator strengths set atomic line strengths, while damping parameters set
+their wings \citep{ValentiPiskunov1996,Gray2005}. These quantities combine
+laboratory measurements, theory, database evaluation, and calibration against
+benchmark stars
+\citep{Piskunov1995,Lobel2011,Jofre2014,Ryabchikova2015,Laverick2019,Smith2021}.
+A fast differentiable calculation allows
+many such inputs to be adjusted together while each correction remains tied to
+a physical parameter.
+\end{EN}
+
+当模型与数据不符时，这一区分尤为重要。一个足够灵活的流量模型可以把残差“吸收”掉，却不判断它究竟来自振子强度、阻尼翼、大气结构还是一条缺失的跃迁。直接的物理求值则让这些可能性保持显式且可分别检验。它还允许新的丰度坐标或原子参数直接进入控制方程，而无需重新生成合成光谱网格。
+
+\begin{EN}
+This distinction is important when a model misses the data. A flexible flux
+model may absorb the residual without deciding whether it came from an
+oscillator strength, a damping wing, the atmospheric structure, or a missing
+transition. Direct physical evaluation keeps these possibilities explicit and
+separately testable. It also allows a new abundance coordinate or atomic
+parameter to enter the governing calculation without regenerating a synthetic
+flux grid.
+\end{EN}
+
+因此，直接物理推断要求一个快得多的计算。大气计算通过相继的物理迭代推进一个深度耦合的状态。结构一旦确定，数万到数百万个波长采样就可以同时求值。Kurucz、MARCS、PHOENIX 和 TLUSTY 等成熟框架做出了不同的物理与数值选择，包括 LTE 冷星网格和非 LTE 热星网格 \citep{HubenyLanz1995,LanzHubeny2003,Kurucz2005,LanzHubeny2007,Gustafsson2008,Husser2013}。我们聚焦于原始的 Kurucz 程序，其串行各阶段通过中间文件交换数据。
+
+\begin{EN}
+Direct physical inference therefore requires a much shorter calculation. An
+atmosphere calculation advances a depth-coupled state through sequential
+physical iterations. Once that structure is known, tens of thousands to millions of
+wavelength samples can be evaluated together. Established frameworks such as
+Kurucz, MARCS, PHOENIX, and TLUSTY make different physical and numerical
+choices, including LTE cool-star and non-LTE hot-star grids
+\citep{HubenyLanz1995,LanzHubeny2003,Kurucz2005,LanzHubeny2007,
+Gustafsson2008,Husser2013}. We focus on the original Kurucz programs, whose
+serial stages exchange intermediate files.
+\end{EN}
+
+\paynezero\ 将其支持的一维 LTE Kurucz 物理重组为面向 GPU 合成与多核 CPU 大气迭代的形式。固定数据常驻内存，大型编译算子把相互独立的工作暴露出来。由此得到的前向模型可以在优化器内部被求值。
+
+\begin{EN}
+\paynezero\ reorganizes the supported one-dimensional LTE
+Kurucz physics for GPU synthesis and multicore CPU atmosphere iteration. Fixed
+data remain resident, and large compiled operations expose the independent
+work. The resulting forward model can be evaluated inside an optimizer.
+\end{EN}
+
+更短的运行时间使直接光谱拟合与原子数据定标成为可能。在建立合成、大气迭代和学习型初始化之后，我们首先测试一个归一化光谱拟合器，其最终候选解用收敛的物理大气重新计算；随后针对太阳和大角星定标原子谱线参数；最后把这两部分与仪器响应、速度、致宽、连续谱和像素不确定度结合起来，完成 APOGEE 应用。
+
+\begin{EN}
+The shorter runtime enables direct spectrum fitting and atomic-data
+calibration. After establishing synthesis, atmosphere iteration, and learned
+initialization, we first test a normalized-spectrum fitter whose final
+candidate is recalculated with a converged physical atmosphere. We then
+calibrate atomic line parameters against the Sun and Arcturus and combine both
+pieces with the instrumental response, velocity, broadening, continuum, and
+pixel uncertainties for the APOGEE application.
+\end{EN}
+

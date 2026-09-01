@@ -1,0 +1,67 @@
+\appendix
+
+\section{对拟合恒星参数的敏感性 Sensitivity to Fitting the Stellar Parameters}
+\label{app:stellar_label_sensitivity}
+
+主 APOGEE 实验保留了 DR14 发表的、经光度定标的 $T_{\rm eff}$ 与经星震定标的巨星 $\log g$，并固定 $\xi$，以单独考察化学与仪器拟合 \citep{Holtzman2018}。我们用相同的官方光谱、样本、谱线定标、仪器算子、掩模、不确定度与连续谱处理来检验该选择：从主丰度解出发，把三个恒星参数与同样的 12 个丰度坐标一起拟合，并收敛最终的物理大气。图~\ref{fig:appendix_stellar_label_sensitivity} 与图~\ref{fig:appendix_abundance_sensitivity} 把所得恒星与化学分布同固定参数解及 APOGEE DR14 比较。
+
+\begin{EN}
+The main APOGEE experiment retains the photometrically calibrated $T_{\rm eff}$
+and asteroseismically calibrated giant $\log g$ published in DR14, and fixes
+$\xi$ to isolate the chemical and instrumental fit \citep{Holtzman2018}. We
+test that choice with the same official spectra, sample, line calibration,
+instrument operator, masks, uncertainties, and continuum treatment. Starting
+from the main abundance solution, we fit those three stellar parameters
+together with the same 12 abundance coordinates and converge the final physical
+atmosphere. Figures
+\ref{fig:appendix_stellar_label_sensitivity} and
+\ref{fig:appendix_abundance_sensitivity} compare the resulting stellar and
+chemical distributions with the fixed-parameter solution and APOGEE DR14.
+\end{EN}
+
+完整物理重拟合给出的逆选择权重中位变化为：$T_{\rm eff}$ $-200$ K、$\log g$ $+0.17$ dex、$\xi$ $-0.32$ km s$^{-1}$、$[\mathrm{Fe}/\mathrm{H}]$ $-0.06$ dex。在初始红团簇聚集区的 694 颗星中，中位变化为 $-220$ K 与 $+0.17$ dex。巨星支脊线与红团簇聚集仍清晰可见，但其绝对位置随所采用的恒星参数标度移动。
+
+\begin{EN}
+The full physical refit gives inverse-selection-weighted median changes of
+$-200$~K in $T_{\rm eff}$,
+$+0.17$~dex in $\log g$, $-0.32$~km~s$^{-1}$ in $\xi$, and $-0.06$~dex in
+$[\mathrm{Fe}/\mathrm{H}]$. Among the 694 stars in the initial red-clump
+concentration, the median changes are $-220$~K and $+0.17$~dex. The giant-branch
+ridge and red-clump concentration remain visible, but their absolute location
+moves with the adopted stellar-parameter scale.
+\end{EN}
+
+丰度中位变化从氮的 $-0.23$ dex、氧的 $-0.22$ dex 到硫的 $+0.22$ dex 不等；镁变化 $-0.03$ dex。丰度序列保持存在，而其零点响应恒星参数的变化。因此，更冷的光谱温度标度会传播为随元素变化的丰度零点。
+
+\begin{EN}
+The median abundance changes range from $-0.23$~dex for nitrogen and
+$-0.22$~dex for oxygen to $+0.22$~dex for sulfur. Magnesium changes by
+$-0.03$~dex. The abundance sequences persist while their zero points respond
+to the stellar parameters. The cooler spectroscopic temperature scale therefore
+propagates into element-dependent abundance zero points.
+\end{EN}
+
+生产级分析可以对光谱、宽波段能谱分布与视差做联合拟合，锚定 $T_{\rm eff}$ 与 $\log g$ 并吸收这一标度差异 \citep{Cargile2020}。本概念验证不包含这些外部信息。
+
+\begin{EN}
+A joint fit to the spectrum, broadband spectral energy distribution, and parallax can
+anchor $T_{\rm eff}$ and $\log g$ and absorb this scale difference in a
+production analysis \citep{Cargile2020}. We do not include that external
+information in this proof of concept.
+\end{EN}
+
+\begin{physbox}{为什么恒星参数与丰度会“耦合”}
+附录展示的是光谱分析中著名的\textbf{参数耦合}（或退化）现象：降低 $T_{\rm eff}$ 会让模型光谱整体变化，拟合器会调整丰度去补偿——例如温度影响电离平衡，从而改变电离与中性谱线的相对强度，进而影响推出的元素丰度。本附录定量说明：采用更冷的自由光谱温度（中位 $-200$ K）后，丰度零点整体移动最多约 0.2 dex，但族群的相对形态（双 $\alpha$ 序列、红团簇结构）不变。这说明本文主文结论对“固定 DR14 恒星参数”这一选择是稳健的，但绝对丰度标度需要外部信息（光度、视差）来锚定。
+\end{physbox}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figure_14.pdf}
+\captionof{figure}{$T_{\rm eff}$、$\log g$、$\xi$ 与 12 个丰度坐标联合拟合的敏感性。左：合并样本的逆选择权重等值线，灰虚线保留 DR14 恒星参数，深色实线为最终物理收敛拟合。右：固定参数的铁丰度为灰色空心圆，最终值按 APOGEE 高/低 $\alpha$ 样本着色。（Sensitivity to fitting the stellar parameters.）}
+\label{fig:appendix_stellar_label_sensitivity}
+\vspace{8pt}
+\includegraphics[width=0.98\textwidth]{figure_15.pdf}
+\captionof{figure}{$T_{\rm eff}$、$\log g$、$\xi$ 与丰度最终物理收敛拟合的逐元素丰度分布。布局与标度同图~\ref{fig:apogee_elements}；彩色点与等值线为两个 APOGEE 样本的最终值，灰虚等值线为 APOGEE DR14 的 50、80\% 密度水平。（Elemental-abundance distributions from the final physically converged fit.）}
+\label{fig:appendix_abundance_sensitivity}
+\end{figure}
+

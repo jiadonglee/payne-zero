@@ -1,0 +1,249 @@
+{
+  "boundaries": {
+    "existing_sealed_holdout_opened": false,
+    "korg_run": false,
+    "marcs_is_training_target": false,
+    "new_sealed_tracks_run": false,
+    "production_routing_changed": false
+  },
+  "campaign": "m_star_emulator_v1r1_policy60",
+  "change_from_parent": {
+    "flux_gate_changed": false,
+    "only_truth_campaign_change": "iteration cap 30 -> 60",
+    "path_consistency_gate_changed": false,
+    "stopping_rule_changed": false,
+    "track_split_changed": false
+  },
+  "grid": {
+    "alpha_enhancement": 0.0,
+    "dwarf_logg": [
+      4.5,
+      4.75,
+      5.0,
+      5.25,
+      5.5
+    ],
+    "giant_logg": [
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      2.5
+    ],
+    "metallicity": 0.0,
+    "microturbulence_km_s": {
+      "dwarf": 1.0,
+      "giant": 2.0
+    },
+    "target_node_count": 210,
+    "temperature_K": [
+      4000.0,
+      3950.0,
+      3900.0,
+      3850.0,
+      3800.0,
+      3750.0,
+      3700.0,
+      3650.0,
+      3600.0,
+      3550.0,
+      3500.0,
+      3450.0,
+      3400.0,
+      3350.0,
+      3300.0,
+      3250.0,
+      3200.0,
+      3150.0,
+      3100.0,
+      3050.0,
+      3000.0
+    ],
+    "temperature_step_K": 50.0
+  },
+  "parent": {
+    "campaign": "m_star_emulator_v1",
+    "flux_gate_hash": "66614735dda12c76116c80441316465f3a9c6b47dd395ac711adc4659e8e96cc",
+    "flux_gate_sha256": "aba9a2acbde9931833fac9e34cc93b1a650fdab112bd5233cc8a5c77c693e1e7",
+    "protocol_hash": "bc767110116b14a614a871c9d14bb06581f415ee02946b429d2039d6c7feb72c",
+    "protocol_sha256": "eca96d0ddd756c30291ea473d8449a972c4f9a6d9558e4c37d1e4f5a006d6428",
+    "result_root": "results/m_star_emulator_v1"
+  },
+  "paths": {
+    "cool_corpus": "results/m_star_emulator_v1r1_policy60/cool_truth_corpus.npz",
+    "flux_gate": "results/m_star_emulator_v1r1_policy60/flux_gate.json",
+    "protocol": "results/m_star_emulator_v1r1_policy60/protocol.json",
+    "result_root": "results/m_star_emulator_v1r1_policy60",
+    "solar_spine": "results/m_star_emulator_v1r1_policy60/solar_spine"
+  },
+  "protocol_hash": "42b1e8bf45f4a89c92901ab4ea76edefab807afdb7296be945169d0a4d7afbd6",
+  "reference_flux_gate": {
+    "metrics": [
+      "median_absolute_flux_error_percent",
+      "p95_absolute_flux_error_percent",
+      "maximum_absolute_flux_error_percent"
+    ],
+    "minimum_successful_reference_solves": 12,
+    "multiplier": 1.25,
+    "must_be_frozen_before_spine": true,
+    "roles": [
+      "train",
+      "validation"
+    ],
+    "source_gate_hash": "66614735dda12c76116c80441316465f3a9c6b47dd395ac711adc4659e8e96cc",
+    "temperatures_K": [
+      4500.0,
+      4000.0
+    ],
+    "threshold_formula": "1.25 times the maximum successful reference value for each metric",
+    "thresholds_imported_from_parent": true,
+    "thresholds_refit": false
+  },
+  "solver": {
+    "continuation": "4000 to 3000 K in 50 K reduced/rematerialized (m,T) steps",
+    "independent_restart": "every candidate restarted from its own final (m,T)",
+    "initializer_for_4000_and_4500_K": "released production initializer; extrapolation allowed only to construct the seed",
+    "iteration_cap": 60,
+    "stopping_rule": "unchanged production solver stopping rule",
+    "truth_source": "terminal Payne-Zero ATLAS atmosphere",
+    "within_15_iterations_recorded": true
+  },
+  "source": {
+    "preregistration": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-emulator-v1-20260831/notes/m_star_emulator_v1r1_policy60_preregistration_20260831.md",
+    "preregistration_sha256": "8d43075aac5dbe9641f1b7eec70d777025ebf2d4c4c842c9ed0f52252cd166b9",
+    "runner": "/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mstar-emulator-v1-20260831/experiments/reduced_state_emulator/m_star_bootstrap_v1r1_policy60.py",
+    "runner_sha256": "ada19c5df77bd982f7a94d0305ca43b0e28b13c6f29e0f1154bd0fcb444d9305"
+  },
+  "split": {
+    "realized_fraction": {
+      "sealed": 0.2,
+      "train": 0.6,
+      "validation": 0.2
+    },
+    "reason": "prevent adjacent-temperature leakage; preserve both classes in validation and sealed sets",
+    "sealed_not_run_by_default": true,
+    "tracks": [
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 0.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "train",
+        "track_id": "g+0.50_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 1.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "sealed",
+        "track_id": "g+1.00_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 1.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "train",
+        "track_id": "g+1.50_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 2.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "validation",
+        "track_id": "g+2.00_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "giant",
+        "log_surface_gravity": 2.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 2.0,
+        "role": "train",
+        "track_id": "g+2.50_m+0.00_a+0.00_c+0.00_x2.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 4.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "train",
+        "track_id": "g+4.50_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 4.75,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "validation",
+        "track_id": "g+4.75_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 5.0,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "train",
+        "track_id": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 5.25,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "sealed",
+        "track_id": "g+5.25_m+0.00_a+0.00_c+0.00_x1.00"
+      },
+      {
+        "alpha_enhancement": 0.0,
+        "carbon_enhancement": 0.0,
+        "class": "dwarf",
+        "log_surface_gravity": 5.5,
+        "metallicity": 0.0,
+        "microturbulence_km_s": 1.0,
+        "role": "train",
+        "track_id": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00"
+      }
+    ],
+    "unit": "complete temperature track"
+  },
+  "status": "preregistered_before_heavy_solver",
+  "strict_settling_diagnostic": {
+    "effective_temperature_K": 4000.0,
+    "iteration_cap": 60,
+    "logg": [
+      4.5,
+      5.0
+    ],
+    "maximum_all_layer_relative_temperature_change": 0.0005,
+    "separate_from_training_corpus": true,
+    "truth_admission_effect": "none"
+  },
+  "training_eligibility": {
+    "failed_or_ineligible_rows_retained": true,
+    "finite_positive_monotone_six_field_state": true,
+    "primary_and_restart_must_converge": true,
+    "primary_and_restart_must_pass_frozen_flux_gate": true,
+    "restart_column_mass_p95_dex_max": 0.0077,
+    "restart_temperature_relative_p95_max": 0.003
+  }
+}

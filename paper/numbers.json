@@ -1,5 +1,85 @@
 {
  "macros": {
+  "NMstarCases": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "8",
+   "value": 8
+  },
+  "NMstarContinuationConverged": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "4",
+   "value": 4
+  },
+  "NMstarDirectConverged": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "5",
+   "value": 5
+  },
+  "NMstarDwarfCases": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "4",
+   "value": 4
+  },
+  "NMstarDwarfCoolestContinuation": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "3500",
+   "value": 3500.0
+  },
+  "NMstarDwarfDirectConverged": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "1",
+   "value": 1
+  },
+  "NMstarDwarfFluxCoolest": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "300",
+   "value": 299.81594660479436
+  },
+  "NMstarDwarfFluxWarm": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "19.7",
+   "value": 19.66589537364281
+  },
+  "NMstarFluxMaximum": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "\\ensuremath{3.00\\times10^{2}}",
+   "value": 299.81594660479436
+  },
+  "NMstarGiantCases": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "4",
+   "value": 4
+  },
+  "NMstarGiantDirectConverged": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "4",
+   "value": 4
+  },
+  "NMstarGiantFluxMaximum": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "9.49",
+   "value": 9.487490430437063
+  },
+  "NMstarGiantFluxMinimum": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "1.05",
+   "value": 1.0468603517015551
+  },
+  "NMstarKorgCompared": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NMstarKorgPfiveMaximum": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "\\ensuremath{--}",
+   "value": 0.0
+  },
+  "NMstarSelected": {
+   "source": "results/m_star_science_case_v1/cases.json",
+   "tex": "6",
+   "value": 6
+  },
   "NOracleElectronDensity": {
    "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
    "tex": "\\ensuremath{5.67\\times10^{-4}}",
@@ -180,25 +260,30 @@
    "tex": "10\\,228",
    "value": 10228
   },
+  "NblindAdapterMovedMillidex": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/final.npz",
+   "tex": "3",
+   "value": 3
+  },
   "NblindCandIters": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "4.12",
-   "value": 4.117021276595745
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "4.14",
+   "value": 4.137566137566138
   },
   "NblindCandNonmono": {
-   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/summary.json",
-   "tex": "26.8\\%",
-   "value": 0.2676767676767677
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
+   "tex": "27.1\\%",
+   "value": 0.271356783919598
   },
   "NblindCandUsable": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "190",
-   "value": 190
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
+   "tex": "192",
+   "value": 192
   },
   "NblindFaster": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "138",
-   "value": 138
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "137",
+   "value": 137
   },
   "NblindMassBlowouts": {
    "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
@@ -216,39 +301,74 @@
    "value": 0.026563041705438165
   },
   "NblindMcnemarP": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "\\ensuremath{1.6\\times10^{-21}}",
-   "value": 1.6092230908944139e-21
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "\\ensuremath{2.1\\times10^{-20}}",
+   "value": 2.086722391787563e-20
   },
-  "NblindPaired": {
+  "NblindOpenCandIters": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "4.12",
+   "value": 4.117021276595745
+  },
+  "NblindOpenPaired": {
    "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
    "tex": "188",
    "value": 188
   },
-  "NblindPairedDiffCiHi": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "1.87",
-   "value": 1.872340425531915
-  },
-  "NblindPairedDiffCiLo": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "1.28",
-   "value": 1.2765957446808511
-  },
-  "NblindPairedDiffMean": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "1.57",
-   "value": 1.574468085106383
-  },
-  "NblindPairedDiffMedian": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "1.50",
-   "value": 1.5
-  },
-  "NblindProdIters": {
+  "NblindOpenProdIters": {
    "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/production_records/production_six_field/records.jsonl",
    "tex": "5.69",
    "value": 5.691489361702128
+  },
+  "NblindOpenSpecMax": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "tex": "\\ensuremath{1.42\\times10^{-2}}",
+   "value": 0.01418826228125536
+  },
+  "NblindOpenSpecOver": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "tex": "25",
+   "value": 25
+  },
+  "NblindOpenSpecStars": {
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "tex": "188",
+   "value": 188
+  },
+  "NblindOpenUsable": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "tex": "190",
+   "value": 190
+  },
+  "NblindPaired": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "189",
+   "value": 189
+  },
+  "NblindPairedDiffCiHi": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "1.85",
+   "value": 1.8465608465608465
+  },
+  "NblindPairedDiffCiLo": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "1.24",
+   "value": 1.2380952380952381
+  },
+  "NblindPairedDiffMean": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "1.54",
+   "value": 1.5449735449735449
+  },
+  "NblindPairedDiffMedian": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "2.00",
+   "value": 2.0
+  },
+  "NblindProdIters": {
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/production_records/production_six_field/records.jsonl",
+   "tex": "5.68",
+   "value": 5.682539682539683
   },
   "NblindProdNonmono": {
    "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
@@ -261,7 +381,7 @@
    "value": 193
   },
   "NblindSame": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
    "tex": "32",
    "value": 32
   },
@@ -271,22 +391,22 @@
    "value": 20260811
   },
   "NblindSlower": {
-   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "tex": "18",
-   "value": 18
+   "source": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "tex": "20",
+   "value": 20
   },
   "NblindSpecMax": {
-   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/spectral_gate.json",
    "tex": "\\ensuremath{1.42\\times10^{-2}}",
-   "value": 0.01418826228125536
+   "value": 0.014188315038874522
   },
   "NblindSpecMedian": {
-   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
-   "tex": "\\ensuremath{2.03\\times10^{-3}}",
-   "value": 0.0020278158264113444
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/spectral_gate.json",
+   "tex": "\\ensuremath{1.99\\times10^{-3}}",
+   "value": 0.001987899817657124
   },
   "NblindSpecOver": {
-   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/spectral_gate.json",
    "tex": "25",
    "value": 25
   },
@@ -360,6 +480,26 @@
    "tex": "-1.16",
    "value": -1.1579480061195488
   },
+  "NcontinuityBaseMax": {
+   "source": "runs/continuity/summary.json",
+   "tex": "0.66143",
+   "value": 0.6614276654820745
+  },
+  "NcontinuityBasePninetyNine": {
+   "source": "runs/continuity/summary.json",
+   "tex": "0.03571",
+   "value": 0.03571223591883106
+  },
+  "NcontinuityRefinedMax": {
+   "source": "runs/continuity/summary.json",
+   "tex": "0.66143",
+   "value": 0.6614276654820745
+  },
+  "NcontinuityRefinedPninetyNine": {
+   "source": "runs/continuity/summary.json",
+   "tex": "0.03497",
+   "value": 0.034968410924012115
+  },
   "NcorpusStars": {
    "source": "results/reduced_state_emulator_training.json",
    "tex": "52\\,199",
@@ -414,6 +554,11 @@
    "source": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/profile_dev60.json",
    "tex": "\\ensuremath{2.06\\times10^{-3}}",
    "value": 0.0020647090191517727
+  },
+  "NdirectMassPfive": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "\\ensuremath{1.40\\times10^{-2}}",
+   "value": 0.014023333841549987
   },
   "NdirectTempPfive": {
    "source": "results/reduced_state_emulator_training.json",
@@ -610,6 +755,11 @@
    "tex": "\\ensuremath{3.74\\times10^{-3}}",
    "value": 0.0037419355829065555
   },
+  "NmonoMassPfive": {
+   "source": "results/reduced_state_emulator_training.json",
+   "tex": "\\ensuremath{1.52\\times10^{-2}}",
+   "value": 0.01518567928388588
+  },
   "NmonoTempPfive": {
    "source": "results/reduced_state_emulator_training.json",
    "tex": "\\ensuremath{3.74\\times10^{-3}}",
@@ -685,6 +835,311 @@
    "tex": "\\ensuremath{8.74\\times10^{-4}}",
    "value": 0.0008739819008586616
   },
+  "NphysicalDevAboveFifteen": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "17",
+   "value": 17
+  },
+  "NphysicalDevCommon": {
+   "source": "results/paper_grey_convective_20260829/development/solver.json",
+   "tex": "54",
+   "value": 54
+  },
+  "NphysicalDevCommonDifferenceMedian": {
+   "source": "results/paper_grey_convective_20260829/development/solver.json",
+   "tex": "9.0",
+   "value": 9.0
+  },
+  "NphysicalDevCommonPhysicalMean": {
+   "source": "results/paper_grey_convective_20260829/development/solver.json",
+   "tex": "14.56",
+   "value": 14.555555555555555
+  },
+  "NphysicalDevCommonReferenceMean": {
+   "source": "results/paper_grey_convective_20260829/development/solver.json",
+   "tex": "5.46",
+   "value": 5.462962962962963
+  },
+  "NphysicalDevConverged": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "54",
+   "value": 54
+  },
+  "NphysicalDevErrors": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NphysicalDevFiniteSeeds": {
+   "source": "results/paper_grey_convective_20260829/development/seed_summary.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NphysicalDevIterMax": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "29",
+   "value": 29
+  },
+  "NphysicalDevIterMean": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "14.56",
+   "value": 14.555555555555555
+  },
+  "NphysicalDevIterMedian": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "14.0",
+   "value": 14.0
+  },
+  "NphysicalDevNotConverged": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "6",
+   "value": 6
+  },
+  "NphysicalDevSeedMassMedian": {
+   "source": "results/paper_grey_convective_20260829/development/profile_metrics.json",
+   "tex": "0.126",
+   "value": 0.12616360677907867
+  },
+  "NphysicalDevSeedMassPfive": {
+   "source": "results/paper_grey_convective_20260829/development/profile_metrics.json",
+   "tex": "1.520",
+   "value": 1.519670741381185
+  },
+  "NphysicalDevSeedTempMedian": {
+   "source": "results/paper_grey_convective_20260829/development/profile_metrics.json",
+   "tex": "\\ensuremath{1.49\\times10^{-1}}",
+   "value": 0.14890264967741854
+  },
+  "NphysicalDevSeedTempPfive": {
+   "source": "results/paper_grey_convective_20260829/development/profile_metrics.json",
+   "tex": "\\ensuremath{5.17\\times10^{-1}}",
+   "value": 0.516806078220912
+  },
+  "NphysicalDevSpectra": {
+   "source": "results/paper_grey_convective_20260829/development/spectral_gate.json",
+   "tex": "53",
+   "value": 53
+  },
+  "NphysicalDevSpectraExcluded": {
+   "source": "results/paper_grey_convective_20260829/development/spectral_gate.json",
+   "tex": "7",
+   "value": 7
+  },
+  "NphysicalDevSpectraMax": {
+   "source": "results/paper_grey_convective_20260829/development/spectral_gate.json",
+   "tex": "\\ensuremath{1.33\\times10^{-1}}",
+   "value": 0.13324770438266548
+  },
+  "NphysicalDevSpectraMedian": {
+   "source": "results/paper_grey_convective_20260829/development/spectral_gate.json",
+   "tex": "\\ensuremath{3.20\\times10^{-2}}",
+   "value": 0.032020952426789595
+  },
+  "NphysicalDevSpectraOver": {
+   "source": "results/paper_grey_convective_20260829/development/spectral_gate.json",
+   "tex": "45",
+   "value": 45
+  },
+  "NphysicalDevSpectraPfive": {
+   "source": "results/paper_grey_convective_20260829/development/spectral_gate.json",
+   "tex": "\\ensuremath{1.24\\times10^{-1}}",
+   "value": 0.12399192100513784
+  },
+  "NphysicalDevStars": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NphysicalDevTimeouts": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NphysicalIterationLimit": {
+   "source": "results/paper_grey_convective_20260829/source_manifest.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NphysicalOutputFiles": {
+   "source": "results/paper_grey_convective_20260829/output_manifest.json",
+   "tex": "835",
+   "value": 835
+  },
+  "NphysicalPostAboveFifteen": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "72",
+   "value": 72
+  },
+  "NphysicalPostCommon": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "179",
+   "value": 179
+  },
+  "NphysicalPostCommonDifferenceMedian": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "9.0",
+   "value": 9.0
+  },
+  "NphysicalPostCommonPhysicalMean": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "15.73",
+   "value": 15.731843575418994
+  },
+  "NphysicalPostCommonReferenceMean": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "5.65",
+   "value": 5.648044692737431
+  },
+  "NphysicalPostConverged": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "181",
+   "value": 181
+  },
+  "NphysicalPostErrors": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NphysicalPostFailureCount": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "19",
+   "value": 19
+  },
+  "NphysicalPostFiniteSeeds": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/seed_summary.json",
+   "tex": "200",
+   "value": 200
+  },
+  "NphysicalPostIterMax": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "47",
+   "value": 47
+  },
+  "NphysicalPostIterMean": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "15.69",
+   "value": 15.685082872928177
+  },
+  "NphysicalPostIterMedian": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "14.0",
+   "value": 14.0
+  },
+  "NphysicalPostMidTempFailures": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "16",
+   "value": 16
+  },
+  "NphysicalPostMidTempHigh": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "9000",
+   "value": 9000.0
+  },
+  "NphysicalPostMidTempLow": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "7000",
+   "value": 7000.0
+  },
+  "NphysicalPostMidTempStars": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "tex": "62",
+   "value": 62
+  },
+  "NphysicalPostNotConverged": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "1",
+   "value": 1
+  },
+  "NphysicalPostSeedMassMedian": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/profile_metrics.json",
+   "tex": "0.124",
+   "value": 0.12410889114203616
+  },
+  "NphysicalPostSeedMassPfive": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/profile_metrics.json",
+   "tex": "1.695",
+   "value": 1.6954646508815465
+  },
+  "NphysicalPostSeedTempMedian": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/profile_metrics.json",
+   "tex": "\\ensuremath{1.42\\times10^{-1}}",
+   "value": 0.1423326828218766
+  },
+  "NphysicalPostSeedTempPfive": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/profile_metrics.json",
+   "tex": "\\ensuremath{4.85\\times10^{-1}}",
+   "value": 0.48530095610703194
+  },
+  "NphysicalPostSpectra": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json",
+   "tex": "179",
+   "value": 179
+  },
+  "NphysicalPostSpectraExcluded": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json",
+   "tex": "21",
+   "value": 21
+  },
+  "NphysicalPostSpectraMax": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json",
+   "tex": "\\ensuremath{1.70\\times10^{-1}}",
+   "value": 0.170234535520627
+  },
+  "NphysicalPostSpectraMedian": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json",
+   "tex": "\\ensuremath{2.59\\times10^{-2}}",
+   "value": 0.02589011208840658
+  },
+  "NphysicalPostSpectraOver": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json",
+   "tex": "150",
+   "value": 150
+  },
+  "NphysicalPostSpectraPfive": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json",
+   "tex": "\\ensuremath{1.20\\times10^{-1}}",
+   "value": 0.12031939981286632
+  },
+  "NphysicalPostStars": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "200",
+   "value": 200
+  },
+  "NphysicalPostTimeouts": {
+   "source": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "tex": "18",
+   "value": 18
+  },
+  "NphysicalResidualConverged": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NphysicalResidualIterations": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "100",
+   "value": 100
+  },
+  "NphysicalResidualStars": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "6",
+   "value": 6
+  },
+  "NphysicalResidualTimeoutSeconds": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "3600",
+   "value": 3600.0
+  },
+  "NphysicalResidualTimeouts": {
+   "source": "results/paper_grey_convective_20260829/development/summary.json",
+   "tex": "6",
+   "value": 6
+  },
+  "NphysicalTimeoutSeconds": {
+   "source": "results/paper_grey_convective_20260829/source_manifest.json",
+   "tex": "900",
+   "value": 900.0
+  },
   "NprodFailures": {
    "source": "results/convergence_metrics_production_baseline.json",
    "tex": "1",
@@ -719,6 +1174,26 @@
    "source": "results/convergence_metrics_production_baseline.json",
    "tex": "\\ensuremath{4.02\\times10^{-3}}",
    "value": 0.004019653948722704
+  },
+  "NreconMaximumHigh": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{3.60\\times10^{-1}}",
+   "value": 0.359526045663373
+  },
+  "NreconMaximumLow": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{1.36\\times10^{-1}}",
+   "value": 0.13564474653107075
+  },
+  "NreconPninetyHigh": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{5.66\\times10^{-3}}",
+   "value": 0.005660381100260514
+  },
+  "NreconPninetyLow": {
+   "source": "results/paper_physical_seed_20260820/parity/reconstruction_metrics.json",
+   "tex": "\\ensuremath{3.23\\times10^{-3}}",
+   "value": 0.0032252272775694147
   },
   "NredGiantOneSided": {
    "source": "runs/paper_physical_seed_20260820/learned/spectra/learned_reduced_state/t04096.6_g+0.72_m-1.91_a-0.10_x3.87.npz",
@@ -854,6 +1329,186 @@
    "source": "results/reduced_state_emulator_training.json",
    "tex": "10\\,272",
    "value": 10272
+  },
+  "NvfourConvectiveConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_convective_dev60_policy60_20260829.json",
+   "tex": "49",
+   "value": 49
+  },
+  "NvfourConvectiveCoolConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_convective_dev60_policy60_20260829.json",
+   "tex": "18",
+   "value": 18
+  },
+  "NvfourConvectiveHotConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_convective_dev60_policy60_20260829.json",
+   "tex": "31",
+   "value": 31
+  },
+  "NvfourConvectiveIterMean": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_convective_dev60_policy60_20260829.json",
+   "tex": "24.90",
+   "value": 24.897959183673468
+  },
+  "NvfourCoolGainRequirement": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_policy60_matched_dev60_20260829.json",
+   "tex": "4",
+   "value": 4
+  },
+  "NvfourCoolMassPfive": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_offline_validation_20260828.json",
+   "tex": "0.247",
+   "value": 0.24680669954567092
+  },
+  "NvfourCoolStars": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "27",
+   "value": 27
+  },
+  "NvfourDecoupledConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "54",
+   "value": 54
+  },
+  "NvfourDecoupledCoolConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "24",
+   "value": 24
+  },
+  "NvfourDecoupledHotConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "30",
+   "value": 30
+  },
+  "NvfourDecoupledIterMax": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "29",
+   "value": 29
+  },
+  "NvfourDecoupledIterMean": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "14.56",
+   "value": 14.555555555555555
+  },
+  "NvfourDecoupledIterMedian": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "14.0",
+   "value": 14.0
+  },
+  "NvfourErrors": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NvfourFittedParameters": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_seed_audit_20260828.json",
+   "tex": "0",
+   "value": 0
+  },
+  "NvfourGainConvectiveAll": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_policy60_matched_dev60_20260829.json",
+   "tex": "5",
+   "value": 5
+  },
+  "NvfourGainConvectiveCool": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_policy60_matched_dev60_20260829.json",
+   "tex": "6",
+   "value": 6
+  },
+  "NvfourGainGreyAll": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_policy60_matched_dev60_20260829.json",
+   "tex": "2",
+   "value": 2
+  },
+  "NvfourGainGreyCool": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_policy60_matched_dev60_20260829.json",
+   "tex": "3",
+   "value": 3
+  },
+  "NvfourGainGreyHot": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_policy60_matched_dev60_20260829.json",
+   "tex": "-1",
+   "value": -1
+  },
+  "NvfourGreyConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_grey_dev60_policy60_20260829.json",
+   "tex": "52",
+   "value": 52
+  },
+  "NvfourGreyCoolConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_grey_dev60_policy60_20260829.json",
+   "tex": "21",
+   "value": 21
+  },
+  "NvfourGreyHotConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_grey_dev60_policy60_20260829.json",
+   "tex": "31",
+   "value": 31
+  },
+  "NvfourGreyIterMean": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_grey_dev60_policy60_20260829.json",
+   "tex": "14.48",
+   "value": 14.48076923076923
+  },
+  "NvfourHistoricalConverged": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_20260828.json",
+   "tex": "37",
+   "value": 37
+  },
+  "NvfourHistoricalIterationLimit": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_20260828.json",
+   "tex": "15",
+   "value": 15
+  },
+  "NvfourHotStars": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "33",
+   "value": 33
+  },
+  "NvfourLateFirst": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "16",
+   "value": 16
+  },
+  "NvfourMassGate": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_offline_validation_20260828.json",
+   "tex": "0.20",
+   "value": 0.2
+  },
+  "NvfourMatchedStars": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NvfourMiddleMassPfive": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_offline_validation_20260828.json",
+   "tex": "0.207",
+   "value": 0.20741398414881243
+  },
+  "NvfourPolicyIterationLimit": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NvfourPolicyTimeoutSeconds": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "900",
+   "value": 900
+  },
+  "NvfourRecoveredLate": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "17",
+   "value": 17
+  },
+  "NvfourSeedStars": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_seed_audit_20260828.json",
+   "tex": "60",
+   "value": 60
+  },
+  "NvfourTimeouts": {
+   "source": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "tex": "0",
+   "value": 0
   }
  },
  "sources": {
@@ -874,16 +1529,36 @@
    "sha256": "af12afecb48a3cef7cf5df06620ee465e044a6f45276210ab85285beb5ede1d4"
   },
   "blind": {
-   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/summary.json",
-   "sha256": "d8cb052dd5e1b5cf46a1fded7a2b5f4ccffa0231c716377b0a256e3fd241f324"
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
+   "sha256": "7e6d6460c98104318269268459d0cd88eaf9467d97b9c91b28528e653b247b20"
+  },
+  "blind_base_prediction": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/base.npz",
+   "sha256": "b86fc238ebbc456b130103bb8779296b7f8ae4719b536781428f9ea6bcce235b"
   },
   "blind_cand_records": {
-   "path": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
-   "sha256": "95fb54caea81fffa59f8129f901b5b9ad4469996d469f30683e0c38bf36d3212"
+   "path": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/records/learned_reduced_state/records.jsonl",
+   "sha256": "b33ae5c7c7cb63a818f3a81752f0981c9f983e218ae07034ba96b64f69148ae4"
+  },
+  "blind_final_prediction": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/final.npz",
+   "sha256": "9161c8bbc70ebc86b426374829c0a7b5597d561274805735c719c5edbdb630d7"
   },
   "blind_manifest": {
    "path": "results/sealed_audit_20260811.json",
    "sha256": "a5f239b30ef637d21f16b9644ddc74bc22fbc227302d6af3774529150a3a284d"
+  },
+  "blind_open": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/summary.json",
+   "sha256": "d8cb052dd5e1b5cf46a1fded7a2b5f4ccffa0231c716377b0a256e3fd241f324"
+  },
+  "blind_open_records": {
+   "path": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/records/learned_reduced_state/records.jsonl",
+   "sha256": "95fb54caea81fffa59f8129f901b5b9ad4469996d469f30683e0c38bf36d3212"
+  },
+  "blind_open_spectra": {
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
+   "sha256": "466f6a33e3150eb6ffdfa93424b7353db3b3895a3b7bdfeff1dad760a78e93ee"
   },
   "blind_prod_records": {
    "path": "runs/reduced_state_emulator/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/production_records/production_six_field/records.jsonl",
@@ -891,15 +1566,15 @@
   },
   "blind_production": {
    "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/summary.json",
-   "sha256": "7e6d6460c98104318269268459d0cd88eaf9467d97b9c91b28528e653b247b20"
+   "sha256": null
   },
   "blind_profile": {
    "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/profile_gate.json",
    "sha256": "96d63bb5c52ea0bb084eb1b66d5de59874e485fd174e42da90808f47737a8691"
   },
   "blind_spectra": {
-   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200_physical_seed/spectral_gate.json",
-   "sha256": "466f6a33e3150eb6ffdfa93424b7353db3b3895a3b7bdfeff1dad760a78e93ee"
+   "path": "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/blind200/spectral_gate.json",
+   "sha256": "7d9759b6a50cd96b3b76058022ee52c88adbc7e37d3931fd9e4a450512c83319"
   },
   "continuity": {
    "path": "runs/continuity/summary.json",
@@ -953,6 +1628,62 @@
    "path": "runs/paper_physical_seed_20260820/learned/spectra/production_six_field/t04096.6_g+0.72_m-1.91_a-0.10_x3.87.npz",
    "sha256": "0143553ddb0bbf84f004ad0e47fb082d69985710bd77da442ad11b7e74a0626f"
   },
+  "grey_campaign": {
+   "path": "results/paper_grey_convective_20260829/campaign.json",
+   "sha256": "977c93bee4a918f938ef6ea2b74cf02e6d67adc195da9cc5316eff6ac813119a"
+  },
+  "grey_dev_profiles": {
+   "path": "results/paper_grey_convective_20260829/development/profile_metrics.json",
+   "sha256": "79df5e98fa19fcfde0673bff59bca66d805d89018cb8d2e539c5d1ba306e92a4"
+  },
+  "grey_dev_replay": {
+   "path": "results/paper_grey_convective_20260829/development/replay_check.json",
+   "sha256": "1cbaa8e96cd0d6e0d374ae01ce4d1d6c807e7fd31c0b0200a8b10824a580bfd0"
+  },
+  "grey_dev_seed": {
+   "path": "results/paper_grey_convective_20260829/development/seed_summary.json",
+   "sha256": "9ea39513cd4d155dbdc55fc716dbb748025eadb3af14ff08a6ee1e91e91fa136"
+  },
+  "grey_dev_solver": {
+   "path": "results/paper_grey_convective_20260829/development/solver.json",
+   "sha256": "b75dd6ca8889849920782f01b9b9b657688df9675774a48d6156337ad85d4bc7"
+  },
+  "grey_dev_spectra": {
+   "path": "results/paper_grey_convective_20260829/development/spectral_gate.json",
+   "sha256": "2e20beb4b7ccd8ab9b020758bbdd67b1d2583b6eacaf1096ba61c06b5f495c2a"
+  },
+  "grey_dev_summary": {
+   "path": "results/paper_grey_convective_20260829/development/summary.json",
+   "sha256": "87c5ae993490bbda5d048478cf2cf16b77a499f1b0170e05e45a0816da9f3b2d"
+  },
+  "grey_output_manifest": {
+   "path": "results/paper_grey_convective_20260829/output_manifest.json",
+   "sha256": "22bc739c90debea35845cd6257ab0dda94b177973c2871780b0a048535dbb8a1"
+  },
+  "grey_post_profiles": {
+   "path": "results/paper_grey_convective_20260829/posthoc200/profile_metrics.json",
+   "sha256": "be3bc5635a6fd9ed6820894e175f7665a6321b0797ef67525dcafe9d25f70e88"
+  },
+  "grey_post_seed": {
+   "path": "results/paper_grey_convective_20260829/posthoc200/seed_summary.json",
+   "sha256": "832af007daa084b67bbfb68e128f6ce78e6ecd30c52c7c42b30f513f0fcfd7f0"
+  },
+  "grey_post_solver": {
+   "path": "results/paper_grey_convective_20260829/posthoc200/solver.json",
+   "sha256": "f49c141018e01fd0fc39355a5e5d319f422b2d98e47167b2e819f46d28ff5128"
+  },
+  "grey_post_spectra": {
+   "path": "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json",
+   "sha256": "0aa243cc796fe59d984ffe7f18b7055ee9c2f5827ced7a487dbdcca6d256887b"
+  },
+  "grey_post_summary": {
+   "path": "results/paper_grey_convective_20260829/posthoc200/summary.json",
+   "sha256": "bf40047b672f5ece6f675074dd191164a0ae9764b04c35bd3c2e67acaccef104"
+  },
+  "grey_source_manifest": {
+   "path": "results/paper_grey_convective_20260829/source_manifest.json",
+   "sha256": "d902d0f5da1caa184479fab8b6e50414345a99c21184bdd30e717d52bb9ef30f"
+  },
   "jitter": {
    "path": "results/convergence_metrics_production_jitter.json",
    "sha256": "ba027e1e38107d7952b17b975902e14ba959c47d0a9e12f1cc48d8eb5dfa8eb4"
@@ -968,6 +1699,10 @@
   "learned_records": {
    "path": "runs/paper_physical_seed_20260820/learned/records/learned_reduced_state/records.jsonl",
    "sha256": "504ea0990eb8b86997bb2526886de73ee89774e83f24b8d6fc05c39d317b3f8f"
+  },
+  "mstar_cases": {
+   "path": "results/m_star_science_case_v1/cases.json",
+   "sha256": "f3f497ec3c52200f2ca222a50d0bb63af22d521904367c865b7203ca9664be61"
   },
   "parity": {
    "path": "results/paper_physical_seed_20260820/parity/convergence_metrics_reduced_state_parity.json",
@@ -1004,6 +1739,38 @@
   "training": {
    "path": "results/reduced_state_emulator_training.json",
    "sha256": "54c6f293c196a3dd7a782ef3607c8063ba0a1bc1c8e250d881c4ed0c0f46c716"
+  },
+  "vfour_convective_policy": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_convective_dev60_policy60_20260829.json",
+   "sha256": "69a77248656264a624f34d4c0bef8a21005d0789e88c9c02c4f2e6fbbe33f911"
+  },
+  "vfour_decoupled_fifteen": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_20260828.json",
+   "sha256": "81211e9e61cf9e2ab39a517d3bc4c455a9a1fd702a9a92db35d70abd7609afb0"
+  },
+  "vfour_decoupled_policy": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json",
+   "sha256": "58c679cb207fa7edde7774d4449e8ce2853068f7c4e819922406238115f422e6"
+  },
+  "vfour_grey_policy": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_grey_dev60_policy60_20260829.json",
+   "sha256": "e730a496a6b41d82f1f2ad537a264876d18db1e8835dd76029ddb0a42f574db4"
+  },
+  "vfour_matched_score": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_policy60_matched_dev60_20260829.json",
+   "sha256": "c0fb80effd2f49f05f8e74c6bf73cf22224a3f768decd964ba9ad912a0023b70"
+  },
+  "vfour_offline": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_offline_validation_20260828.json",
+   "sha256": "ad58d6da5ec046401b55655ca60b96cb6e123f12111e330417228ffdeda4909b"
+  },
+  "vfour_policy_source_manifest": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_policy60_source_manifest_20260829.json",
+   "sha256": "fee015711e42bbca970e7e68ff66da57feb81eb21c786706a08739a8dfeffaa8"
+  },
+  "vfour_seed_audit": {
+   "path": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_seed_audit_20260828.json",
+   "sha256": "4d7179fce0af46889cf753dc462b28bcd66436d0efcec274bf653e5ed533e2be"
   }
  }
 }

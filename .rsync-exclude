@@ -1,0 +1,52 @@
+# Exclusions for syncing this checkout to a compute node.
+#
+#   rsync -av -e "ssh -T" --exclude-from=.rsync-exclude ./ USER@HOST:~/payne-zero/
+#
+# The -T matters: a host configured with "RequestTTY force" allocates a
+# pseudo-terminal even for non-interactive commands, and the tty layer rewrites
+# \n as \r\n, which corrupts rsync's binary protocol stream ("unexpected tag N",
+# error code 12). See solver-in-the-loop-cluster.md.
+#
+# No -z: the payload is source text on a fast network, and the 6.9 GB where
+# compression would matter is .npz, which is already compressed.
+#
+# Sizes are from the dev machine, 2026-08-05.
+
+# 11 GB, almost entirely Git LFS objects. The working tree already holds the
+# checked-out copies of those files, so syncing .git would transfer the same
+# data a second time. Sync the working tree; use git only if you need history
+# on the remote, and then clone it separately.
+.git/
+
+# 824 MB and platform-specific. Rebuild it on the remote (see
+# solver-in-the-loop-cluster.md section 2).
+.venv/
+
+# Numba's compiled-kernel cache. Keyed by platform, Python version, and numba
+# version, so a macOS cache is useless on a Linux node and a stale one can
+# crash the solver. Let the remote build its own.
+.cache/
+
+# Results. Sync these in the other direction, deliberately, not as a side
+# effect of pushing code.
+runs/
+results/
+*.log
+
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+tmp/
+tutorial_output/
+
+# 6.9 GB of hash-verified static catalogs. Excluded from the routine code sync
+# because it never changes and re-scanning it wastes minutes on every push.
+# Transfer it once, on its own:
+#   rsync -av --size-only --partial --progress \
+#         source_data_files/ USER@HOST:/scratch/payne-zero-data/
+# then point the remote at it with PAYNE_ZERO_DATA_ROOT.
+source_data_files/

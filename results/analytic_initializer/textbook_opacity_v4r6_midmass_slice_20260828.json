@@ -1,0 +1,514 @@
+{
+  "candidate": "v4r6_midmass_layer_temperature_slice",
+  "carrier_analysis": {
+    "best_contiguous_interval": [
+      "4000_6000K",
+      "at_least_30000K"
+    ],
+    "best_contiguous_interval_share": 1.0,
+    "bin_names": [
+      "4000_6000K",
+      "6000_8000K",
+      "8000_10000K",
+      "10000_15000K",
+      "15000_22000K",
+      "22000_30000K",
+      "at_least_30000K"
+    ],
+    "excess_over_limit_dex": {
+      "10000_15000K": 0.061950778957075736,
+      "15000_22000K": 0.0,
+      "22000_30000K": 0.00257657937078426,
+      "4000_6000K": 0.0254646897055143,
+      "6000_8000K": 0.0,
+      "8000_10000K": 0.0,
+      "at_least_30000K": 0.22634166265322325
+    },
+    "excess_share": {
+      "10000_15000K": 0.23145060189920194,
+      "15000_22000K": 0.0,
+      "22000_30000K": 0.0037018591644862437,
+      "4000_6000K": 0.27731635121594617,
+      "6000_8000K": 0.0,
+      "8000_10000K": 0.0,
+      "at_least_30000K": 0.48753118772036574
+    },
+    "increment_count_total": 448568,
+    "layer_fraction": {
+      "10000_15000K": 0.10962217545611813,
+      "15000_22000K": 0.05412557293431542,
+      "22000_30000K": 0.04215637316973123,
+      "4000_6000K": 0.31953906654063596,
+      "6000_8000K": 0.31580942019939007,
+      "8000_10000K": 0.0955462716912486,
+      "at_least_30000K": 0.06320112000856057
+    }
+  },
+  "constants": {
+    "alpha_element_fraction": 0.694,
+    "aluminium_ionization_eV": 5.9858,
+    "boltzmann_eV_per_K": 8.617333262e-05,
+    "boltzmann_erg_per_K": 1.380649e-16,
+    "calcium_ionization_eV": 6.1132,
+    "calcium_per_hydrogen_solar": 2.19e-06,
+    "eV_to_erg": 1.602176634e-12,
+    "electron_mass_g": 9.1093837015e-28,
+    "h2plus_excitation_polynomial": [
+      -0.007342,
+      -2.409,
+      1.028,
+      -0.423,
+      0.1224,
+      -0.01351
+    ],
+    "h2plus_fr_polynomial": [
+      -3023.3,
+      377.97,
+      -18.2496,
+      0.39207,
+      -0.0031672
+    ],
+    "h2plus_frequency_ceiling_hz": 3288050000000000.0,
+    "h2plus_frequency_floor_hz": 3000000000000.0,
+    "helium_first_ionization_eV": 24.587,
+    "helium_i_to_ii_saha_partition_ratio": 4.0,
+    "helium_ii_to_iii_saha_partition_ratio": 1.0,
+    "helium_ionized_boundfree_level_count": 10,
+    "helium_ionized_effective_charge": 2.0,
+    "helium_mass_fraction": 0.2485,
+    "helium_second_ionization_eV": 54.418,
+    "heminus_a_coefficients": [
+      0.3397,
+      -521600000000000.0,
+      7.039e+30
+    ],
+    "heminus_b_coefficients": [
+      -4116.0,
+      1.067e+19,
+      8.135e+34
+    ],
+    "heminus_c_coefficients": [
+      508100000.0,
+      -8.724e+22,
+      -5.659e+37
+    ],
+    "heminus_density_unit_cm3": 1000000000000000.0,
+    "heminus_frequency_floor_hz": 3000000000000.0,
+    "hminus_boundfree_cross_section_cm2": 1e-17,
+    "hminus_boundfree_john_coefficients": [
+      152.519,
+      49.534,
+      -118.858,
+      92.536,
+      -34.194,
+      4.982
+    ],
+    "hminus_boundfree_john_short_wavelength_um": 0.125,
+    "hminus_boundfree_john_threshold_wavelength_um": 1.6419,
+    "hminus_freefree_density_exponent": 0.5,
+    "hminus_freefree_full_strength_temperature_K": 6000.0,
+    "hminus_freefree_long_coefficients": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        2483.346,
+        285.827,
+        -2054.291,
+        2827.776,
+        -1341.537,
+        208.952
+      ],
+      [
+        -3449.889,
+        -1158.382,
+        8746.523,
+        -11485.632,
+        5303.609,
+        -812.939
+      ],
+      [
+        2200.04,
+        2427.719,
+        -13651.105,
+        16755.524,
+        -7510.494,
+        1132.738
+      ],
+      [
+        -696.271,
+        -1841.4,
+        8624.97,
+        -10051.53,
+        4400.067,
+        -655.02
+      ],
+      [
+        88.283,
+        444.517,
+        -1863.864,
+        2095.288,
+        -901.788,
+        132.985
+      ]
+    ],
+    "hminus_freefree_reference_metal_mass_fraction": 0.02,
+    "hminus_freefree_rosseland_coefficient": 2.5e-31,
+    "hminus_freefree_short_coefficients": [
+      [
+        518.1021,
+        -734.8667,
+        1021.1775,
+        -479.0721,
+        93.1373,
+        -6.4285
+      ],
+      [
+        473.2636,
+        1443.4137,
+        -1977.3395,
+        922.3575,
+        -178.9275,
+        12.36
+      ],
+      [
+        -482.2089,
+        -737.1616,
+        1096.8827,
+        -521.1341,
+        101.7963,
+        -7.0571
+      ],
+      [
+        115.5291,
+        169.6374,
+        -245.649,
+        114.243,
+        -21.9972,
+        1.5097
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "hminus_freefree_temperature_ceiling_K": 10080.0,
+    "hminus_freefree_temperature_exponent": 9.0,
+    "hminus_freefree_temperature_floor_K": 1400.0,
+    "hminus_freefree_wavelength_floor_um": 0.182,
+    "hminus_freefree_zero_strength_temperature_K": 7000.0,
+    "hydrogen_balmer_cross_section_cm2": 1.4e-17,
+    "hydrogen_boundfree_edge_cross_section_power": 2.0,
+    "hydrogen_boundfree_level_count": 10,
+    "hydrogen_freefree_coefficient": 369190000.0,
+    "hydrogen_ground_edge_cross_section_cm2": 6.3e-18,
+    "hydrogen_ionization_eV": 13.5984,
+    "hydrogen_mass_fraction": 0.7381,
+    "hydrogen_mass_g": 1.6735575e-24,
+    "hydrogen_minus_affinity_eV": 0.7542,
+    "hydrogen_paschen_cross_section_cm2": 1.2e-18,
+    "hydrogen_published_threshold_cross_section_cm2": [
+      6.3e-18,
+      1.4e-17,
+      2.16e-17
+    ],
+    "hydrogen_rayleigh_cross_section_at_500nm_cm2": 5.799e-29,
+    "hydrogen_rayleigh_reference_wavelength_nm": 500.0,
+    "hydrogen_representative_photon_energy_over_kT": 3.8,
+    "iron_ionization_eV": 7.9024,
+    "iron_per_hydrogen_solar": 3.16e-05,
+    "kramers_freefree_coefficient": 3.68e+22,
+    "magnesium_ionization_eV": 7.6462,
+    "magnesium_per_hydrogen_solar": 3.98e-05,
+    "neutral_mean_molecular_weight": 1.3,
+    "planck_erg_s": 6.62607015e-27,
+    "potassium_ionization_eV": 4.3407,
+    "potassium_per_hydrogen_solar": 1.32e-07,
+    "silicon_ionization_eV": 8.1517,
+    "sodium_ionization_eV": 5.1391,
+    "sodium_per_hydrogen_solar": 2.04e-06,
+    "solar_metal_mass_fraction": 0.0134,
+    "speed_of_light_cm_s": 29979245800.0,
+    "surface_anchor_opacity_cm2_per_g": 0.34,
+    "thomson_cross_section_cm2": 6.6524587321e-25,
+    "v4r1_aluminium_per_hydrogen_solar": 2.5703957827688647e-06,
+    "v4r1_aluminium_saha_partition_ratio": 0.3333333333333333,
+    "v4r1_calcium_per_hydrogen_solar": 1.9952623149688787e-06,
+    "v4r1_calcium_saha_partition_ratio": 4.0,
+    "v4r1_iron_per_hydrogen_solar": 2.8840315031266056e-05,
+    "v4r1_iron_saha_partition_ratio": 2.2222222222222223,
+    "v4r1_magnesium_per_hydrogen_solar": 3.630780547701014e-05,
+    "v4r1_magnesium_saha_partition_ratio": 4.0,
+    "v4r1_potassium_per_hydrogen_solar": 9.772372209558112e-08,
+    "v4r1_potassium_saha_partition_ratio": 1.0,
+    "v4r1_silicon_per_hydrogen_solar": 2.951209226666384e-05,
+    "v4r1_silicon_saha_partition_ratio": 1.3333333333333333,
+    "v4r1_sodium_per_hydrogen_solar": 1.584893192461114e-06,
+    "v4r1_sodium_saha_partition_ratio": 1.0
+  },
+  "cool_mass_decomposition_result": "results/analytic_initializer/textbook_opacity_v4r5_cool_mass_decomposition_20260828.json",
+  "cool_mass_decomposition_result_sha256": "6115c8c78c3ab583fac2fa47b964224f0346588713ac55a39ced54bad3c0bcf1",
+  "corpus": "source_data_files/atmosphere_emulator/five_label/strict_truth_52199.npz",
+  "corpus_sha256": "092cf3c4a0c6075c2dde05803bec62b1d0eb6ec36d5794fe400870c505b44284",
+  "cumulative_mass_residual_by_layer_temperature_bin": {
+    "10000_15000K": {
+      "count": 49173,
+      "max_dex": 0.3091416377113966,
+      "p50_dex": 0.062114893442896224,
+      "p95_dex": 0.2010459610674664,
+      "positive_fraction": 0.8686270921033901,
+      "rmse_dex": 0.09782995805466914,
+      "signed_mean_dex": 0.07192074053142579,
+      "signed_median_dex": 0.062114893442896224
+    },
+    "15000_22000K": {
+      "count": 24279,
+      "max_dex": 0.283476994187674,
+      "p50_dex": 0.034646151491196986,
+      "p95_dex": 0.15376176969856545,
+      "positive_fraction": 0.7895300465422793,
+      "rmse_dex": 0.07238123477390583,
+      "signed_mean_dex": 0.04772316359051501,
+      "signed_median_dex": 0.034595457511202854
+    },
+    "22000_30000K": {
+      "count": 18910,
+      "max_dex": 0.2535490220417935,
+      "p50_dex": 0.03382534857053621,
+      "p95_dex": 0.18361424900831805,
+      "positive_fraction": 0.7735589635113697,
+      "rmse_dex": 0.08216132248645933,
+      "signed_mean_dex": 0.05280278807223371,
+      "signed_median_dex": 0.03382534857053621
+    },
+    "4000_6000K": {
+      "count": 149015,
+      "max_dex": 1.1754698811330213,
+      "p50_dex": 0.06779676078176067,
+      "p95_dex": 0.23706889306013648,
+      "positive_fraction": 0.9957319732912794,
+      "rmse_dex": 0.11537594329583245,
+      "signed_mean_dex": 0.08918622427375243,
+      "signed_median_dex": 0.06764852065437044
+    },
+    "6000_8000K": {
+      "count": 141667,
+      "max_dex": 0.2837393734354898,
+      "p50_dex": 0.022274789676330453,
+      "p95_dex": 0.10639617959068498,
+      "positive_fraction": 0.5616410314328673,
+      "rmse_dex": 0.048542258201582505,
+      "signed_mean_dex": 0.01305158026173238,
+      "signed_median_dex": 0.005123484173333193
+    },
+    "8000_10000K": {
+      "count": 42859,
+      "max_dex": 0.29437141526290866,
+      "p50_dex": 0.03673041764590257,
+      "p95_dex": 0.15745272893034531,
+      "positive_fraction": 0.5717585571291911,
+      "rmse_dex": 0.06915996070148171,
+      "signed_mean_dex": 0.027960854928390632,
+      "signed_median_dex": 0.011646019735402247
+    },
+    "at_least_30000K": {
+      "count": 28350,
+      "max_dex": 0.48133838785525884,
+      "p50_dex": 0.10258286182312909,
+      "p95_dex": 0.27300110428765106,
+      "positive_fraction": 0.971604938271605,
+      "rmse_dex": 0.1453434364129294,
+      "signed_mean_dex": 0.11785848834069604,
+      "signed_median_dex": 0.10258286182312909
+    }
+  },
+  "decision": "MIXED",
+  "excluded_count": 1060,
+  "excluded_manifests": [
+    "results/reconstruction_metrics.json",
+    "results/sealed_solver_subset_20260808.json",
+    "results/sealed_audit_20260808.json",
+    "results/sealed_audit_20260811.json",
+    "results/sealed_initializer_holdout_20260812.json",
+    "results/initializer_calibration_20260812.json",
+    "results/four_initializer_benchmark_expanded_20260814/expanded200_manifest.json"
+  ],
+  "full_registered_split": true,
+  "increment_bin_assignment": "upper_endpoint_layer_temperature",
+  "increment_residual_by_layer_temperature_bin": {
+    "10000_15000K": {
+      "count": 49173,
+      "max_dex": 0.3661365056784276,
+      "p50_dex": 0.13289543360114675,
+      "p95_dex": 0.26195077895707575,
+      "positive_fraction": 0.9795009456409005,
+      "rmse_dex": 0.1554958843764084,
+      "signed_mean_dex": 0.13496518998745108,
+      "signed_median_dex": 0.13289543360114675
+    },
+    "15000_22000K": {
+      "count": 24279,
+      "max_dex": 0.31394515189775185,
+      "p50_dex": 0.03963189270988143,
+      "p95_dex": 0.16508022593897068,
+      "positive_fraction": 0.5901396268380081,
+      "rmse_dex": 0.07457930448920251,
+      "signed_mean_dex": 0.028056554377378425,
+      "signed_median_dex": 0.012717868615879535
+    },
+    "22000_30000K": {
+      "count": 18910,
+      "max_dex": 0.3127694639263823,
+      "p50_dex": 0.04527798883007789,
+      "p95_dex": 0.20257657937078427,
+      "positive_fraction": 0.8524061343204654,
+      "rmse_dex": 0.0925451799364882,
+      "signed_mean_dex": 0.0644707260059837,
+      "signed_median_dex": 0.04526320271612694
+    },
+    "4000_6000K": {
+      "count": 143335,
+      "max_dex": 1.04032526415513,
+      "p50_dex": 0.061590863241491656,
+      "p95_dex": 0.2254646897055143,
+      "positive_fraction": 0.9922559040011163,
+      "rmse_dex": 0.10756900800326413,
+      "signed_mean_dex": 0.08269149917141502,
+      "signed_median_dex": 0.06155765785229317
+    },
+    "6000_8000K": {
+      "count": 141662,
+      "max_dex": 0.29286898343882894,
+      "p50_dex": 0.025043553676505015,
+      "p95_dex": 0.10349178636184823,
+      "positive_fraction": 0.49622340500628254,
+      "rmse_dex": 0.04839005691211718,
+      "signed_mean_dex": 0.008784635991282168,
+      "signed_median_dex": -0.00034569791677374617
+    },
+    "8000_10000K": {
+      "count": 42859,
+      "max_dex": 0.32695789368083017,
+      "p50_dex": 0.04179047255105983,
+      "p95_dex": 0.16171144159414405,
+      "positive_fraction": 0.7001563265591825,
+      "rmse_dex": 0.08028666935273182,
+      "signed_mean_dex": 0.047378571310186954,
+      "signed_median_dex": 0.034907541719155555
+    },
+    "at_least_30000K": {
+      "count": 28350,
+      "max_dex": 0.6780237411530274,
+      "p50_dex": 0.17150913632400666,
+      "p95_dex": 0.42634166265322326,
+      "positive_fraction": 0.9987654320987654,
+      "rmse_dex": 0.22836113164091196,
+      "signed_mean_dex": 0.19113822300452146,
+      "signed_median_dex": 0.17150913632400666
+    }
+  },
+  "middle_gate_layer_count": 454253,
+  "middle_gate_mass": {
+    "hybrid_stored_kappa_below_4000K": {
+      "count": 454253,
+      "max_dex": 1.1754698811330213,
+      "p50_dex": 0.040093616110481345,
+      "p95_dex": 0.20520060022845113,
+      "positive_fraction": 0.7848159505826049,
+      "rmse_dex": 0.09132667142706677,
+      "signed_mean_dex": 0.05555072539470579,
+      "signed_median_dex": 0.03533262689028405
+    },
+    "stored_kappa_integral_sanity": {
+      "count": 454253,
+      "max_dex": 1.4889031644410489,
+      "p50_dex": 0.0014305212961177038,
+      "p95_dex": 0.005935131334758002,
+      "positive_fraction": 0.7876513748946072,
+      "rmse_dex": 0.009382814700879939,
+      "signed_mean_dex": 0.0015141734709157829,
+      "signed_median_dex": 0.0011012554474640057
+    },
+    "surface_started_v4r6": {
+      "count": 454253,
+      "max_dex": 1.1754698811330213,
+      "p50_dex": 0.04011268703074844,
+      "p95_dex": 0.2074139841488115,
+      "positive_fraction": 0.7848159505826049,
+      "rmse_dex": 0.09202397368253296,
+      "signed_mean_dex": 0.055855340179015965,
+      "signed_median_dex": 0.03535349052888703
+    },
+    "wholly_in_domain_increment": {
+      "count": 448568,
+      "max_dex": 1.04032526415513,
+      "p50_dex": 0.0461294604519929,
+      "p95_dex": 0.2328289827180433,
+      "positive_fraction": 0.7790479927235112,
+      "rmse_dex": 0.10798758412823359,
+      "signed_mean_dex": 0.06483603767377015,
+      "signed_median_dex": 0.04084975644792371
+    }
+  },
+  "middle_in_domain_increment_count": 448568,
+  "middle_star_count": 5685,
+  "nonfinite_count": 0,
+  "schema_version": 1,
+  "scope_boundary": {
+    "funnel_run": false,
+    "gates_changed": false,
+    "mass_integral_start_changed": false,
+    "new_opacity_version_implemented": false,
+    "ode_run": false,
+    "production_opacity_called": false,
+    "production_solver_changed": false,
+    "sealed_holdout_opened": false,
+    "textbook_opacity_py_edited": false
+  },
+  "slice_decision": {
+    "best_contiguous_interval": [
+      "4000_6000K",
+      "at_least_30000K"
+    ],
+    "best_contiguous_interval_share": 1.0,
+    "best_interval_in_deep_hot_bins": false,
+    "best_interval_in_line_floor_bins": false,
+    "carrier_share_min": 0.7,
+    "gate_still_fails": true,
+    "hybrid_p95_dex": 0.20520060022845113,
+    "hybrid_pass": false,
+    "in_domain_increment_p95_dex": 0.2328289827180433,
+    "inconclusive_reason": null,
+    "increment_pass": false,
+    "mass_limit_dex": 0.2,
+    "reproduced_middle_increment_p95": true,
+    "reproduced_v4r6_middle_mass_p95": true,
+    "surface_p95_dex": 0.2074139841488115,
+    "truth_kappa_p95_dex": 0.005935131334758002,
+    "truth_kappa_sanity_pass": true,
+    "verdict": "MIXED"
+  },
+  "split_seed": 20260816,
+  "v4r6_offline_result": "results/analytic_initializer/textbook_opacity_v4r6_offline_validation_20260828.json",
+  "v4r6_offline_result_sha256": "ad58d6da5ec046401b55655ca60b96cb6e123f12111e330417228ffdeda4909b",
+  "validation_layer_count": 818240,
+  "validation_star_count": 10228,
+  "version": "v4r6"
+}

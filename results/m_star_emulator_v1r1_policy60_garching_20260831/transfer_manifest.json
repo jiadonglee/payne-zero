@@ -1,0 +1,30 @@
+{
+  "campaign": "m_star_emulator_v1r1_policy60",
+  "copied_at": "2026-08-31T21:16:36+02:00",
+  "remote_root": "/home/jdli/xiasangju/jdli/payne-zero-mstar-emulator-v1-20260831",
+  "verification": "remote_and_local_relative_path_sha256_tree_hash_match",
+  "entries": {
+    "policy60": {
+      "file_count": 97,
+      "byte_count": 111887789,
+      "sha256_tree": "bf1395299572b4dd54bb46c85c8feb2645c85601495869f0d368bcf359a64319"
+    },
+    "settling_diagnostic": {
+      "file_count": 7,
+      "byte_count": 6569016,
+      "sha256_tree": "62bad5e65d06a6ca052271e043f3190b7889da9f9f6d1ccb95c29458699362d1"
+    },
+    "logs": {
+      "file_count": 16,
+      "byte_count": 29156,
+      "sha256_tree": "5fe9528272b0619f7b64faab9515d3d41ee30719d61062b596e8cfcb090f79d0"
+    },
+    "artifacts": {
+      "file_count": 1,
+      "byte_count": 0,
+      "sha256_tree": "8557c1c0295db09d2422e6373f7c254016049911514bf5fd35e9af85042b4f63"
+    }
+  },
+  "total_file_count": 121,
+  "total_byte_count": 118485961
+}

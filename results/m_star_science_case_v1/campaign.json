@@ -1,0 +1,17 @@
+{
+  "campaign": "m_star_science_case_v1",
+  "case_count": 8,
+  "continuation_solver_converged": 4,
+  "continuation_within_15": 2,
+  "direct_solver_converged": 5,
+  "direct_within_15": 5,
+  "failed_cases": [
+    "m_dwarf_t3000",
+    "m_dwarf_t3300"
+  ],
+  "manifest_hash": "db7bfd951e2cb0e52132e7de8da41b94ff17eca9c8d1c3f51fd5ffe6e46b42ba",
+  "note": "A selected product enables comparison only; it does not promote a failed route or alter production support.",
+  "production_routing_changed": false,
+  "sealed_holdout_opened": false,
+  "selected_product_count": 6
+}

@@ -1,0 +1,210 @@
+\section{在 APOGEE 上的应用 Application to APOGEE}\label{sec:apogee}
+
+我们现在问：同一套计算能否直接拟合约减后的巡天光谱。我们把物理拟合与保留的标准星谱线定标结合，应用到 APOGEE 第 14 次数据释放（DR14）。这台光纤馈源近红外光谱仪及其交付分辨率见 \citet{Wilson2019}。选用该释放是因为它提供了受控比较所需的合并光谱、仪器定标与巨星分析产物 \citep{Abolfathi2018,Holtzman2018}。APOGEE 恒星参数与化学丰度流水线（ASPCAP）的标签提供外部对照 \citep{GarciaPerez2016,Jonsson2018}。
+
+\begin{EN}
+We now ask whether the same calculation can fit reduced survey spectra
+directly. We combine physical fitting with the retained standard-star line
+calibration and apply it to APOGEE Data Release 14 (DR14).
+The fiber-fed near-infrared spectrograph and its delivered resolution are
+described by \citet{Wilson2019}. We use this release because it provides the combined spectra, instrument
+calibrations, and giant-star analysis products needed for the controlled
+comparison \citep{Abolfathi2018,Holtzman2018}. Labels from the APOGEE Stellar
+Parameters and Chemical Abundances Pipeline (ASPCAP) provide the
+external comparison
+\citep{GarciaPerez2016,Jonsson2018}.
+\end{EN}
+
+\begin{physbox}{APOGEE 与 ASPCAP 背景}
+APOGEE 是架设在阿帕奇点天文台的高分辨率（$R\sim22{,}500$）近红外（1.5--1.7 $\mu$m，H 波段）巡天，观测了数十万颗银河系恒星，以红巨星为主。近红外的优势是尘埃消光小，能看穿银河盘。ASPCAP 是其官方分析流水线：把观测光谱与预计算的合成光谱网格（由 FERRE 驱动）做多维 $\chi^2$ 匹配，输出恒星参数与二十余种元素丰度，最后再施加经验零点与温度定标。本文的做法与 ASPCAP 的根本区别：不预计算网格、不插值，每颗星都从物理模型实时合成；也不施加 ASPCAP 的经验零点——这正是后文 Si 丰度出现刚性偏移的原因。
+\end{physbox}
+
+在这一巡天演示中，DR14 把其原始光谱型 $T_{\rm eff}$ 定标到低消光光度测量标度，把巨星 $\log g$ 定标到星震学重力，并把微观湍流作为单独的巨星坐标拟合 \citep{Holtzman2018}。我们不推导新的光谱—光度温度关系；本概念验证保留已发表的 $T_{\rm eff}$、$\log g$、$\xi$，以单独考察多元素与仪器问题。生产级分析可以把光谱与宽波段能谱分布、视差联合拟合 \citep{Cargile2020}。附录~\ref{app:stellar_label_sensitivity} 重复了放开 $T_{\rm eff}$、$\log g$、$\xi$ 的合成搜索，检验巨星支、红团簇与丰度形态对该选择的敏感性。
+
+\begin{EN}
+For the survey demonstration, DR14 calibrates its raw spectroscopic $T_{\rm eff}$ to a
+low-reddening photometric scale and giant $\log g$ to asteroseismic gravities
+and fits microturbulence as a separate giant-star coordinate
+\citep{Holtzman2018}. We do not derive a new relation between spectroscopic and
+photometric temperature. For this proof of concept, we retain the published
+$T_{\rm eff}$, $\log g$, and $\xi$ to isolate the many-element and instrument
+problem. A production analysis could instead fit the spectrum jointly with a
+broadband spectral energy distribution and parallax \citep{Cargile2020}.
+Appendix~\ref{app:stellar_label_sensitivity} repeats the synthesis
+search with $T_{\rm eff}$, $\log g$, and $\xi$ free to test the sensitivity of
+the giant-branch, red-clump, and abundance morphology to this choice.
+\end{EN}
+
+我们拟合 $[\mathrm{Fe}/\mathrm{H}]$，C、N、O、Mg、Al、Si、S、Ca、Ti、Mn、Ni 的 $[\mathrm{X}/\mathrm{Fe}]$，残余速度 $v_r$ 与有效高斯致宽 $v_b$。每个保留元素满足 $[\mathrm{X}/\mathrm{H}]=[\mathrm{Fe}/\mathrm{H}]+[\mathrm{X}/\mathrm{Fe}]$，未选金属跟随 $[\mathrm{Fe}/\mathrm{H}]$。$v_b$ 合并自转、宏观致宽以及平均仪器模型未表示的残余轮廓宽度。
+
+\begin{EN}
+We fit $[\mathrm{Fe}/\mathrm{H}]$, $[\mathrm{X}/\mathrm{Fe}]$ for C, N, O,
+Mg, Al, Si, S, Ca, Ti, Mn, and Ni, residual velocity $v_r$, and effective
+Gaussian broadening $v_b$. For every retained element,
+$[\mathrm{X}/\mathrm{H}]=[\mathrm{Fe}/\mathrm{H}]+[\mathrm{X}/\mathrm{Fe}]$,
+while unselected metals follow $[\mathrm{Fe}/\mathrm{H}]$. The fitted width
+$v_b$ combines rotation, macroscopic broadening, and residual profile width not
+represented by the mean instrument model.
+\end{EN}
+
+合成返回原生网格上的总量与连续谱流量。归一化之前，先把两者映射到观测像素：
+\begin{equation}
+f_p(\boldsymbol{\psi})=
+\frac{\left\{\mathcal{K}\mathcal{S}(v_r)\mathcal{B}(v_b)
+F_\lambda(\boldsymbol{\theta})\right\}_p}
+{\left\{\mathcal{K}\mathcal{S}(v_r)\mathcal{B}(v_b)
+F_{\lambda,{\rm c}}(\boldsymbol{\theta})\right\}_p},
+\qquad
+\boldsymbol{\psi}=(\boldsymbol{\theta},v_r,v_b).
+\end{equation}
+\noindent 其中 $\mathcal{B}$ 作用于对数合成网格，$\mathcal{S}$ 施加多普勒平移，$\mathcal{K}$ 施加随波长变化的线扩展函数与 APOGEE 原生采样。先对两者卷积再相除，保留了非线性的归一化。
+
+\begin{EN}
+Synthesis returns native-grid total and continuum fluxes. We map both to the
+observed pixels before normalization,
+\begin{equation}
+f_p(\boldsymbol{\psi})=
+\frac{\left\{\mathcal{K}\mathcal{S}(v_r)\mathcal{B}(v_b)
+F_\lambda(\boldsymbol{\theta})\right\}_p}
+{\left\{\mathcal{K}\mathcal{S}(v_r)\mathcal{B}(v_b)
+F_{\lambda,{\rm c}}(\boldsymbol{\theta})\right\}_p},
+\qquad
+\boldsymbol{\psi}=(\boldsymbol{\theta},v_r,v_b).
+\label{eq:apogee_forward}
+\end{equation}
+\noindent where $\mathcal{B}$ acts on the logarithmic synthesis grid,
+$\mathcal{S}$ applies the Doppler shift, and $\mathcal{K}$ applies the
+wavelength-dependent line-spread function and native APOGEE sampling.
+Convolving both before division preserves the nonlinear normalization.
+\end{EN}
+
+本实验使用 DR14 定标导出的 LSF \citep{Nidever2015,Holtzman2018}，对六根代表性光纤取平均。一次性构建把从 $R_{\rm grid}=300{,}000$ 合成网格的插值折叠成紧凑的波长依赖权重并常驻 GPU；该算子直接映射到 APOGEE 像素，无需构建稠密卷积矩阵。换用光纤、曝光或探测器专属的 LSF 只需更换一份预置 GPU 资产。致宽、平移、LSF 卷积与采样在 H100 上对每对“总量—连续”流量约 $240~\mu\mathrm{s}$，而原生合成为 $1.4$ 秒——仪器模型的额外成本可忽略。公开拟合器还提供 GPU 常驻自转 kernel，本演示保留单一高斯宽度。
+
+\begin{EN}
+For this experiment, we use a DR14 calibration-derived LSF
+\citep{Nidever2015,Holtzman2018}, averaged over six representative fibers. A
+one-time build folds interpolation from the $R_{\rm grid}=300{,}000$ synthesis
+grid into compact wavelength-dependent weights that remain on the GPU. The
+operator maps directly onto the APOGEE pixels without constructing a dense
+convolution matrix. A fiber-, exposure-, or detector-specific LSF requires
+only a different prepared GPU asset. Broadening, shifting, LSF convolution,
+and sampling take about $240~\mu\mathrm{s}$ per total--continuum flux pair on
+an H100, compared with $1.4$~s for native synthesis. The instrument model
+therefore adds negligible cost. The public fitter also provides a GPU-resident
+rotational kernel, although this demonstration retains one Gaussian width.
+\end{EN}
+
+伪连续谱归一化的 DR14 光谱中仍残留平滑的连续谱差异 \citep{Holtzman2018}。每次非线性试探时，加权线性最小二乘在每个探测器上独立轮廓化一组四阶勒让德基 \citep{GolubPereyra2003}。似然使用已发表的不确定度与掩模 \citep{Holtzman2018}，外加 0.5\% 的模型下限。由于合并光谱组装在公共静止波长网格上 \citep{Nidever2015}，拟合从 $v_r=0$ 出发，只解局部残余平移。
+
+\begin{EN}
+Smooth continuum differences remain in the pseudo-continuum-normalized DR14
+spectra \citep{Holtzman2018}. At every nonlinear trial, weighted linear least
+squares profiles a fourth-order Legendre basis independently on each detector
+\citep{GolubPereyra2003}. The likelihood uses the published uncertainties and
+masks \citep{Holtzman2018} with a 0.5 percent model floor.
+Because the combined spectra are assembled on a common rest-wavelength grid
+\citep{Nidever2015}, the fit begins at $v_r=0$ and solves only a local
+residual shift.
+\end{EN}
+
+观测光谱搜索由初始化大气与直接合成驱动。每增加一个丰度只需一条响应光谱，成本随标签数近似线性增长而非组合爆炸。随后物理求解器在所选混合物处收敛大气，一条新的 GPU 光谱提供任何最终的局部修正。被接受的模型永远使用物理收敛大气加直接合成。这一 12 丰度拟合在 H100 上搜索约 40 秒/星，大气收敛在多核 CPU 上再加约 30 秒。
+
+\begin{EN}
+Initialized atmospheres and direct synthesis drive the observed-spectrum
+search.
+Each additional abundance requires one response spectrum, so this cost grows
+approximately linearly rather than combinatorially with the label count. The
+physical solver then converges an atmosphere at the selected mixture, and a
+fresh GPU spectrum supplies any final local correction. The accepted model
+always uses a physically converged atmosphere and direct synthesis. For this
+12-abundance fit, the H100 search takes about 40~s per star, and atmosphere
+convergence adds about 30~s on multicore CPUs.
+\end{EN}
+
+作为概念验证，我们选取 1,600 颗巨星，在高、低 $\alpha$ APOGEE 序列与金属丰度上均衡采样 \citep{Nidever2014,Hayden2015}，并对族群轮廓重加权以代表母样本。图~\ref{fig:apogee_spectrum} 首先在像素空间检验计算：跨全部三个探测器，前向模型跟随谱线森林，轮廓化连续谱只吸收平滑的残余结构。这确立了仪器算子与多元素光谱可以联合拟合。
+
+\begin{EN}
+As a proof of concept, we select 1,600 giants, balanced across the high- and
+low-$\alpha$ APOGEE sequences and metallicity
+\citep{Nidever2014,Hayden2015}, and reweight the population contours to
+represent the parent sample. Figure~\ref{fig:apogee_spectrum} first tests the
+calculation in pixel space.
+Across all three detectors, the forward model follows the line forest while the
+profiled continuum absorbs only smooth residual structure. This establishes
+that the instrument operators and many-element spectrum can be fitted together.
+\end{EN}
+
+随后检验独立拟合的丰度是否保持族群结构。图~\ref{fig:apogee_structure} 在被采样的金属丰度范围内保留了两条主要的 $[\mathrm{Mg}/\mathrm{Fe}]$ 序列，而不是塌缩成单一整体金属丰度趋势。图~\ref{fig:apogee_elements} 把比较推广到逐个元素：O、Si、S、Ca、Ti 在两个输入族群之间保持了化学分离，但绝对零点不同。
+
+\begin{EN}
+We then test whether the independently fitted abundances preserve population
+structure. Figure~\ref{fig:apogee_structure} retains the two principal
+$[\mathrm{Mg}/\mathrm{Fe}]$ sequences over the sampled metallicity range rather
+than collapsing them into one bulk-metallicity trend. Figure~\ref{fig:apogee_elements}
+extends the comparison element by element. O, Si, S, Ca, and Ti retain chemical
+separation between the two input populations, although their absolute zero
+points differ.
+\end{EN}
+
+\begin{physbox}{高/低 $\alpha$ 双序列为什么重要}
+银河系的恒星在 $[\alpha/\mathrm{Fe}]$--$[\mathrm{Fe}/\mathrm{H}]$ 平面上分成两条序列：高 $\alpha$ 星形成早、增丰快（以 II 型超新星为主，$\alpha$ 元素多）；低 $\alpha$ 星形成晚、增丰慢（Ia 型超新星贡献了大量铁，压低了 $\alpha/$铁比）。这两条序列是银河系化学演化与并合历史的化石记录。一个丰度分析流水线最重要的检验之一就是：独立拟合能否重现这条双序列，而不是把它涂抹成单一趋势。本文的直接物理拟合做到了——说明 12 个丰度坐标各自携带了真实的天体物理信息，而非流水线伪影。Si 的刚性偏移则反映零点约定差异（DR14 做了经验零点修正而本文没有），属于标度问题而非形态错误。
+\end{physbox}
+
+近乎刚性的 Si 偏移与标度差异一致：DR14 对单元素丰度施加了经验温度与零点定标，Si 的调整幅度位居前列，而我们不做任何 APOGEE 零点修正 \citep{Holtzman2018}。Mn 向高金属丰度上升，与依赖金属丰度的产率及可观的 Ia 型超新星贡献一致；Ni 大体跟随 Fe \citep{Weinberg2019}。C 与 N 保持分别受约束，保留了 APOGEE 红巨星中随质量与演化变化的 C/N 信息 \citep{CharbonnelLagarde2010,Masseron2015,Martig2016}。最终的丰度修正通常在百分之几 dex 量级，不改变这一族群形态。
+
+\begin{EN}
+The nearly rigid Si offset is consistent with a scale difference because DR14 applies empirical
+temperature and zero-point calibrations to individual abundances, with Si
+among its larger adjustments, while we apply no APOGEE zero-point correction
+\citep{Holtzman2018}. Mn rises toward higher metallicity, consistent with
+metallicity-dependent yields and a
+substantial Type Ia supernova contribution, while Ni broadly tracks Fe
+\citep{Weinberg2019}. C and N remain separately constrained, preserving the
+mass- and evolution-dependent C/N information measured in APOGEE red giants
+\citep{CharbonnelLagarde2010,Masseron2015,Martig2016}. The final
+abundance corrections are typically at the hundredth-dex level and leave this
+population morphology unchanged.
+\end{EN}
+
+谱线表的迁移效果是独立可测的。在匹配的对照样本中，定标降低了每颗星的每有效像素平均卡方 $Q$：中位数从 3.32 降到 1.56，成对下降的中位数为 53\%。
+
+\begin{EN}
+The line-list transfer is independently measurable. In a matched control
+sample, the calibration lowers the mean chi-square per valid pixel, $Q$, for
+every star. The median $Q$ falls from
+3.32 to 1.56, with a median paired reduction of 53 percent.
+\end{EN}
+
+定标谱线表在不强迫与 ASPCAP 丰度标度一致的情况下改善了像素级目标。剩余零点差异可来自大气物理、太阳混合物、谱线选择、掩模与连续谱处理。光谱拟合与逐元素序列共同表明：直接物理前向模型无需光谱模拟器即可恢复自洽的巡天化学。要建立定标后的丰度标度，则需要超出本概念验证的更大标准星集合与巡天专属的谱线整编。
+
+\begin{EN}
+The calibrated line list improves the pixel-level objective without forcing
+agreement with the ASPCAP abundance scale. The remaining zero-point differences
+can reflect the atmosphere physics, solar mixture, line selection, masks, and
+continuum treatment. Together, the spectral fit and the element-by-element
+sequences show that a direct physical forward model can recover coherent survey
+chemistry without a spectral emulator. Establishing a calibrated abundance
+scale would require a broader standard-star set and survey-specific line
+curation beyond this proof of concept.
+\end{EN}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figure_11.pdf}
+\caption{代表性的 APOGEE DR14 拟合（收敛大气计算之后）。黑色为观测归一化光谱，橙虚线为经速度平移、致宽、线扩展函数卷积与像素采样后的轮廓化 \paynezero\ 模型，灰带为采用的 $1\sigma$ 不确定度。上光谱与残差面板覆盖全部三个探测器；下三对放大每个探测器的一段富线区间。残差以像素不确定度为单位。（Representative APOGEE DR14 fit.）}
+\label{fig:apogee_spectrum}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figure_12.pdf}
+\caption{均衡 1,600 目标 APOGEE 样本的化学结构。前两图为 DR14 定标星表与 \paynezero\ 拟合的 $[\mathrm{Mg}/\mathrm{Fe}]$--$[\mathrm{Fe}/\mathrm{H}]$，橙、蓝标记 APOGEE 高、低 $\alpha$ 样本；第三图比较两者的铁丰度，虚线为相等线。等值线包围逆选择权重密度的 50、80、95\%。直接拟合保留了两条化学序列，同时允许丰度零点平移。（Chemical structure of the balanced 1,600-target APOGEE sample.）}
+\label{fig:apogee_structure}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figure_13.pdf}
+\caption{均衡 1,600 目标 \paynezero\ 拟合的逐元素丰度分布。每面板为一个 $[\mathrm{X}/\mathrm{Fe}]$ 对 $[\mathrm{Fe}/\mathrm{H}]$；橙、蓝点与等值线分别来自高、低 $\alpha$ 样本；灰虚等值线为同一批恒星与权重下 APOGEE DR14 的 50、80\% 密度。拟合的丰度平面呈现连贯的、随元素变化的序列，而非单一整体金属丰度坐标。（Elemental-abundance distributions from the balanced 1,600-target fit.）}
+\label{fig:apogee_elements}
+\end{figure}

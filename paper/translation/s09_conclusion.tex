@@ -1,0 +1,137 @@
+\section{结论 Conclusion}\label{sec:conclusion}
+
+光谱模拟器与数据驱动流量模型解决了恒星光谱学的两个长期难题：物理计算太慢，无法在推断中反复执行；且其光谱不能复现所有观测特征。由此产生的“标签到流量”关系让巡天分析切实可行，但光谱模拟器带来插值误差，数据驱动模型则可能继承训练标签间的相关性。我们证明：在本文演示的一维 LTE 区间内，这一中间层对计算可行性已不再是必需品。
+
+\begin{EN}
+Spectral emulators and data-driven flux models addressed two longstanding
+problems in stellar spectroscopy. Physical calculations were too slow to
+repeat inside inference, and their spectra did not reproduce every observed
+feature. The resulting label-to-flux relations made survey analysis practical,
+but spectral emulators add interpolation error, while data-driven models can
+inherit correlations among their training labels. We show that this
+intermediate layer is no longer required for computational tractability in the
+demonstrated one-dimensional LTE regime.
+\end{EN}
+
+\paynezero\ 通过面向现代处理器重组计算而不改变其物理目标，改变了这一权衡。GPU 原生合成把 $R_{\rm grid}=300{,}000$ 的 300--1000 nm 太阳计算从原 Kurucz 程序的约 760 秒降到单张 H100 上的 14 秒，APOGEE 区间约 1 秒。多核大气 kernel 使每趟物理迭代快 6--7 倍，学习型初始大气在受控测试中再把所需迭代次数压缩约 3 倍。所得光谱与原始计算保持实用一致。大气与合成计算因此可以留在推断内部，其假设与残差被直接评估。
+
+\begin{EN}
+\paynezero\ changes this tradeoff by reorganizing the calculation for modern
+processors without changing its physical target. GPU-native synthesis reduces
+a 300--1000~nm solar calculation at $R_{\rm grid}=300{,}000$ from about 760~s in
+the original Kurucz programs to 14~s on one H100, while the APOGEE interval
+takes about 1~s. Multicore atmosphere kernels make each physical iteration six
+to seven times faster, and a learned starting atmosphere reduces the required
+iteration count by about another factor of three in the controlled tests. The
+resulting spectra remain in practical parity with the original calculations.
+The atmosphere and synthesis calculation can therefore remain inside
+inference, where their assumptions and residuals are evaluated directly.
+\end{EN}
+
+同一计算结构把“观测—模型差距”变成可处理的物理优化问题。自动微分联合更新超过 $10^5$ 个耦合的振子强度与阻尼参数；共享太阳—大角星定标在单张 H100 上约一分钟，把逐条跃迁的任务变成一次联合辐射转移计算。
+
+\begin{EN}
+The same computational structure turns the observation--model gap into a
+tractable physical optimization problem. Automatic differentiation updates
+more than $10^5$ coupled oscillator strengths and damping parameters together.
+The shared Sun--Arcturus calibration takes about one minute on one H100,
+replacing a transition-by-transition task with one joint radiative-transfer
+calculation.
+\end{EN}
+
+这些能力在我们的 APOGEE 演示中汇合。GPU 常驻的速度平移、致宽、波长依赖 LSF 卷积与探测器采样相对合成的开销可忽略。对 APOGEE 巨星，拟合从约减后的一维光谱直接求解 12 个丰度坐标以及仪器与连续谱项：H100 搜索约 40 秒/星，物理大气收敛在多核 CPU 上独立运行。恢复的化学在跨越巨星支与红团簇的恒星上，对全部 11 个拟合丰度比呈现连贯的、随元素变化的趋势。
+
+\begin{EN}
+These capabilities meet in our APOGEE demonstration. GPU-resident velocity
+shifting, broadening, wavelength-dependent LSF convolution, and detector
+sampling add negligible cost to synthesis. For APOGEE giants, the fit solves
+12 abundance coordinates together with the instrument and continuum terms
+directly from reduced one-dimensional spectra. The H100 search takes about
+40~s per star, while physical atmosphere convergence runs independently on
+multicore CPUs. The recovered chemistry shows coherent element-dependent trends
+across all eleven fitted abundance ratios for stars spanning the giant branch
+and red clump.
+\end{EN}
+
+由此得到的计算规模改变了巡天中“可行”的含义：对 $10^5$ 条光谱做实测的直接合成搜索，对应约一千 GPU 小时，按常见学术云价格约合几千美元。独立恒星之间可以直接分发而不改变计算；大气收敛使用多核 CPU 工人，可独立于 GPU 合成任务运行。GPU 需求因此主要由直接合成搜索与直接光谱决定，而非大气迭代。
+
+\begin{EN}
+The resulting computational scale changes what is practical for a survey. The
+measured direct-synthesis search for $10^5$ spectra corresponds to about
+one thousand GPU-hours and a few thousand US dollars at typical academic cloud
+rates.
+Independent stars can be distributed without changing the calculation.
+Atmosphere convergence uses multicore CPU workers and can run
+independently of the GPU synthesis tasks. GPU demand is therefore set mainly by
+the direct-synthesis search and direct spectra rather than by the atmosphere
+iteration.
+\end{EN}
+
+恒星光谱学走过了从手工逐个操作物理程序，到预计算网格与学习近似，再到百万恒星巡天的历程。现代硬件现在允许物理计算在这一规模上回到推断循环之内。这并不能消除三维对流或非 LTE 谱线形成带来的偏离 \citep{Asplund2005,Nordlund2009,Magic2013,BergemannNordlander2014,Amarsi2019}，也不消除谱线数据或仪器建模的局限——但它让它们成为可见的改进目标。大气可以按请求的混合物重算，光谱可以在优化器内合成，原子数据可以通过同一辐射转移计算定标。物理前向模型可以重新成为恒星推断的工作基础，而不只是中间学习流量模型的训练来源。
+
+\begin{EN}
+Stellar spectroscopy has moved from individually operated physical programs,
+through precomputed grids and learned approximations, to surveys of millions
+of stars. Modern hardware now allows the physical calculation to return to the
+inference loop at that scale. This does not remove departures associated with
+three-dimensional convection or non-LTE line formation
+\citep{Asplund2005,Nordlund2009,Magic2013,BergemannNordlander2014,Amarsi2019}, nor limitations
+in line data or instrument modeling. It makes them
+visible targets for improvement. Atmospheres can be recomputed at the requested
+mixture, spectra can be synthesized inside the optimizer, and atomic data can
+be calibrated through the same radiative-transfer calculation. Physical
+forward models can again be the working foundation of stellar inference rather
+than only the training source for an intermediate learned flux model.
+\end{EN}
+
+\begin{physbox}{本文未覆盖的物理：3D 与非 LTE}
+最后一段的限定值得强调。本文全部计算基于一维、平面平行、LTE、混合长对流的 Kurucz 框架。真实恒星大气是三维的：对流元胞的涨落会系统性地改变温度结构与谱线形状（3D 效应）；在低密度高层大气，碰撞不足以维持局部热动平衡，能级布居由辐射场逐能级决定（NLTE 效应），对 Li、O、Mn 等元素的丰度影响可达零点几 dex。这些是模型本身的系统误差，与计算速度无关。\paynezero\ 的意义在于：当正演足够快，这些系统误差不再被埋在模拟器插值误差之下，而是可以被直接测量、检验和逐项改进。
+\end{physbox}
+
+\section*{致谢 Acknowledgments}
+
+对 YST 而言，本项目同时是一项业余爱好，也是对现代大语言模型智能体用于科学软件的帕累托前沿的一次非正式测试。2024 年开始的尝试可以翻译孤立文件，但无法保持大型耦合代码库的逻辑。实际的转折点出现在 2025 年 12 月，Claude Opus 4.5 使 Kurucz 例程到 Python 的细致翻译变得可行。EK 完成了大量最初的、艰辛的 PyKurucz 翻译并开发了其早期 Numba 实现，即 Kim \& Ting (2026) 的 pyKurucz 研究。YST 主导了随后的 GPU 原生重设计、优化实验与 Payne Zero 开发。超越蛮力重写的进展依赖 YST 对 Kurucz 代码的经验，以识别常驻数据、kernel 边界、谱线筛选与并行结构。后期开发使用了 Claude Opus 4.8 与持续运行的 GPT-5.5 Codex 智能体，并有来自 Gemini 3.1 Pro 与 GLM 5.2 的独立批评。没有这些工具，这一规模的重写在同一时间表内是不切实际的。那些未成功的实验（包括备选的双廓线大气求解器）同样是有益的提醒：当前的智能体仍需要密切的领域指导。通用人工智能（AGI）本会让这项业余项目短得多。
+
+\begin{EN}
+For YST, this project was also a hobby and an informal test of the Pareto
+frontier of modern large-language-model agents for scientific software.
+Attempts beginning in
+2024 could translate isolated files
+but could not preserve the logic of a large coupled codebase. A practical
+turning point came in December 2025, when Claude Opus 4.5 made careful
+translation of Kurucz routines into Python tractable. EK carried out much of
+the initial painstaking translation into PyKurucz and developed its early
+Numba implementation, leading to the pyKurucz study of Kim \& Ting (2026).
+YST led the subsequent GPU-native
+redesign, optimization experiments, and Payne Zero development. Progress
+beyond a brute-force rewrite depended on YST's experience with the Kurucz codes
+to identify the resident data, kernel boundaries, line selection, and parallel
+structure. Later development used Claude Opus 4.8 and sustained GPT-5.5 Codex
+agents, with independent criticism from Gemini 3.1 Pro and GLM 5.2. A rewrite
+at this scale would not have been practical on the same timescale without these
+tools. The unsuccessful experiments, including the alternate two-profile
+atmosphere solver, were equally useful reminders that current agents still
+require close domain guidance. Artificial general intelligence (AGI) would
+have made this hobby considerably shorter.
+\end{EN}
+
+智能体贡献了代码翻译、重构、测试、诊断、研究日志维护与文字修订。科学框架、引言、讨论与结论始于人类草稿；部分技术段落始于智能体对代码与研究日志的总结。作者审阅了保留的代码、计算、图、引文与文字，并对结果负责。一些意外的个人境遇也给了 YST 完成本项目所需的不被打扰的时间。
+
+\begin{EN}
+The agents contributed code translation, refactoring, tests, diagnostics,
+research-log maintenance, and prose revision. The scientific framing,
+Introduction, Discussion, and Conclusion began from human drafts. Some
+technical passages began from agent summaries of the code and research logs.
+The authors reviewed the retained code, calculations, figures, citations, and
+text and take responsibility for the results. Unexpected personal
+circumstances also gave YST the uninterrupted time needed to finish this
+project.
+\end{EN}
+
+YST 感谢亚历山大·冯·洪堡基金会的洪堡研究奖学金资助。
+
+\begin{EN}
+YST acknowledges support from a Humboldt Research Fellowship from the
+Alexander von Humboldt Foundation.
+\end{EN}
+

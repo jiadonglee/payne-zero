@@ -1,0 +1,17 @@
+{
+  "arm": "textbook_v4r6_decoupled",
+  "candidate": "v4r6_decoupled_mgrey_tconv_v1",
+  "convective_control": "results/analytic_initializer/textbook_opacity_v4r6_dev60_20260828.json",
+  "convective_control_sha256": "c0c08c9727e522916085941bc5dcb40a96d67fea05852f8d88ddb4cae4cdd3e5",
+  "grey_control": "results/analytic_initializer/textbook_opacity_v4r6_grey_dev60_20260828.json",
+  "grey_control_sha256": "caeee639e37600952be8439d259bdb99f68d992bf9d4c2a50749530f68bf015a",
+  "indices_from": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+  "indices_from_sha256": "5e0238098f5811de7738d6e8fcf5b9eb5d94fe85a8fa9505ad3513769179e27e",
+  "iterations": 15,
+  "per_star_timeout_seconds": 900,
+  "seed_audit": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_seed_audit_20260828.json",
+  "seed_audit_sha256": "4d7179fce0af46889cf753dc462b28bcd66436d0efcec274bf653e5ed533e2be",
+  "source_manifest": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_source_manifest_20260828.json",
+  "source_manifest_sha256": "ebc932f2402d15a936cd1a96465c15262f4f5197ad3636794fe24245db7f152c",
+  "trials": 1
+}

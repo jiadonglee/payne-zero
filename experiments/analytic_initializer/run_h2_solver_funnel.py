@@ -69,6 +69,10 @@ ARM_CANDIDATES = {
     "physical": "compact_chebyshev_depth_with_saha_label_coordinates",
     "entropy": "dual_crossing_entropy_closure_three_global_constants",
     "cumtau": "four_window_cumulative_tau_physical_degree2",
+    "textbook_v4r3": "grey_plus_adiabatic_v4r3_opacity_ode_mass",
+    "textbook_v4r6": "grey_plus_adiabatic_v4r6_opacity_ode_mass",
+    "textbook_v4r6_grey": "eddington_grey_v4r6_opacity_ode_mass",
+    "textbook_v4r6_decoupled": "v4r6_decoupled_mgrey_tconv_v1",
     "production": "current_production_emulator_initializer",
 }
 
@@ -160,6 +164,7 @@ def _solve_analytic(
     *,
     eos_polytrope: bool = False,
     product_path: Path | None = None,
+    iterations_per_trial: int = ITERATIONS_PER_TRIAL,
 ) -> dict[str, object]:
     """Seed the solver from the analytic formula and run one trial.
 
@@ -177,7 +182,7 @@ def _solve_analytic(
     seed = analytic_seed_model(labels, mass, temperature, log_opacity, tau)
     solver_config = _solver_config(
         seed,
-        iterations_per_trial=ITERATIONS_PER_TRIAL,
+        iterations_per_trial=int(iterations_per_trial),
         structured_atmosphere_path=product_path,
         debug_state_path=None,
     )
@@ -209,7 +214,11 @@ def _solve_analytic(
     return outcome
 
 
-def _solve_production(labels: np.ndarray) -> dict[str, object]:
+def _solve_production(
+    labels: np.ndarray,
+    *,
+    iterations_per_trial: int = ITERATIONS_PER_TRIAL,
+) -> dict[str, object]:
     """Seed the solver from the production emulator warm start.
 
     ``run_star`` keeps every trial, so one run answers both policies: the
@@ -222,7 +231,7 @@ def _solve_production(labels: np.ndarray) -> dict[str, object]:
 
     record = run_star(
         _stellar_labels(labels),
-        iterations_per_trial=ITERATIONS_PER_TRIAL,
+        iterations_per_trial=int(iterations_per_trial),
         max_trials=PRODUCTION_MAX_TRIALS,
     )
     first = record.trials[0] if record.trials else None
@@ -255,8 +264,14 @@ def _solve_payload(payload: dict) -> dict[str, object]:
         # the emulator path when they were added, and the run looked healthy
         # because the emulator converges: the only symptom was ``trials_used``
         # coming back as 2 from an arm that is allocated exactly one trial.
+        iterations_per_trial = int(
+            payload.get("iterations_per_trial", ITERATIONS_PER_TRIAL)
+        )
         if payload["mass"] is None:
-            outcome = _solve_production(payload["labels"])
+            outcome = _solve_production(
+                payload["labels"],
+                iterations_per_trial=iterations_per_trial,
+            )
         else:
             outcome = _solve_analytic(
                 payload["labels"],
@@ -266,6 +281,7 @@ def _solve_payload(payload: dict) -> dict[str, object]:
                 payload["tau"],
                 eos_polytrope=bool(payload.get("eos_polytrope", False)),
                 product_path=payload.get("product_path"),
+                iterations_per_trial=iterations_per_trial,
             )
         outcome["solver_outcome"] = (
             "converged" if outcome["converged"] else "not_converged"
@@ -395,6 +411,7 @@ def _run_funnel(
     jsonl_path: Path,
     resume: bool = False,
     product_dir: Path | None = None,
+    iterations_per_trial: int = ITERATIONS_PER_TRIAL,
 ) -> list[dict[str, object]]:
     """Solve every star, appending each record to ``jsonl_path`` as it lands."""
 
@@ -411,6 +428,14 @@ def _run_funnel(
         if record.get("arm") != arm:
             raise SystemExit(
                 f"{jsonl_path} contains arm {record.get('arm')!r}, expected {arm!r}"
+            )
+        recorded_iterations = int(
+            record.get("iterations_per_trial", ITERATIONS_PER_TRIAL)
+        )
+        if recorded_iterations != int(iterations_per_trial):
+            raise SystemExit(
+                f"{jsonl_path} was written with {recorded_iterations} iterations "
+                f"per trial, expected {int(iterations_per_trial)}"
             )
         expected_labels = _label_fields(corpus.labels[index])
         if any(
@@ -458,14 +483,35 @@ def _run_funnel(
                     "tau": corpus.tau,
                     "eos_polytrope": arm == "parity_polytrope",
                     "product_path": None if product_dir is None else str(product_dir / (_solver_slug(corpus.labels[index]) + ".npz")),
+                    "iterations_per_trial": int(iterations_per_trial),
                 }
                 record: dict[str, object] = {
                     "corpus_index": int(index),
                     "arm": arm,
+                    "iterations_per_trial": int(iterations_per_trial),
                     "slug": str(corpus.slugs[index]),
                     **_label_fields(corpus.labels[index]),
                 }
-                record.update(worker.solve(payload, timeout=timeout))
+                seed_is_finite = mass is None or (
+                    np.all(np.isfinite(mass[row]))
+                    and np.all(np.isfinite(temperature[row]))
+                    and np.all(np.isfinite(log_opacity[row]))
+                    and np.all(mass[row] > 0.0)
+                    and np.all(temperature[row] > 0.0)
+                )
+                if not seed_is_finite:
+                    record.update(
+                        {
+                            "converged": False,
+                            "finite_final_state": False,
+                            "iterations_completed": 0,
+                            "solver_outcome": "error",
+                            "error": "reduced-state seed is non-finite or non-positive",
+                            "seconds": 0.0,
+                        }
+                    )
+                else:
+                    record.update(worker.solve(payload, timeout=timeout))
                 # A formula arm is allocated exactly one trial, so more than
                 # one means the star went down the emulator path.  That is a
                 # wiring mistake rather than a solver outcome, and it is
@@ -516,6 +562,144 @@ def _summarize(records: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def _teff_split_summary(
+    records: list[dict[str, object]], *, split_K: float = 7500.0
+) -> dict[str, object]:
+    """Convergence counts on the frozen cool/hot funnel split."""
+
+    rows: dict[str, dict[str, object]] = {}
+    for name, predicate in (
+        ("below_7500K", lambda teff: teff < split_K),
+        ("at_least_7500K", lambda teff: teff >= split_K),
+    ):
+        selected = [
+            item
+            for item in records
+            if predicate(float(item["effective_temperature"]))
+        ]
+        rows[name] = {
+            "star_count": len(selected),
+            "converged_count": int(sum(bool(item["converged"]) for item in selected)),
+            "timeout_count": int(
+                sum(str(item["solver_outcome"]) == "timeout" for item in selected)
+            ),
+            "error_count": int(
+                sum(str(item["solver_outcome"]) == "error" for item in selected)
+            ),
+            "not_converged_count": int(
+                sum(str(item["solver_outcome"]) == "not_converged" for item in selected)
+            ),
+        }
+    return rows
+
+
+def _gravity_split_summary(
+    records: list[dict[str, object]], *, split_logg: float = 3.5
+) -> dict[str, object]:
+    """Convergence counts on the frozen dwarf/giant split."""
+
+    rows: dict[str, dict[str, object]] = {}
+    for name, predicate in (
+        ("dwarf_logg_at_least_3.5", lambda logg: logg >= split_logg),
+        ("giant_logg_below_3.5", lambda logg: logg < split_logg),
+    ):
+        selected = [
+            item
+            for item in records
+            if predicate(float(item["log_surface_gravity"]))
+        ]
+        rows[name] = {
+            "star_count": len(selected),
+            "converged_count": int(sum(bool(item["converged"]) for item in selected)),
+            "timeout_count": int(
+                sum(str(item["solver_outcome"]) == "timeout" for item in selected)
+            ),
+            "error_count": int(
+                sum(str(item["solver_outcome"]) == "error" for item in selected)
+            ),
+            "not_converged_count": int(
+                sum(str(item["solver_outcome"]) == "not_converged" for item in selected)
+            ),
+        }
+    return rows
+
+
+def _masked_percentile_errors(
+    prediction: np.ndarray,
+    truth: np.ndarray,
+    star_mask: np.ndarray,
+    layer_mask: np.ndarray,
+    *,
+    kind: str,
+) -> dict[str, float]:
+    keep = star_mask[:, None] & layer_mask[None, :]
+    if kind == "mass_dex":
+        values = np.abs(np.log10(prediction) - np.log10(truth))[keep]
+    elif kind == "temperature_relative":
+        values = np.abs(prediction / truth - 1.0)[keep]
+    else:
+        raise ValueError(f"unknown error kind {kind!r}")
+    values = values[np.isfinite(values)]
+    if values.size == 0:
+        raise ValueError("cannot summarize an empty seed-error mask")
+    return {
+        "count": int(values.size),
+        "p50": float(np.percentile(values, 50.0)),
+        "p95": float(np.percentile(values, 95.0)),
+    }
+
+
+def _seed_error_splits(
+    mass: np.ndarray,
+    temperature: np.ndarray,
+    *,
+    truth_mass: np.ndarray,
+    truth_temperature: np.ndarray,
+    teff: np.ndarray,
+    tau: np.ndarray,
+    finite_stars: np.ndarray,
+) -> dict[str, object]:
+    """Seed-versus-truth errors that isolate convection from surface κ."""
+
+    depth = np.asarray(tau, dtype=np.float64)
+    cool = finite_stars & (teff < 7500.0)
+    hot = finite_stars & (teff >= 7500.0)
+    deep = depth > 10.0
+    all_layers = np.ones(depth.shape, dtype=bool)
+    rows: dict[str, object] = {}
+    for band, star_mask in (("cool_below_7500K", cool), ("hot_at_least_7500K", hot)):
+        if not np.any(star_mask):
+            continue
+        rows[band] = {
+            "star_count": int(np.count_nonzero(star_mask)),
+            "all_layers": {
+                "log_mass_dex": _masked_percentile_errors(
+                    mass, truth_mass, star_mask, all_layers, kind="mass_dex"
+                ),
+                "temperature_relative": _masked_percentile_errors(
+                    temperature,
+                    truth_temperature,
+                    star_mask,
+                    all_layers,
+                    kind="temperature_relative",
+                ),
+            },
+            "tau_gt_10": {
+                "log_mass_dex": _masked_percentile_errors(
+                    mass, truth_mass, star_mask, deep, kind="mass_dex"
+                ),
+                "temperature_relative": _masked_percentile_errors(
+                    temperature,
+                    truth_temperature,
+                    star_mask,
+                    deep,
+                    kind="temperature_relative",
+                ),
+            },
+        }
+    return rows
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -528,6 +712,10 @@ def main(argv: list[str] | None = None) -> int:
             "physical",
             "entropy",
             "cumtau",
+            "textbook_v4r3",
+            "textbook_v4r6",
+            "textbook_v4r6_grey",
+            "textbook_v4r6_decoupled",
             "production",
         ),
         default="analytic",
@@ -557,6 +745,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--per-star-timeout", type=float, default=900.0)
     parser.add_argument(
+        "--iterations",
+        type=int,
+        default=ITERATIONS_PER_TRIAL,
+        help="solver iterations per trial (default: 15). Historical funnels keep 15.",
+    )
+    parser.add_argument(
         "--resume",
         action="store_true",
         help="reuse unique rows already present in the output JSONL",
@@ -568,6 +762,8 @@ def main(argv: list[str] | None = None) -> int:
         help="write a release-handoff NPZ per converged star (t-format names)",
     )
     args = parser.parse_args(argv)
+    if int(args.iterations) < 1:
+        raise SystemExit("--iterations must be a positive integer")
 
     corpus = load_strict_truth(DEFAULT_CORPUS)
     excluded, used_manifests = collect_excluded_indices(
@@ -692,6 +888,181 @@ def main(argv: list[str] | None = None) -> int:
             "fitted_parameter_count": parameters.fitted_parameter_count,
             "offline_gate": "diagnostic only; solver gates decide",
         }
+    elif args.arm == "textbook_v4r6_decoupled":
+        from experiments.analytic_initializer import textbook_opacity
+
+        mass, temperature, log_opacity = (
+            textbook_opacity.predict_textbook_reduced_state_v4r6_decoupled(
+                corpus.labels[indices],
+                corpus.tau,
+            )
+        )
+        reduced_state = (mass, temperature, log_opacity)
+        finite_seeds = np.all(
+            np.isfinite(mass) & np.isfinite(temperature) & np.isfinite(log_opacity),
+            axis=1,
+        )
+        seed_profile_errors = None
+        if np.any(finite_seeds):
+            truth_mass = corpus.column_mass[indices][finite_seeds]
+            truth_temperature = corpus.temperature[indices][finite_seeds]
+            temperature_relative = np.abs(
+                temperature[finite_seeds] / truth_temperature - 1.0
+            )
+            mass_dex = np.abs(
+                np.log10(mass[finite_seeds]) - np.log10(truth_mass)
+            )
+            seed_profile_errors = {
+                "finite_seed_count": int(np.count_nonzero(finite_seeds)),
+                "temperature_relative_p50": float(
+                    np.percentile(temperature_relative, 50.0)
+                ),
+                "temperature_relative_p95": float(
+                    np.percentile(temperature_relative, 95.0)
+                ),
+                "column_mass_dex_p50": float(np.percentile(mass_dex, 50.0)),
+                "column_mass_dex_p95": float(np.percentile(mass_dex, 95.0)),
+            }
+        provenance = {
+            "initializer": "v4r6_decoupled_mgrey_tconv_v1",
+            "opacity": "textbook_rosseland_opacity_v4r6",
+            "temperature": "current_saha_aware_convective_temperature",
+            "mass": "v4r6_grey_integrated_mass",
+            "mass_reintegrated_after_convection": False,
+            "include_convection": True,
+            "substeps_per_layer": 8,
+            "formal_temperature_floor_K": textbook_opacity.V4R6_FORMAL_TEMPERATURE_FLOOR_K,
+            "fitted_parameter_count": 0,
+            "requires_neural_checkpoint_at_runtime": False,
+            "offline_decision": "FAIL_STOP",
+            "offline_result": (
+                "results/analytic_initializer/"
+                "textbook_opacity_v4r6_offline_validation_20260828.json"
+            ),
+            "finite_seed_count": int(np.count_nonzero(finite_seeds)),
+            "seed_profile_errors_vs_stored_truth": seed_profile_errors,
+            "seed_error_splits_vs_stored_truth": (
+                None
+                if not np.any(finite_seeds)
+                else _seed_error_splits(
+                    mass,
+                    temperature,
+                    truth_mass=corpus.column_mass[indices],
+                    truth_temperature=corpus.temperature[indices],
+                    teff=corpus.labels[indices, 0],
+                    tau=corpus.tau,
+                    finite_stars=finite_seeds,
+                )
+            ),
+            "registered_v4r6_seed_unchanged": True,
+            "registered_v4r6_grey_seed_unchanged": True,
+        }
+        print(
+            f"built {args.arm} seeds for {int(indices.size)} stars "
+            f"({int(np.count_nonzero(finite_seeds))} finite"
+            ", mass=grey, T=convective, mass_reintegrated=false)",
+            flush=True,
+        )
+    elif args.arm in ("textbook_v4r3", "textbook_v4r6", "textbook_v4r6_grey"):
+        from experiments.analytic_initializer import textbook_opacity
+
+        include_convection = args.arm != "textbook_v4r6_grey"
+        if args.arm in ("textbook_v4r6", "textbook_v4r6_grey"):
+            predict_reduced_state = textbook_opacity.predict_textbook_reduced_state_v4r6
+            formal_floor = textbook_opacity.V4R6_FORMAL_TEMPERATURE_FLOOR_K
+            offline_result = (
+                "results/analytic_initializer/"
+                "textbook_opacity_v4r6_offline_validation_20260828.json"
+            )
+        else:
+            predict_reduced_state = textbook_opacity.predict_textbook_reduced_state_v4r3
+            formal_floor = textbook_opacity.V4R3_FORMAL_TEMPERATURE_FLOOR_K
+            offline_result = (
+                "results/analytic_initializer/"
+                "textbook_opacity_v4r3_offline_validation_20260827.json"
+            )
+
+        mass, temperature, log_opacity = predict_reduced_state(
+            corpus.labels[indices],
+            corpus.tau,
+            include_convection=include_convection,
+        )
+        reduced_state = (mass, temperature, log_opacity)
+        finite_seeds = np.all(
+            np.isfinite(mass) & np.isfinite(temperature) & np.isfinite(log_opacity),
+            axis=1,
+        )
+        seed_profile_errors = None
+        if np.any(finite_seeds):
+            truth_mass = corpus.column_mass[indices][finite_seeds]
+            truth_temperature = corpus.temperature[indices][finite_seeds]
+            temperature_relative = np.abs(
+                temperature[finite_seeds] / truth_temperature - 1.0
+            )
+            mass_dex = np.abs(
+                np.log10(mass[finite_seeds]) - np.log10(truth_mass)
+            )
+            seed_profile_errors = {
+                "finite_seed_count": int(np.count_nonzero(finite_seeds)),
+                "temperature_relative_p50": float(
+                    np.percentile(temperature_relative, 50.0)
+                ),
+                "temperature_relative_p95": float(
+                    np.percentile(temperature_relative, 95.0)
+                ),
+                "column_mass_dex_p50": float(np.percentile(mass_dex, 50.0)),
+                "column_mass_dex_p95": float(np.percentile(mass_dex, 95.0)),
+            }
+        if include_convection:
+            provenance = {
+                "initializer": f"grey_plus_adiabatic_T_plus_{args.arm}_opacity_ODE_mass",
+                "opacity": f"textbook_rosseland_opacity_{args.arm}",
+                "temperature": "eddington_grey_then_saha_aware_adiabatic",
+                "include_convection": True,
+                "substeps_per_layer": 8,
+                "formal_temperature_floor_K": formal_floor,
+                "fitted_parameter_count": 0,
+                "requires_neural_checkpoint_at_runtime": False,
+                "offline_decision": "FAIL_STOP",
+                "offline_result": offline_result,
+                "finite_seed_count": int(np.count_nonzero(finite_seeds)),
+                "seed_profile_errors_vs_stored_truth": seed_profile_errors,
+            }
+        else:
+            provenance = {
+                "initializer": "eddington_grey_T_plus_v4r6_opacity_ODE_mass",
+                "opacity": "textbook_rosseland_opacity_v4r6",
+                "temperature": "eddington_grey",
+                "include_convection": False,
+                "substeps_per_layer": 8,
+                "formal_temperature_floor_K": formal_floor,
+                "fitted_parameter_count": 0,
+                "requires_neural_checkpoint_at_runtime": False,
+                "offline_decision": "FAIL_STOP",
+                "offline_result": offline_result,
+                "finite_seed_count": int(np.count_nonzero(finite_seeds)),
+                "seed_profile_errors_vs_stored_truth": seed_profile_errors,
+                "seed_error_splits_vs_stored_truth": (
+                    None
+                    if not np.any(finite_seeds)
+                    else _seed_error_splits(
+                        mass,
+                        temperature,
+                        truth_mass=corpus.column_mass[indices],
+                        truth_temperature=corpus.temperature[indices],
+                        teff=corpus.labels[indices, 0],
+                        tau=corpus.tau,
+                        finite_stars=finite_seeds,
+                    )
+                ),
+                "registered_v4r6_seed_unchanged": True,
+            }
+        print(
+            f"built {args.arm} seeds for {int(indices.size)} stars "
+            f"({int(np.count_nonzero(finite_seeds))} finite"
+            f", convection={include_convection})",
+            flush=True,
+        )
     else:
         if args.arm in {"parity", "parity_polytrope"} and PARITY_PARAMETER_ASSET.is_file():
             parameters = load_compact_profile_parameters(PARITY_PARAMETER_ASSET)
@@ -734,6 +1105,7 @@ def main(argv: list[str] | None = None) -> int:
         jsonl_path=jsonl_path,
         resume=bool(args.resume),
         product_dir=args.product_dir,
+        iterations_per_trial=int(args.iterations),
     )
 
     result = {
@@ -744,7 +1116,7 @@ def main(argv: list[str] | None = None) -> int:
         "split_seed": split.seed,
         "seed": 20260817,
         "requested_count": int(args.count),
-        "iterations_per_trial": ITERATIONS_PER_TRIAL,
+        "iterations_per_trial": int(args.iterations),
         "per_star_timeout_seconds": float(args.per_star_timeout),
         "excluded_count": int(excluded.size),
         "excluded_manifests": used_manifests,
@@ -754,6 +1126,11 @@ def main(argv: list[str] | None = None) -> int:
         "records": records,
         **_summarize(records),
     }
+    if args.arm in ("textbook_v4r6_grey", "textbook_v4r6_decoupled"):
+        result["teff_split"] = _teff_split_summary(records)
+    if args.arm == "textbook_v4r6_decoupled":
+        result["gravity_split"] = _gravity_split_summary(records)
+        result["status"] = "development_only"
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(

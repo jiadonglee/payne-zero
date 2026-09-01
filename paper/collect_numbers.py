@@ -134,16 +134,104 @@ SOURCES: dict[str, str] = {
     "analytic_parameter_asset": (
         "results/analytic_initializer/compact_profile_parameters_parity.npz"
     ),
+    # -- zero-fit first-principles v4r6 development diagnostic ------------
+    "vfour_seed_audit": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_decoupled_seed_audit_20260828.json"
+    ),
+    "vfour_decoupled_fifteen": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_decoupled_dev60_20260828.json"
+    ),
+    "vfour_decoupled_policy": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_decoupled_dev60_policy60_20260829.json"
+    ),
+    "vfour_grey_policy": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_grey_dev60_policy60_20260829.json"
+    ),
+    "vfour_convective_policy": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_convective_dev60_policy60_20260829.json"
+    ),
+    "vfour_matched_score": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_policy60_matched_dev60_20260829.json"
+    ),
+    "vfour_offline": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_offline_validation_20260828.json"
+    ),
+    "vfour_policy_source_manifest": (
+        "results/analytic_initializer/"
+        "textbook_opacity_v4r6_policy60_source_manifest_20260829.json"
+    ),
+    # -- complete emulator-independent initializer evaluation -------------
+    "grey_campaign": "results/paper_grey_convective_20260829/campaign.json",
+    "grey_source_manifest": (
+        "results/paper_grey_convective_20260829/source_manifest.json"
+    ),
+    "grey_output_manifest": (
+        "results/paper_grey_convective_20260829/output_manifest.json"
+    ),
+    "grey_dev_seed": (
+        "results/paper_grey_convective_20260829/development/seed_summary.json"
+    ),
+    "grey_dev_replay": (
+        "results/paper_grey_convective_20260829/development/replay_check.json"
+    ),
+    "grey_dev_solver": (
+        "results/paper_grey_convective_20260829/development/solver.json"
+    ),
+    "grey_dev_summary": (
+        "results/paper_grey_convective_20260829/development/summary.json"
+    ),
+    "grey_dev_profiles": (
+        "results/paper_grey_convective_20260829/development/profile_metrics.json"
+    ),
+    "grey_dev_spectra": (
+        "results/paper_grey_convective_20260829/development/spectral_gate.json"
+    ),
+    "grey_post_seed": (
+        "results/paper_grey_convective_20260829/posthoc200/seed_summary.json"
+    ),
+    "grey_post_solver": (
+        "results/paper_grey_convective_20260829/posthoc200/solver.json"
+    ),
+    "grey_post_summary": (
+        "results/paper_grey_convective_20260829/posthoc200/summary.json"
+    ),
+    "grey_post_profiles": (
+        "results/paper_grey_convective_20260829/posthoc200/profile_metrics.json"
+    ),
+    "grey_post_spectra": (
+        "results/paper_grey_convective_20260829/posthoc200/spectral_gate.json"
+    ),
     # -- Sect. 5.6  what the 5e-3 bar means --------------------------------
     "jitter": "results/convergence_metrics_production_jitter.json",
     "gate_jitter": "results/spectral_gate_jitter_control.json",
     # -- Sect. 5.7  the sealed blind test ----------------------------------
     "blind": ("results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
-              "blind200_physical_seed/summary.json"),
+              "blind200/summary.json"),
     "blind_profile": ("results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
                       "blind200/profile_gate.json"),
+    "blind_base_prediction": (
+        "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
+        "blind200/base.npz"
+    ),
+    "blind_final_prediction": (
+        "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
+        "blind200/final.npz"
+    ),
     "blind_spectra": ("results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
-                      "blind200_physical_seed/spectral_gate.json"),
+                      "blind200/spectral_gate.json"),
+    "blind_open": ("results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
+                   "blind200_physical_seed/summary.json"),
+    "blind_open_spectra": (
+        "results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
+        "blind200_physical_seed/spectral_gate.json"
+    ),
     "blind_production": ("results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
                          "blind200/summary.json"),
     "dev60_profile": ("results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
@@ -153,92 +241,164 @@ SOURCES: dict[str, str] = {
     # -- per-star blind solver records, for the paired iteration statistic --
     "blind_cand_records": ("runs/reduced_state_emulator/"
                            "solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
-                           "blind200_physical_seed/records/learned_reduced_state/records.jsonl"),
+                           "blind200/records/learned_reduced_state/records.jsonl"),
+    "blind_open_records": ("runs/reduced_state_emulator/"
+                           "solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
+                           "blind200_physical_seed/records/"
+                           "learned_reduced_state/records.jsonl"),
     "blind_prod_records": ("runs/reduced_state_emulator/"
                            "solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
                            "blind200/production_records/production_six_field/records.jsonl"),
     "blind_manifest": "results/sealed_audit_20260811.json",
     "dev60_gate": ("results/solver_in_loop_k1_qualified_tail3_profile_rescue_v4/"
                    "dev60_solver/spectral_gate.json"),
+    # -- bounded native-MARCS M-star science case ------------------------
+    "mstar_cases": "results/m_star_science_case_v1/cases.json",
 }
 
 # Human-readable descriptions for the provenance appendix.
 SOURCE_CAPTIONS: dict[str, str] = {
-    "training": "two-field emulator training record and held-out accuracy",
-    "baseline": "solver baseline by label slice",
+    "training": "two-field emulator training and validation summary",
+    "baseline": "six-field reference convergence by label distribution",
     "recon": (
-        "physical-seed rematerialization parity from converged $(m,T)$ profiles"
+        "dependent profiles reconstructed from converged $(m,T)$"
     ),
     "parity": (
-        "physical-seed solver restart from converged $(m,T)$ profiles and "
-        "from the six-field truth"
+        "solver convergence from reconstructed $(m,T)$ profiles and "
+        "from the reference atmosphere"
     ),
     "parity_reduced_records": (
-        "per-star physical-seed restart records from converged $(m,T)$"
+        "per-star convergence records from reconstructed $(m,T)$"
     ),
-    "parity_truth_records": "per-star restart records from the six-field truth",
+    "parity_truth_records": "per-star convergence records from the reference atmosphere",
     "gate_truth": (
-        "physical-seed spectral gate, converged $(m,T)$ profiles against "
-        "six-field truth"
+        "spectral comparison of reconstructed $(m,T)$ and six-field atmospheres"
     ),
-    "resolution": "physical-seed representation-resolution scan",
+    "resolution": "dependence of reconstruction on depth-grid resolution",
     "continuity": "depth-grid refinement and top-boundary seed survey",
     "corpus": "converged-atmosphere corpus (seed-residual rank correlation)",
-    "learned": "physical-seed solver restart from the learned two-field emulator",
+    "learned": "solver convergence from the learned two-field initializer",
     "learned_records": (
-        "per-star physical-seed solver records for the learned two-field arm"
+        "per-star convergence records for the learned two-field initializer"
     ),
-    "production": "solver restart from the released six-field initializer",
+    "production": "solver restart from the six-field initializer",
     "production_records": (
-        "per-star solver records for the frozen released six-field arm"
+        "per-star convergence records for the six-field initializer"
     ),
     "derived_learned": (
-        "dependent-field errors, learned two-field + physical-seed rematerialization"
+        "dependent-field errors after learned two-field reconstruction"
     ),
     "derived_learned_summary": (
-        "successful and failed physical rematerializations in the dependent-field run"
+        "successful and unsuccessful physical reconstructions"
     ),
     "derived_production": "dependent-field errors, six fields predicted directly",
-    "gate_learned": (
-        "physical-seed spectral gate, learned two-field against production"
-    ),
+    "gate_learned": "spectral comparison of learned two-field and six-field states",
     "analytic_comparison": (
-        "same-star physical-seed learned two-field versus analytic-parity comparison"
+        "same-star learned two-field and analytic-initializer comparison"
     ),
     "analytic_comparison_arrays": (
-        "physical-seed learned arm and paired iterations for the analytic "
+        "learned and analytic profile arrays and paired iterations for the "
         "comparison figure"
     ),
-    "physical_campaign": (
-        "node08 campaign manifest for the six-field-checkpoint-free refresh"
+    "physical_campaign": "computational record for the physical-reconstruction calculations",
+    "learned_checkpoint_asset": "learned two-field model parameters",
+    "analytic_parameter_asset": "analytic-initializer parameters",
+    "vfour_seed_audit": (
+        "finite-profile checks for the grey--convective initialization"
     ),
-    "learned_checkpoint_asset": "frozen learned two-field runtime checkpoint",
-    "analytic_parameter_asset": "frozen analytic-parity parameter asset",
+    "vfour_decoupled_fifteen": (
+        "grey--convective initialization with a 15-iteration limit"
+    ),
+    "vfour_decoupled_policy": (
+        "grey--convective initialization with a 60-iteration limit"
+    ),
+    "vfour_grey_policy": (
+        "grey initialization with a 60-iteration limit"
+    ),
+    "vfour_convective_policy": (
+        "coupled convective initialization with a 60-iteration limit"
+    ),
+    "vfour_matched_score": (
+        "paired convergence comparison of the three physical initializations"
+    ),
+    "vfour_offline": (
+        "opacity and mass-column accuracy of the physical initialization"
+    ),
+    "vfour_policy_source_manifest": (
+        "source and computing environment for the physical comparison"
+    ),
+    "grey_campaign": (
+        "complete emulator-independent initializer evaluation record"
+    ),
+    "grey_source_manifest": (
+        "frozen source, samples, solver settings, and computing environments"
+    ),
+    "grey_output_manifest": (
+        "SHA-256 inventory of all emulator-independent evaluation outputs"
+    ),
+    "grey_dev_seed": "finite physical seeds on the 60-star development sample",
+    "grey_dev_replay": "strict reproduction of the frozen development result",
+    "grey_dev_solver": (
+        "full development-sample solver outcomes and iteration diagnostics"
+    ),
+    "grey_dev_summary": (
+        "development convergence, iteration, profile, and spectral summary"
+    ),
+    "grey_dev_profiles": (
+        "physical seed and converged-atmosphere profile errors on development stars"
+    ),
+    "grey_dev_spectra": (
+        "physical-initializer spectral differences on development stars"
+    ),
+    "grey_post_seed": "finite physical seeds on the opened 200-star sample",
+    "grey_post_solver": (
+        "full post-hoc solver outcomes and iteration diagnostics"
+    ),
+    "grey_post_summary": (
+        "post-hoc convergence, iteration, profile, and spectral summary"
+    ),
+    "grey_post_profiles": (
+        "physical seed and converged-atmosphere profile errors on the opened sample"
+    ),
+    "grey_post_spectra": (
+        "physical-initializer spectral differences on the opened sample"
+    ),
     "giant_learned": (
-        "Fig. 3 red giant, converged spectrum from the physical-seed learned start"
+        "Fig. 3 red giant, spectrum from the learned two-field initialization"
     ),
     "giant_released": (
-        "Fig. 3 red giant, refreshed spectrum from the frozen released product"
+        "Fig. 3 red giant, spectrum from the six-field reference"
     ),
-    "jitter": "solver restart from production's own retry start",
-    "gate_jitter": "spectral gate, production against its own retry start",
-    "blind": (
-        "2026-08-19 physical-seed rerun of the previously sealed 200-star "
-        "holdout after it was opened, candidate-arm summary"
+    "jitter": "reference-solver convergence from an alternate accepted start",
+    "gate_jitter": "spectral start dependence of the reference solver",
+    "blind": "frozen two-field results on the independent 200-star sample",
+    "blind_profile": "profile accuracy on the independent 200-star sample",
+    "blind_base_prediction": "base two-field prediction on the independent sample",
+    "blind_final_prediction": (
+        "frozen corrected two-field prediction on the independent sample"
     ),
-    "blind_profile": "sealed 200-star blind test, profile gate",
-    "blind_spectra": (
-        "2026-08-19 post-opening physical-seed rerun, spectral gate"
+    "blind_spectra": "spectral accuracy on the independent 200-star sample",
+    "blind_open": (
+        "post-hoc reconstruction-seed check on the opened 200-star sample"
     ),
-    "blind_production": "2026-08-11 sealed blind test, released production arm (unchanged)",
-    "dev60_profile": "development-60 profile qualification of the frozen candidate",
-    "frozen_policy": "frozen policy record, sealed before the holdout was opened",
+    "blind_open_spectra": (
+        "spectral result of the post-hoc reconstruction-seed check"
+    ),
+    "blind_production": "six-field reference on the independent 200-star sample",
+    "dev60_profile": "development-sample profile accuracy of the final two-field model",
+    "frozen_policy": "final two-field model configuration fixed before testing",
     "blind_cand_records": (
-        "post-opening physical-seed rerun, candidate solver convergence record"
+        "two-field convergence records on the independent sample"
     ),
-    "blind_prod_records": "sealed blind test, released initializer convergence record",
-    "blind_manifest": "sealed 200-star holdout selection manifest",
-    "dev60_gate": "development-60 spectral qualification of the frozen candidate",
+    "blind_open_records": (
+        "two-field convergence records for the post-hoc reconstruction-seed check"
+    ),
+    "blind_prod_records": "six-field convergence records on the independent sample",
+    "blind_manifest": "selection record for the independent 200-star sample",
+    "dev60_gate": "development-sample spectral accuracy of the final two-field model",
+    "mstar_cases": (
+        "temperature and gravity dependence across eight native-MARCS M-star atmospheres"
+    ),
 }
 
 
@@ -529,48 +689,36 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         raise SystemExit("campaign manifest does not freeze the two-field predictor")
     if "reused frozen" not in campaign.get("production_arm", ""):
         raise SystemExit("campaign manifest does not freeze the production arm")
-    policy0 = art("frozen_policy")
     analytic_comparison = art("analytic_comparison")
     analytic_arrays = art("analytic_comparison_arrays")
     _validate_analytic_comparison_arrays(analytic_comparison, analytic_arrays)
-    for asset_name in ("learned_checkpoint_asset", "analytic_parameter_asset"):
+    for asset_name in (
+        "learned_checkpoint_asset",
+        "analytic_parameter_asset",
+        "vfour_policy_source_manifest",
+    ):
         art.hashes[asset_name] = sha256(REPO / SOURCES[asset_name])
-    blind_hash = policy0["components"][0]["sha256"][:12]
-    mono_hash = art.hashes["learned_checkpoint_asset"][:12]
-    analytic_hash = art.hashes["analytic_parameter_asset"][:12]
-    col = (r">{\raggedright\arraybackslash}p{0.155\hsize}"
-           r">{\raggedright\arraybackslash}p{0.15\hsize}"
-           r">{\raggedright\arraybackslash}p{0.24\hsize}"
-           r">{\raggedright\arraybackslash}p{0.25\hsize}"
-           r">{\raggedright\arraybackslash}p{0.115\hsize}")
+    col = (r">{\raggedright\arraybackslash}p{0.17\hsize}"
+           r">{\raggedright\arraybackslash}p{0.19\hsize}"
+           r">{\raggedright\arraybackslash}p{0.29\hsize}"
+           r">{\raggedright\arraybackslash}p{0.27\hsize}")
     tables["tab_families.tex"] = table_env(
         label="tab:families",
         caption=(
-            "The four initializer families compared in this paper. The released "
-            "six-field network is the Paper~I production model and predicts all "
-            "six fields directly; the two-field emulator predicts only the two "
-            "coordinates and derives the rest through the physics path; the "
-            "analytic-parity arm replaces the neural checkpoint by a compact "
-            "formula for temperature and opacity and integrates column mass; the "
-            "frozen blind candidate adds a bounded one-step solver correction "
-            "and a local rescue term on top of a retrained two-field base. "
-            r"$^{\dagger}$The candidate is a three-component policy; the hash "
-            "listed is its two-field base checkpoint, and the adapter hashes are "
-            "recorded in the frozen-policy artifact. "
-            "Hashes are the first 12 hexadecimal digits of the SHA-256 of the "
-            "checkpoint file; full values are in "
-            r"\texttt{paper/numbers.json}."),
+            "Initialization methods and the evidence available for each. "
+            "The independent-test model uses the radial-basis corrections "
+            "defined in Sect.~\\ref{sec:learned}; the grey--convective "
+            "construction contains no fitted atmospheric profiles."),
         colspec=col,
-        header=(r"Family & Input $\rightarrow$ output & Training & "
-                r"Experiments & Hash \\"),
+        header=(r"Initialization & Input $\rightarrow$ state & Fitted information & "
+                r"Evidence \\"),
         rows=[
             " & ".join([
-                r"Released six-field (Paper~I)",
+                r"Six-field (Paper~I)",
                 r"5 labels $\rightarrow$ 6 fields, direct",
                 r"Paper~I; not retrained here",
-                (r"production baseline of Tables~\ref{tab:baseline}, "
+                (r"reference in Tables~\ref{tab:baseline}, "
                  r"\ref{tab:learned} and \ref{tab:blind}"),
-                r"---",
             ]) + r" \\",
             " & ".join([
                 r"Two-field emulator (this work)",
@@ -578,38 +726,42 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
                  r"\log_{10} T)$, monotone increments of "
                  r"Eq.~(\ref{eq:monotone})"),
                 (r"\NnetDepth$\times$\NnetWidth\ SiLU network; "
-                 r"Adam, cosine schedule, batch 256, \NnetEpochs\ "
-                 r"epochs, seed \NtrainSeed; \NtrainStars\ training "
-                 r"and \NvalStars\ validation rows, development-60 "
-                 r"excluded"),
-                (r"learned arm of Tables~\ref{tab:fields}, "
-                 r"\ref{tab:learned} and \ref{tab:monotone}"),
-                r"\texttt{" + mono_hash + "}",
+                 r"\NtrainStars\ training and \NvalStars\ validation "
+                 r"atmospheres; development stars excluded"),
+                (r"development comparisons in Tables~\ref{tab:fields}, "
+                 r"\ref{tab:learned}"),
             ]) + r" \\",
             " & ".join([
-                r"Analytic-parity formula (this work)",
+                r"Fitted analytic formula (this work)",
                 (r"5 labels $\rightarrow$ $(T,\kappa_{\rm R})$; "
                  r"$m$ from ${\rm d}m/{\rm d}\tau=1/\kappa_{\rm R}$"),
                 (r"\NanalyticTrainStars/\NanalyticValStars\ train/validation "
                  r"rows; three $T_{\rm eff}$ regimes, cubic labels and five "
-                 r"Chebyshev depth modes; \NanalyticConstants\ logical floats "
-                 r"(\NanalyticSerializedFloats\ float and "
-                 r"\NanalyticIntegerEntries\ structural integer entries in the "
-                 r"current NPZ)"),
-                (r"profile and development-60 solver comparison in "
-                 r"Table~\ref{tab:analytic}; no spectral or blind test"),
-                r"\texttt{" + analytic_hash + "}",
+                 r"Chebyshev depth modes; \NanalyticConstants\ floating-point "
+                 r"coefficients and fixed constants"),
+                (r"profile and development-sample solver comparison in "
+                 r"Table~\ref{tab:analytic}; no spectral or independent test"),
             ]) + r" \\",
             " & ".join([
-                r"Frozen blind candidate (this work)$^{\dagger}$",
-                r"two-field base + bounded one-step solver correction "
-                r"+ local rescue term",
-                (r"retrained on the training rows with the development-60 and "
-                 r"sealed-200 rows excluded; frozen 2026-08-11, selection seed "
-                 r"\NblindSelectionSeed"),
-                (r"blind arm of Table~\ref{tab:blind} and "
+                r"Grey--convective physical model",
+                (r"5 labels $\rightarrow m_{\rm grey},T_{\rm conv},"
+                 r"\kappa_{\rm R}$; no post-convection mass reintegration"),
+                (r"no fitted profiles; approximate opacity, hydrostatic "
+                 r"$P=gm_{\rm grey}$ and Saha-aware convective temperature"),
+                (r"development-sample comparison in "
+                 r"Fig.~\ref{fig:vfour}; convergence in "
+                 r"Table~\ref{tab:physical_initializer}; post-hoc 200-star "
+                 r"comparison and paired spectra"),
+            ]) + r" \\",
+            " & ".join([
+                r"Independent-test two-field model",
+                r"two-field base + two label-local radial-basis corrections",
+                (r"base retrained without the development or independent-test "
+                 r"rows; a three-centre $\sigma=0.30$ one-step correction and "
+                 r"a 20-centre $\sigma=0.08$ profile correction, all fixed "
+                 r"before testing"),
+                (r"independent test in Table~\ref{tab:blind} and "
                  r"Fig.~\ref{fig:blind}"),
-                r"\texttt{" + blind_hash + "}",
             ]) + r" \\",
         ],
         wide=True,
@@ -624,17 +776,17 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     tables["tab_analytic_structure.tex"] = table_env(
         label="tab:analytic-structure",
         caption=(
-            "Parameter structure of the analytic-parity formula. Each closure "
+            "Parameterization of the fitted analytic formula. Each closure "
             "uses three effective-temperature regimes and "
             f"{integer(analytic_breakdown['label_polynomial_terms_per_regime'])} "
             "complete cubic label terms per regime. The two closures share the "
-            "same five-label centering and scaling. Negative storage denotes "
-            "deduplication, not a fitted correction; the total is the logical "
-            "float count when the shared normalization is counted once."),
+            "same ten label-centering and scaling constants. The total counts "
+            "these shared constants once and includes eleven constants that "
+            "define the support and enforce monotonicity."),
         colspec="llrrrrr",
         header=(
             r"Component & Fitted target & Label degree & Modes & "
-            r"Mean degree & Mode degree & Logical floats \\"
+            r"Mean degree & Mode degree & Float parameters \\"
         ),
         rows=[
             " & ".join([
@@ -656,11 +808,7 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
                 integer(analytic_breakdown["opacity_closure_raw"]),
             ]) + r" \\",
             " & ".join([
-                "Shared label scaling", "---", "---", "---", "---", "---",
-                integer(analytic_breakdown["shared_label_scaling_deduplicated"]),
-            ]) + r" \\",
-            " & ".join([
-                "Support and guards", "---", "---", "---", "---", "---",
+                "Support and monotonicity", "---", "---", "---", "---", "---",
                 integer(analytic_breakdown["support_and_monotonicity_guards"]),
             ]) + r" \\",
             " & ".join([
@@ -721,10 +869,10 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     tables["tab_baseline.tex"] = table_env(
         label="tab:baseline",
         caption=(
-            "Behavior of the unmodified solver started from the released six-field "
-            "initializer. The solver and the initializer are identical in every row; "
-            "only the label sampling differs, that is, how the five labels of the "
-            "requested stars were drawn from the support of Sect.~\\ref{sec:data}. "
+            "Convergence from the Paper~I six-field initializer for different "
+            "stellar-label distributions. The solver and initializer are "
+            "identical in every row; only the sampling within the support of "
+            "Sect.~\\ref{sec:data} differs. "
             "\\emph{Uniform box} draws each label uniformly over that support, which "
             "covers the box rather than the stellar locus and so includes combinations "
             "no real star occupies; \\emph{IID from corpus} resamples whole corpus rows "
@@ -732,10 +880,9 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
             "trained on; \\emph{label-box boundary} pins at least one label within "
             "5\\% of a face of that support; \\emph{low gravity, metal poor} samples "
             "uniformly inside $\\log g \\in [0.7, 2.8]$, $[\\rm M/H] \\in [-2.5, -0.5]$. "
-            "Iteration counts are "
-            "over converging trials; $q$ is the geometric-mean ratio of successive "
-            "temperature residuals, so $q<1$ is contraction. The sampling, not the "
-            "solver, sets the failure rate."),
+            "Iteration counts include converged calculations only; $q$ is the "
+            "geometric-mean ratio of successive temperature residuals, with "
+            "$q<1$ indicating contraction."),
         colspec="lrrrrrrr",
         header=(r"Label sampling & $N$ & Converged & Failed & Iterations & $p_{90}$ "
                 r"& $q$ & Non-monotonic \\"),
@@ -771,11 +918,9 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     tables["tab_reconstruction.tex"] = table_env(
         label="tab:reconstruction",
         caption=(
-            "Relative error of the four rematerialized fields when the two coordinates "
-            "are the converged values, over "
-            r"\NevalStars\ stars and \NgridLayers\ layers. The physics path alone "
-            "contributes this much; Sect.~\\ref{sec:learned} shows the learned "
-            "predictor contributes an order of magnitude more."),
+            "Relative errors of the four dependent fields reconstructed from "
+            "the converged column-mass and temperature profiles, evaluated "
+            r"over \NevalStars\ stars and \NgridLayers\ depth points."),
         colspec="lrrr",
         header=r"Field & Median & $p_{90}$ & Maximum \\",
         rows=rows,
@@ -786,6 +931,16 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         stem = "".join(part.capitalize() for part in key.split("_"))
         macros.add(f"NoracleRecon{stem}", recon[key]["median_overall"],
                    sci(recon[key]["median_overall"]), "recon")
+    recon_p90 = [recon[key]["p90_overall"] for key, _ in FIELD_KEYS]
+    recon_max = [recon[key]["max_overall"] for key, _ in FIELD_KEYS]
+    macros.add("NreconPninetyLow", min(recon_p90),
+               sci(min(recon_p90)), "recon")
+    macros.add("NreconPninetyHigh", max(recon_p90),
+               sci(max(recon_p90)), "recon")
+    macros.add("NreconMaximumLow", min(recon_max),
+               sci(min(recon_max)), "recon")
+    macros.add("NreconMaximumHigh", max(recon_max),
+               sci(max(recon_max)), "recon")
 
     # ---- Table 3: restart from converged (m,T) vs the six-field truth -----
     parity = art("parity")
@@ -810,12 +965,12 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     tables["tab_oracle_restart.tex"] = table_env(
         label="tab:oracle",
         caption=(
-            "Restarting the unmodified solver from an atmosphere rebuilt from the two "
-            "coordinates alone, against one that kept all six fields. Both arms begin "
-            "inside the convergence threshold, so their $q$ and non-monotonic fractions "
-            "describe noise-floor behavior and must not be compared with arms that "
-            "start an order of magnitude further out (Sect.~\\ref{sec:learned}). The "
-            "last column counts stars held only by the three-iteration floor."),
+            "Convergence from atmospheres reconstructed from exact $(m,T)$ and "
+            "from the original six-field converged states. Both initializations "
+            "begin within the convergence threshold; their $q$ and non-monotonic "
+            "fractions therefore describe numerical behavior near the fixed "
+            "point. The last column gives the number of stars at the minimum "
+            "of three iterations."),
         colspec="lrrrrrrr",
         header=(r"Restart from & Conv. & Iterations & $p_{90}$ & $q$ & Non-mono. "
                 r"& First residual & At floor \\"),
@@ -911,8 +1066,8 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         label="tab:resolution",
         caption=(
             "The converged $(m,T)$ curves are round-tripped through an intermediate "
-            "logarithmic optical-depth grid of $N$ points and back onto the production "
-            "grid before rematerialization, so that only the fidelity of the "
+            "logarithmic optical-depth grid of $N$ points and back onto the atmosphere "
+            "grid before physical reconstruction, so that only the fidelity of the "
             "representation changes. Representation error is the median relative error "
             "in column mass; $N=\\NgridLayers$ is the identity. Restart behavior "
             "remains near the three-iteration floor across the scan."),
@@ -968,6 +1123,16 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         rows=rows,
         wide=True,
     )
+    continuity_base = scan["1"]["top_layer_residual_dex"]
+    continuity_refined = scan["16"]["top_layer_residual_dex"]
+    macros.add("NcontinuityBasePninetyNine", continuity_base["p99"],
+               dec(continuity_base["p99"], 5), "continuity")
+    macros.add("NcontinuityRefinedPninetyNine", continuity_refined["p99"],
+               dec(continuity_refined["p99"], 5), "continuity")
+    macros.add("NcontinuityBaseMax", continuity_base["max"],
+               dec(continuity_base["max"], 5), "continuity")
+    macros.add("NcontinuityRefinedMax", continuity_refined["max"],
+               dec(continuity_refined["max"], 5), "continuity")
     seed = continuity["seed_survey"]
     macros.add("NseedMedian", seed["residual_dex"]["median"],
                sci(seed["residual_dex"]["median"]), "continuity")
@@ -1097,17 +1262,12 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         label="tab:fields",
         caption=(
             "Median relative error of the four dependent fields over the "
-            r"development sample and \NgridLayers\ layers. The learned row uses its "
-            r"\NderivedLearnedStars\ successful rematerializations; "
-            r"\NderivedLearnedFailures\ reconstruction failure is retained in the "
-            r"solver accounting but has no dependent-field profile to score. The "
-            "second row is "
-            "the primary comparison against the first: two predicted fields plus "
-            "physics beat six predicted fields on every one of them. The third row is an "
-            "oracle and bounds what the physics path alone can deliver, which localizes "
-            "the entire remaining gap in the two-field predictor. All three rows use the "
-            "same requested held-out sample, and the first two use the same checkpoints as "
-            r"Table~\ref{tab:learned}."),
+            r"development sample and \NgridLayers\ depth points. The learned "
+            r"row contains the \NderivedLearnedStars\ successful physical "
+            r"reconstructions; the remaining \NderivedLearnedFailures\ case "
+            "has no complete dependent-field profile. The exact-$(m,T)$ row "
+            "quantifies the numerical accuracy of the physical reconstruction. "
+            "All rows refer to the same sampled stars."),
         colspec="lrrrr",
         header=(r"Source of the four fields & $P_{\mathrm{gas}}$ & $n_{\mathrm{e}}$ "
                 r"& $\kappa_{\mathrm{R}}$ & $g_{\mathrm{rad}}$ \\"),
@@ -1134,7 +1294,7 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
                integer(derived("derived_learned", "gas_pressure")
                        / recon["gas_pressure"]["median_overall"]), "derived_learned")
 
-    # ---- Table 7: learned two-field against the released initializer -----
+    # ---- Table 7: learned two-field against the six-field initializer -----
     learned = art("learned")
     production = art("production")
     jitter = art("jitter")
@@ -1165,9 +1325,9 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         learned_restart["converged_count"] / learned["star_count"]
     )
     solver_rows = [
-        ("Released six-field initializer", production["production_six_field"]),
+        ("Six-field initializer", production["production_six_field"]),
         ("Learned two-field + physics", learned_restart),
-        ("Production's own retry start", jitter["production_jitter"]),
+        ("Six-field, alternate converged start", jitter["production_jitter"]),
     ]
     rows = []
     for title, arm in solver_rows:
@@ -1185,15 +1345,14 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     tables["tab_learned_solver.tex"] = table_env(
         label="tab:learned",
         caption=(
-            r"The unmodified solver restarted from three initializations, on the same "
-            r"\NevalStars\ held-out stars under the production policy. All three begin "
-            "at a comparable distance from the fixed point, so unlike "
-            r"Table~\ref{tab:oracle} the contraction columns are directly comparable. "
-            "The learned start is further from truth than production and still converges "
-            "faster with a third of the oscillation. The learned arm is the "
-            r"\NnetDepth$\times$\NnetWidth\ monotone network of "
-            r"Sect.~\ref{sec:learned}, not the later frozen policy of "
-            r"Table~\ref{tab:blind}."),
+            r"Convergence from three initializations on the same \NevalStars\ "
+            "development stars. All begin at comparable initial residuals, so "
+            "their contraction statistics can be compared directly. The "
+            "learned two-field model is the "
+            r"\NnetDepth$\times$\NnetWidth\ monotone network described in "
+            r"Sect.~\ref{sec:learned}; the independently tested model in "
+            r"Table~\ref{tab:blind} includes the radial-basis corrections of "
+            r"Sect.~\ref{sec:learned}."),
         colspec="lrrrrrrr",
         header=(r"Restart from & Conv. & Iterations & $p_{90}$ & $p_{99}$ & $q$ "
                 r"& Non-mono. & First residual \\"),
@@ -1394,9 +1553,9 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
             dec(learned_solver["median_iterations_converged"], 1),
         ]) + r" \\",
         " & ".join([
-            r"Analytic-parity formula",
+            r"Fitted analytic formula",
             r"$(\delta_T,\log\kappa_{\rm R})\rightarrow m$",
-            thousands(analytic_serialized_floats),
+            thousands(analytic_floats),
             sci(analytic_profile["temperature_relative_p95"]),
             sci(analytic_profile["column_mass_dex_p95"]),
             (f"{integer(analytic_solver['converged_count'])}/"
@@ -1408,27 +1567,20 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     tables["tab_analytic_comparison.tex"] = table_env(
         label="tab:analytic",
         caption=(
-            "The learned and non-neural analytic initializers on the same "
-            "development-60 stars. Profile errors are pooled over all "
-            r"$\NevalStars\times\NgridLayers$ layer values. Formal post-handoff "
-            "iteration statistics use only converged stars; successfully "
-            "constructed starts receive one trial of at most "
-            r"\NanalyticIterationLimit\ iterations, while a pre-handoff "
-            "rematerialization failure counts as a non-convergence. This is not "
-            "end-to-end timing. The solver records come from separate campaigns, "
-            "not one contemporaneous executable. The learned count includes its "
-            "trainable weights and stored standardization arrays. The analytic "
-            "count is the current NPZ's float-entry count; it exceeds the "
-            r"\NanalyticConstants\ logical count by ten because the shared "
-            "label normalization is repeated for the two closures. Deterministic "
-            r"integer exponent tables contribute \NanalyticIntegerEntries\ "
-            "additional structural entries and are not counted as floating "
-            "entries. Timeouts are counted as "
-            "non-convergences. The analytic arm has no "
-            "spectral or sealed-blind evaluation."),
+            "Learned and analytic two-field initializers evaluated on the same "
+            "60 development stars. Profile errors are pooled over all "
+            r"$\NevalStars\times\NgridLayers$ depth points. Iteration "
+            "statistics include converged stars only; unsuccessful "
+            "reconstruction and timeouts are counted as non-convergences. "
+            "The parameter counts include independent floating-point "
+            "coefficients and constants; integer basis indices are not counted. "
+            "Solver calculations for the two methods were "
+            "performed separately, and no end-to-end timing, spectral "
+            "comparison, or independent-sample test is available for the "
+            "analytic method."),
         colspec="llrrrrrr",
         header=(
-            r"Initializer & Fitted profiles & Float entries & $T$ $p_{95}$ "
+            r"Initializer & Fitted profiles & Float parameters & $T$ $p_{95}$ "
             r"& $\log m$ $p_{95}$ & Converged & Mean iter. & Median \\"
         ),
         rows=rows,
@@ -1527,6 +1679,776 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         dec(paired_cmp["mean_analytic_minus_learned_iterations"], 2),
         "analytic_comparison",
     )
+
+    # ---- zero-fit first-principles v4r6 diagnostic ----------------------
+    vfour_seed = art("vfour_seed_audit")
+    vfour_historical = art("vfour_decoupled_fifteen")
+    vfour_decoupled = art("vfour_decoupled_policy")
+    vfour_grey = art("vfour_grey_policy")
+    vfour_convective = art("vfour_convective_policy")
+    vfour_score = art("vfour_matched_score")
+    vfour_offline = art("vfour_offline")
+
+    if vfour_seed.get("decision") != "PASS_STRUCTURAL":
+        raise SystemExit("v4r6 seed did not pass its frozen structural audit")
+    if vfour_seed["initializer_provenance"]["fitted_parameter_count"] != 0:
+        raise SystemExit("v4r6 manuscript arm is not zero-fit")
+    if vfour_offline.get("decision") != "FAIL_STOP":
+        raise SystemExit("v4r6 offline decision is no longer FAIL_STOP")
+    if vfour_historical.get("decision") != "FAIL_STOP_DEVELOPMENT":
+        raise SystemExit("v4r6 frozen 15-iteration decision changed")
+    if vfour_score.get("decision") != "STOP_POLICY60_MATCHED_DEVELOPMENT":
+        raise SystemExit("v4r6 matched policy60 decision changed")
+    if vfour_score.get("status") != "matched_development_characterization_complete":
+        raise SystemExit("v4r6 matched policy60 study is not complete")
+    if vfour_score.get("authorizes_fresh_open_execution") is not False:
+        raise SystemExit("v4r6 matched result unexpectedly authorizes fresh-open")
+    checks = vfour_score["gate"]["checks"]
+    failed_checks = {name for name, passed in checks.items() if not passed}
+    if failed_checks != {"cool_net_gain_vs_grey"}:
+        raise SystemExit(
+            f"v4r6 matched policy60 failed checks changed: {sorted(failed_checks)}"
+        )
+
+    vfour_arms = {
+        "Decoupled": ("vfour_decoupled_policy", vfour_decoupled),
+        "Grey": ("vfour_grey_policy", vfour_grey),
+        "Coupled convective": ("vfour_convective_policy", vfour_convective),
+    }
+    runtime_keys = (
+        "policy",
+        "trials",
+        "iterations",
+        "per_star_timeout_seconds",
+        "sample",
+        "sample_sha256",
+        "source_manifest",
+        "source_manifest_sha256",
+        "source_git_head",
+        "source_git_diff_sha256",
+        "hostname",
+        "operating_system",
+        "python",
+        "numpy",
+        "numba",
+        "environment",
+    )
+    runtime_signatures = []
+    for title, (source_name, payload) in vfour_arms.items():
+        if payload.get("status") != "policy60_matched_development_only":
+            raise SystemExit(f"v4r6 {title} is not a matched development arm")
+        runtime = payload["runtime_signature"]
+        runtime_signatures.append({key: runtime.get(key) for key in runtime_keys})
+        if runtime["source_manifest_sha256"] != art.hashes["vfour_policy_source_manifest"]:
+            raise SystemExit(f"v4r6 {title} source-manifest hash mismatch")
+        score_arm = vfour_score["arm_artifacts"][payload["arm"]]
+        if score_arm["sha256"] != art.hashes[source_name]:
+            raise SystemExit(f"v4r6 {title} result hash disagrees with score")
+    if not all(signature == runtime_signatures[0] for signature in runtime_signatures):
+        raise SystemExit("v4r6 policy60 runtime signatures are not matched")
+    if (
+        vfour_score["source_manifest_sha256"]
+        != art.hashes["vfour_policy_source_manifest"]
+    ):
+        raise SystemExit("v4r6 score source-manifest hash mismatch")
+
+    def vfour_summary(payload: dict) -> dict[str, float | int]:
+        records = payload["records"]
+        converged = [
+            row for row in records
+            if bool(row.get("converged"))
+            and row.get("iterations_completed") is not None
+        ]
+        iterations = [int(row["iterations_completed"]) for row in converged]
+        cool = [
+            row for row in records
+            if float(row["effective_temperature"]) < 7500.0
+        ]
+        hot = [
+            row for row in records
+            if float(row["effective_temperature"]) >= 7500.0
+        ]
+        return {
+            "stars": len(records),
+            "converged": len(converged),
+            "cool_stars": len(cool),
+            "cool_converged": sum(bool(row.get("converged")) for row in cool),
+            "hot_stars": len(hot),
+            "hot_converged": sum(bool(row.get("converged")) for row in hot),
+            "timeouts": sum(
+                str(row.get("solver_outcome")) == "timeout" for row in records
+            ),
+            "errors": sum(
+                str(row.get("solver_outcome")) == "error" for row in records
+            ),
+            "mean": float(sum(iterations) / len(iterations)),
+            "median": float(np.median(iterations)),
+            "max": max(iterations),
+            "above_fifteen": sum(value > 15 for value in iterations),
+            "late_first": min(
+                (value for value in iterations if value > 15),
+                default=0,
+            ),
+        }
+
+    vfour_stats = {
+        title: vfour_summary(payload)
+        for title, (_, payload) in vfour_arms.items()
+    }
+    for title, stats in vfour_stats.items():
+        if stats["stars"] != 60 or stats["cool_stars"] != 27 or stats["hot_stars"] != 33:
+            raise SystemExit(f"v4r6 {title} is not the frozen development-60 split")
+
+    rows = []
+    table_titles = {
+        "Decoupled": "Grey--convective",
+        "Grey": "Grey",
+        "Coupled convective": "Coupled convective",
+    }
+    for title in ("Decoupled", "Grey", "Coupled convective"):
+        stats = vfour_stats[title]
+        rows.append(" & ".join([
+            table_titles[title],
+            integer(vfour_decoupled["runtime_signature"]["iterations"]),
+            f"{integer(stats['converged'])}/{integer(stats['stars'])}",
+            f"{integer(stats['cool_converged'])}/{integer(stats['cool_stars'])}",
+            f"{integer(stats['hot_converged'])}/{integer(stats['hot_stars'])}",
+            f"{integer(stats['timeouts'])}/{integer(stats['errors'])}",
+            dec(stats["mean"], 2),
+            dec(stats["median"], 1),
+            integer(stats["max"]),
+        ]) + r" \\")
+    tables["tab_v4r6.tex"] = table_env(
+        label="tab:vfour",
+        caption=(
+            "Convergence of three physical initializations on the same 60 "
+            "development stars. Each calculation uses at most "
+            "60 iterations and a 900-s limit per star. Means and medians include "
+            "converged atmospheres only. The grey--convective construction "
+            "converges for three more cool stars than the grey construction, "
+            "while the corresponding gain over the full sample is two stars."),
+        colspec="lrrrrrrrr",
+        header=(
+            r"Initial state & Maximum iter. & All & Cool & Hot & Timeout/error & "
+            r"Mean iter. & Median & Max \\"
+        ),
+        rows=rows,
+        wide=True,
+        colsep=4.0,
+        size="small",
+    )
+
+    vfour_decoupled_stats = vfour_stats["Decoupled"]
+    vfour_grey_stats = vfour_stats["Grey"]
+    vfour_convective_stats = vfour_stats["Coupled convective"]
+    vfour_gate = vfour_offline["offline_gate"]
+    matched_gate = vfour_score["gate"]
+    macros.add(
+        "NvfourSeedStars",
+        vfour_seed["star_count"],
+        integer(vfour_seed["star_count"]),
+        "vfour_seed_audit",
+    )
+    macros.add(
+        "NvfourFittedParameters",
+        vfour_seed["initializer_provenance"]["fitted_parameter_count"],
+        integer(vfour_seed["initializer_provenance"]["fitted_parameter_count"]),
+        "vfour_seed_audit",
+    )
+    macros.add(
+        "NvfourHistoricalIterationLimit",
+        vfour_historical["iterations_per_trial"],
+        integer(vfour_historical["iterations_per_trial"]),
+        "vfour_decoupled_fifteen",
+    )
+    macros.add(
+        "NvfourHistoricalConverged",
+        vfour_historical["converged_count"],
+        integer(vfour_historical["converged_count"]),
+        "vfour_decoupled_fifteen",
+    )
+    macros.add(
+        "NvfourPolicyIterationLimit",
+        vfour_decoupled["runtime_signature"]["iterations"],
+        integer(vfour_decoupled["runtime_signature"]["iterations"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourPolicyTimeoutSeconds",
+        vfour_decoupled["runtime_signature"]["per_star_timeout_seconds"],
+        integer(vfour_decoupled["runtime_signature"]["per_star_timeout_seconds"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourMatchedStars",
+        vfour_decoupled_stats["stars"],
+        integer(vfour_decoupled_stats["stars"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourCoolStars",
+        vfour_decoupled_stats["cool_stars"],
+        integer(vfour_decoupled_stats["cool_stars"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourHotStars",
+        vfour_decoupled_stats["hot_stars"],
+        integer(vfour_decoupled_stats["hot_stars"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourDecoupledConverged",
+        vfour_decoupled_stats["converged"],
+        integer(vfour_decoupled_stats["converged"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourGreyConverged",
+        vfour_grey_stats["converged"],
+        integer(vfour_grey_stats["converged"]),
+        "vfour_grey_policy",
+    )
+    macros.add(
+        "NvfourConvectiveConverged",
+        vfour_convective_stats["converged"],
+        integer(vfour_convective_stats["converged"]),
+        "vfour_convective_policy",
+    )
+    macros.add(
+        "NvfourDecoupledCoolConverged",
+        vfour_decoupled_stats["cool_converged"],
+        integer(vfour_decoupled_stats["cool_converged"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourGreyCoolConverged",
+        vfour_grey_stats["cool_converged"],
+        integer(vfour_grey_stats["cool_converged"]),
+        "vfour_grey_policy",
+    )
+    macros.add(
+        "NvfourConvectiveCoolConverged",
+        vfour_convective_stats["cool_converged"],
+        integer(vfour_convective_stats["cool_converged"]),
+        "vfour_convective_policy",
+    )
+    macros.add(
+        "NvfourDecoupledHotConverged",
+        vfour_decoupled_stats["hot_converged"],
+        integer(vfour_decoupled_stats["hot_converged"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourGreyHotConverged",
+        vfour_grey_stats["hot_converged"],
+        integer(vfour_grey_stats["hot_converged"]),
+        "vfour_grey_policy",
+    )
+    macros.add(
+        "NvfourConvectiveHotConverged",
+        vfour_convective_stats["hot_converged"],
+        integer(vfour_convective_stats["hot_converged"]),
+        "vfour_convective_policy",
+    )
+    macros.add(
+        "NvfourDecoupledIterMean",
+        vfour_decoupled_stats["mean"],
+        dec(vfour_decoupled_stats["mean"], 2),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourGreyIterMean",
+        vfour_grey_stats["mean"],
+        dec(vfour_grey_stats["mean"], 2),
+        "vfour_grey_policy",
+    )
+    macros.add(
+        "NvfourConvectiveIterMean",
+        vfour_convective_stats["mean"],
+        dec(vfour_convective_stats["mean"], 2),
+        "vfour_convective_policy",
+    )
+    macros.add(
+        "NvfourDecoupledIterMedian",
+        vfour_decoupled_stats["median"],
+        dec(vfour_decoupled_stats["median"], 1),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourDecoupledIterMax",
+        vfour_decoupled_stats["max"],
+        integer(vfour_decoupled_stats["max"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourLateFirst",
+        vfour_decoupled_stats["late_first"],
+        integer(vfour_decoupled_stats["late_first"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourRecoveredLate",
+        vfour_decoupled_stats["above_fifteen"],
+        integer(vfour_decoupled_stats["above_fifteen"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourTimeouts",
+        vfour_decoupled_stats["timeouts"],
+        integer(vfour_decoupled_stats["timeouts"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourErrors",
+        vfour_decoupled_stats["errors"],
+        integer(vfour_decoupled_stats["errors"]),
+        "vfour_decoupled_policy",
+    )
+    macros.add(
+        "NvfourGainGreyAll",
+        matched_gate["paired_vs_grey"]["all"]["net_gain"],
+        integer(matched_gate["paired_vs_grey"]["all"]["net_gain"]),
+        "vfour_matched_score",
+    )
+    macros.add(
+        "NvfourGainGreyCool",
+        matched_gate["paired_vs_grey"]["cool"]["net_gain"],
+        integer(matched_gate["paired_vs_grey"]["cool"]["net_gain"]),
+        "vfour_matched_score",
+    )
+    macros.add(
+        "NvfourGainGreyHot",
+        matched_gate["paired_vs_grey"]["hot"]["net_gain"],
+        integer(matched_gate["paired_vs_grey"]["hot"]["net_gain"]),
+        "vfour_matched_score",
+    )
+    macros.add(
+        "NvfourGainConvectiveAll",
+        matched_gate["paired_vs_convective"]["all"]["net_gain"],
+        integer(matched_gate["paired_vs_convective"]["all"]["net_gain"]),
+        "vfour_matched_score",
+    )
+    macros.add(
+        "NvfourGainConvectiveCool",
+        matched_gate["paired_vs_convective"]["cool"]["net_gain"],
+        integer(matched_gate["paired_vs_convective"]["cool"]["net_gain"]),
+        "vfour_matched_score",
+    )
+    macros.add(
+        "NvfourCoolGainRequirement",
+        matched_gate["thresholds"]["cool_net_gain_vs_grey_min"],
+        integer(matched_gate["thresholds"]["cool_net_gain_vs_grey_min"]),
+        "vfour_matched_score",
+    )
+    macros.add(
+        "NvfourCoolMassPfive",
+        vfour_gate["cool_mass_observed_p95_dex"],
+        dec(vfour_gate["cool_mass_observed_p95_dex"], 3),
+        "vfour_offline",
+    )
+    macros.add(
+        "NvfourMiddleMassPfive",
+        vfour_gate["middle_mass_observed_p95_dex"],
+        dec(vfour_gate["middle_mass_observed_p95_dex"], 3),
+        "vfour_offline",
+    )
+    macros.add(
+        "NvfourMassGate",
+        vfour_gate["bridge_mass_p95_max_dex"],
+        dec(vfour_gate["bridge_mass_p95_max_dex"], 2),
+        "vfour_offline",
+    )
+
+    # ---- complete hydrostatic grey--convective evaluation ---------------
+    grey_campaign = art("grey_campaign")
+    grey_source = art("grey_source_manifest")
+    grey_output = art("grey_output_manifest")
+    grey_replay = art("grey_dev_replay")
+    if grey_campaign.get("campaign") != "paper_grey_convective_20260829":
+        raise SystemExit("wrong emulator-independent initializer campaign")
+    if grey_campaign.get("development_replay_matches") is not True:
+        raise SystemExit("development replay is not certified")
+    if grey_campaign.get("posthoc200_is_new_blind_test") is not False:
+        raise SystemExit("opened 200-star sample is mislabelled as a blind test")
+    if grey_replay.get("matches") is not True:
+        raise SystemExit("frozen 54/60 development result was not reproduced")
+    if grey_campaign["source_manifest_sha256"] != art.hashes["grey_source_manifest"]:
+        raise SystemExit("physical campaign source-manifest hash mismatch")
+    if grey_output["source_manifest_sha256"] != art.hashes["grey_source_manifest"]:
+        raise SystemExit("physical output inventory source hash mismatch")
+    policy = grey_source["policy"]
+    if (
+        policy["trials"] != 1
+        or policy["iterations"] != 60
+        or policy["per_star_timeout_seconds"] != 900.0
+        or policy["mass_reintegrated_after_convection"] is not False
+        or policy["requires_neural_checkpoint_at_runtime"] is not False
+    ):
+        raise SystemExit("physical initializer policy changed")
+
+    grey_payloads = {
+        "Development": {
+            "source": "grey_dev_summary",
+            "seed_source": "grey_dev_seed",
+            "solver_source": "grey_dev_solver",
+            "profile_source": "grey_dev_profiles",
+            "spectral_source": "grey_dev_spectra",
+        },
+        "Post-hoc 200": {
+            "source": "grey_post_summary",
+            "seed_source": "grey_post_seed",
+            "solver_source": "grey_post_solver",
+            "profile_source": "grey_post_profiles",
+            "spectral_source": "grey_post_spectra",
+        },
+    }
+    physical_table_rows = []
+    for title, names in grey_payloads.items():
+        summary = art(names["source"])
+        seed = art(names["seed_source"])
+        solver = art(names["solver_source"])
+        profiles = art(names["profile_source"])
+        spectra = art(names["spectral_source"])
+        expected = 60 if title == "Development" else 200
+        records = solver["records"]
+        reference_source = (
+            "production_records"
+            if title == "Development"
+            else "blind_prod_records"
+        )
+        reference_records = load_jsonl_records(art, reference_source)
+        common_rows = [
+            (row, reference_records[row["slug"]])
+            for row in records
+            if bool(row["converged"])
+            and row["slug"] in reference_records
+            and bool(reference_records[row["slug"]]["converged"])
+        ]
+        common_physical_iterations = np.asarray(
+            [row["iterations_completed"] for row, _ in common_rows],
+            dtype=float,
+        )
+        common_reference_iterations = np.asarray(
+            [
+                reference["converging_trial_iterations"]
+                for _, reference in common_rows
+            ],
+            dtype=float,
+        )
+        indices = [int(row["corpus_index"]) for row in records]
+        if (
+            summary["star_count"] != expected
+            or seed["star_count"] != expected
+            or solver["star_count"] != expected
+            or len(records) != expected
+            or len(set(indices)) != expected
+        ):
+            raise SystemExit(f"{title} physical sample coverage changed")
+        if (
+            seed["finite_seed_count"] != expected
+            or seed["positive_seed_count"] != expected
+        ):
+            raise SystemExit(f"{title} contains an invalid physical seed")
+        if profiles["final_converged_star_count"] != solver["converged_count"]:
+            raise SystemExit(f"{title} profile count disagrees with convergence")
+        if (
+            spectra["gated_star_count"] + spectra["excluded_star_count"]
+            != expected
+        ):
+            raise SystemExit(f"{title} spectral inclusion accounting is incomplete")
+        for row in records:
+            diagnostics = row.get("diagnostics")
+            iterations = row.get("iterations_completed")
+            if diagnostics is not None and iterations is not None:
+                timings = diagnostics.get("iteration_timings", [])
+                if len(timings) != int(iterations):
+                    raise SystemExit(
+                        f"{title} has an incomplete iteration trace for "
+                        f"{row['corpus_index']}"
+                    )
+        iterations = summary["iterations_among_converged"]
+        physical_table_rows.append(
+            " & ".join(
+                [
+                    title,
+                    f"{integer(summary['converged_count'])}/"
+                    f"{integer(summary['star_count'])}",
+                    (
+                        f"{integer(summary['not_converged_count'])}/"
+                        f"{integer(summary['timeout_count'])}/"
+                        f"{integer(summary['error_count'])}"
+                    ),
+                    dec(iterations["mean"], 2),
+                    dec(iterations["median"], 1),
+                    integer(iterations["maximum"]),
+                    integer(iterations["more_than_15_count"]),
+                ]
+            )
+            + r" \\"
+        )
+
+        prefix = "NphysicalDev" if title == "Development" else "NphysicalPost"
+        macro_values = (
+            (
+                "Stars",
+                summary["star_count"],
+                integer(summary["star_count"]),
+                names["source"],
+            ),
+            (
+                "FiniteSeeds",
+                seed["finite_seed_count"],
+                integer(seed["finite_seed_count"]),
+                names["seed_source"],
+            ),
+            (
+                "Converged",
+                summary["converged_count"],
+                integer(summary["converged_count"]),
+                names["source"],
+            ),
+            (
+                "NotConverged",
+                summary["not_converged_count"],
+                integer(summary["not_converged_count"]),
+                names["source"],
+            ),
+            (
+                "Timeouts",
+                summary["timeout_count"],
+                integer(summary["timeout_count"]),
+                names["source"],
+            ),
+            (
+                "Errors",
+                summary["error_count"],
+                integer(summary["error_count"]),
+                names["source"],
+            ),
+            (
+                "IterMean",
+                iterations["mean"],
+                dec(iterations["mean"], 2),
+                names["source"],
+            ),
+            (
+                "IterMedian",
+                iterations["median"],
+                dec(iterations["median"], 1),
+                names["source"],
+            ),
+            (
+                "IterMax",
+                iterations["maximum"],
+                integer(iterations["maximum"]),
+                names["source"],
+            ),
+            (
+                "AboveFifteen",
+                iterations["more_than_15_count"],
+                integer(iterations["more_than_15_count"]),
+                names["source"],
+            ),
+            (
+                "Spectra",
+                spectra["gated_star_count"],
+                integer(spectra["gated_star_count"]),
+                names["spectral_source"],
+            ),
+            (
+                "SpectraExcluded",
+                spectra["excluded_star_count"],
+                integer(spectra["excluded_star_count"]),
+                names["spectral_source"],
+            ),
+            (
+                "SpectraOver",
+                spectra["normalized_flux"]["stars_over_bar"],
+                integer(spectra["normalized_flux"]["stars_over_bar"]),
+                names["spectral_source"],
+            ),
+            (
+                "SpectraMedian",
+                spectra["normalized_flux"]["median_over_stars"],
+                sci(spectra["normalized_flux"]["median_over_stars"]),
+                names["spectral_source"],
+            ),
+            (
+                "SpectraPfive",
+                spectra["normalized_flux"]["p95_over_stars"],
+                sci(spectra["normalized_flux"]["p95_over_stars"]),
+                names["spectral_source"],
+            ),
+            (
+                "SpectraMax",
+                spectra["normalized_flux"]["max_over_stars"],
+                sci(spectra["normalized_flux"]["max_over_stars"]),
+                names["spectral_source"],
+            ),
+            (
+                "SeedMassMedian",
+                profiles["seed"]["column_mass"]["median"],
+                dec(profiles["seed"]["column_mass"]["median"], 3),
+                names["profile_source"],
+            ),
+            (
+                "SeedMassPfive",
+                profiles["seed"]["column_mass"]["p95"],
+                dec(profiles["seed"]["column_mass"]["p95"], 3),
+                names["profile_source"],
+            ),
+            (
+                "SeedTempMedian",
+                profiles["seed"]["temperature"]["median"],
+                sci(profiles["seed"]["temperature"]["median"]),
+                names["profile_source"],
+            ),
+            (
+                "SeedTempPfive",
+                profiles["seed"]["temperature"]["p95"],
+                sci(profiles["seed"]["temperature"]["p95"]),
+                names["profile_source"],
+            ),
+        )
+        for suffix, raw, text, source_name in macro_values:
+            macros.add(prefix + suffix, raw, text, source_name)
+        if title == "Post-hoc 200":
+            mid_temperature_low = 7000.0
+            mid_temperature_high = 9000.0
+            failed_rows = [row for row in records if not bool(row["converged"])]
+            mid_temperature_rows = [
+                row
+                for row in records
+                if mid_temperature_low
+                <= float(row["effective_temperature"])
+                < mid_temperature_high
+            ]
+            mid_temperature_failures = [
+                row for row in mid_temperature_rows if not bool(row["converged"])
+            ]
+            if (
+                len(failed_rows) != expected - summary["converged_count"]
+                or len(mid_temperature_failures) != 16
+                or len(mid_temperature_rows) != 62
+            ):
+                raise SystemExit(
+                    "post-hoc physical failure concentration has changed"
+                )
+            for suffix, raw, text in (
+                ("FailureCount", len(failed_rows), integer(len(failed_rows))),
+                (
+                    "MidTempFailures",
+                    len(mid_temperature_failures),
+                    integer(len(mid_temperature_failures)),
+                ),
+                (
+                    "MidTempStars",
+                    len(mid_temperature_rows),
+                    integer(len(mid_temperature_rows)),
+                ),
+                (
+                    "MidTempLow",
+                    mid_temperature_low,
+                    integer(mid_temperature_low),
+                ),
+                (
+                    "MidTempHigh",
+                    mid_temperature_high,
+                    integer(mid_temperature_high),
+                ),
+            ):
+                macros.add(
+                    "NphysicalPost" + suffix,
+                    raw,
+                    text,
+                    names["solver_source"],
+                )
+        for suffix, raw, text in (
+            ("Common", len(common_rows), integer(len(common_rows))),
+            (
+                "CommonPhysicalMean",
+                float(common_physical_iterations.mean()),
+                dec(float(common_physical_iterations.mean()), 2),
+            ),
+            (
+                "CommonReferenceMean",
+                float(common_reference_iterations.mean()),
+                dec(float(common_reference_iterations.mean()), 2),
+            ),
+            (
+                "CommonDifferenceMedian",
+                float(
+                    np.median(
+                        common_physical_iterations - common_reference_iterations
+                    )
+                ),
+                dec(
+                    float(
+                        np.median(
+                            common_physical_iterations
+                            - common_reference_iterations
+                        )
+                    ),
+                    1,
+                ),
+            ),
+        ):
+            macros.add(prefix + suffix, raw, text, names["solver_source"])
+
+    tables["tab_physical_initializer.tex"] = table_env(
+        label="tab:physical_initializer",
+        caption=(
+            "Hydrostatic grey--convective initialization on the development "
+            "sample and, post hoc, on the same 200-star sample used for the "
+            "learned test. Every star uses at most 60 iterations and 900 s. "
+            "Iteration statistics are conditional on convergence; the "
+            "convergence and failure columns retain the full sample. Spectral "
+            "conditioning is reported separately in Table~\\ref{tab:spectral}."
+        ),
+        colspec="lrrrrrr",
+        header=(
+            r"Sample & Converged & Non-conv./timeout/error & Mean iter. & "
+            r"Median & Max & $>15$ \\"
+        ),
+        rows=physical_table_rows,
+        wide=True,
+        colsep=3.5,
+        size="small",
+    )
+    macros.add(
+        "NphysicalIterationLimit",
+        policy["iterations"],
+        integer(policy["iterations"]),
+        "grey_source_manifest",
+    )
+    macros.add(
+        "NphysicalTimeoutSeconds",
+        policy["per_star_timeout_seconds"],
+        integer(policy["per_star_timeout_seconds"]),
+        "grey_source_manifest",
+    )
+    residual = art("grey_dev_summary")["development_residual_iter100"]
+    for suffix, key in (
+        ("ResidualStars", "star_count"),
+        ("ResidualConverged", "converged_count"),
+        ("ResidualTimeouts", "timeout_count"),
+        ("ResidualIterations", "iterations"),
+        ("ResidualTimeoutSeconds", "per_star_timeout_seconds"),
+    ):
+        macros.add(
+            "Nphysical" + suffix,
+            residual[key],
+            integer(residual[key]),
+            "grey_dev_summary",
+        )
+    macros.add(
+        "NphysicalOutputFiles",
+        grey_output["result_file_count"] + grey_output["run_file_count"],
+        integer(grey_output["result_file_count"] + grey_output["run_file_count"]),
+        "grey_output_manifest",
+    )
+
     # ---- monotonicity ablation ------------------------------------------
     mono = training["arms"]["monotone"]["held_out"]
     direct = training["arms"]["direct"]["held_out"]
@@ -1542,10 +2464,11 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     tables["tab_monotone.tex"] = table_env(
         label="tab:monotone",
         caption=(
-            "Column-mass parameterization, both arms trained identically for "
-            r"\NnetEpochs\ epochs on the same split and seed. The direct arm is "
-            "genuinely the more accurate of the two and is still the one that has to be "
-            "discarded: the profiles it rejects are rejected outright, not degraded."),
+            "Comparison of monotonic and direct column-mass parameterizations. "
+            r"Both models were trained for \NnetEpochs\ epochs with the same "
+            "data split and random seed. The direct parameterization has smaller "
+            "profile errors but produces non-monotonic column-mass profiles, "
+            "which are not physically admissible."),
         colspec="lrrr",
         header=(r"Parameterisation & $T$ $p_{95}$ & $\log m$ $p_{95}$ & Rejected \\"),
         rows=rows,
@@ -1556,16 +2479,28 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
                sci(mono["temperature_relative_error"]["p95_overall"]), "training")
     macros.add("NdirectTempPfive", direct["temperature_relative_error"]["p95_overall"],
                sci(direct["temperature_relative_error"]["p95_overall"]), "training")
+    macros.add("NmonoMassPfive", mono["column_mass_dex_error"]["p95_overall"],
+               sci(mono["column_mass_dex_error"]["p95_overall"]), "training")
+    macros.add("NdirectMassPfive", direct["column_mass_dex_error"]["p95_overall"],
+               sci(direct["column_mass_dex_error"]["p95_overall"]), "training")
     macros.add("NmonoViolations", mono["monotonicity_violations"],
                integer(mono["monotonicity_violations"]), "training")
     macros.add("NdirectViolations", direct["monotonicity_violations"],
                integer(direct["monotonicity_violations"]), "training")
 
-    # ---- Table 8: the three-way spectral gate ---------------------------
+    # ---- Table 8: spectral comparisons ----------------------------------
     gate_rows = [
-        (r"Converged $(m,T)$ vs.\ six-field truth", art("gate_truth")),
-        (r"Learned two-field vs.\ production", art("gate_learned")),
-        (r"Production vs.\ its own retry start", art("gate_jitter")),
+        (r"Converged $(m,T)$ vs.\ reference atmosphere", art("gate_truth")),
+        (r"Learned two-field vs.\ six-field reference", art("gate_learned")),
+        (
+            r"Grey--convective vs.\ reference, development",
+            art("grey_dev_spectra"),
+        ),
+        (
+            r"Grey--convective vs.\ reference, post-hoc 200",
+            art("grey_post_spectra"),
+        ),
+        (r"Six-field reference vs.\ alternate converged start", art("gate_jitter")),
     ]
     rows = []
     for title, gate in gate_rows:
@@ -1581,12 +2516,14 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         label="tab:spectral",
         caption=(
             r"Normalized-flux differences between converged atmospheres over "
-            r"\NgateWindowLo--\NgateWindowHi\,nm at $R=\NgateResolution$, against the "
-            r"\NgateBar\ acceptance bar. The third row measures the solver's own "
-            "start-dependence using two starts it is willing to ship a result from, and "
-            "is what makes the second row interpretable."),
+            r"\NgateWindowLo--\NgateWindowHi\,nm at $R=\NgateResolution$. "
+            r"The \NgateBar\ value is retained as a common reference level, "
+            "not as a universal acceptability boundary. Only stars with "
+            "converged atmospheres from both initial states enter each row. "
+            "The final row measures the start dependence of the reference "
+            "solver and provides the numerical scale for the other comparisons."),
         colspec="lrrrr",
-        header=(r"Comparison & $N$ & Median & Maximum & Over bar \\"),
+        header=(r"Comparison & $N$ & Median & Maximum & Above reference \\"),
         rows=rows,
         wide=True,
     )
@@ -1613,15 +2550,13 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     macros.add("NjitterGateStars", art("gate_jitter")["gated_star_count"],
                integer(art("gate_jitter")["gated_star_count"]), "gate_jitter")
 
-    # ---- Table 9: development qualification vs the sealed blind test -----
-    # The published blind numbers come from the 2026-08-19 physical-seed
-    # rerun of the frozen candidate: only the reconstruction seed changed
-    # (physical default instead of the six-field emulator), so the candidate
-    # arm below is read from the rerun's candidate-arm summary, gate, and
-    # records.  The profile gate is computed from the frozen predictions and
-    # is unchanged; the released production arm was not re-run and is read
-    # from the 2026-08-11 summary.
+    # ---- Table 9: development, independent test, and open-set seed check --
+    # Keep the frozen 2026-08-11 test separate from the 2026-08-19 rerun.
+    # The latter used the same frozen (m,T) predictions but rebuilt the four
+    # dependent fields without the six-field emulator after the sample had
+    # already been inspected.
     blind = art("blind")
+    blind_open = art("blind_open")
     dev_profile = art("dev60_profile")
     policy = art("frozen_policy")
     prof_gate = art("blind_profile")
@@ -1638,52 +2573,91 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         "union_blowout_stars": len(set(prof_gate["failure_stars"]["temperature"])
                                    | set(prof_gate["failure_stars"]["mass"])),
     }
+    import numpy as np
+
+    base_prediction = art("blind_base_prediction")
+    final_prediction = art("blind_final_prediction")
+    adapter_mass_move = np.max(
+        np.abs(
+            np.log10(np.maximum(final_prediction["column_mass"], 1.0e-300))
+            - np.log10(np.maximum(base_prediction["column_mass"], 1.0e-300))
+        ),
+        axis=1,
+    )
+    adapter_temperature_move = np.max(
+        np.abs(
+            np.log10(np.maximum(final_prediction["temperature"], 1.0e-300))
+            - np.log10(np.maximum(base_prediction["temperature"], 1.0e-300))
+        ),
+        axis=1,
+    )
+    adapter_move = np.maximum(adapter_mass_move, adapter_temperature_move)
+    adapter_moved_millidex = int(np.count_nonzero(adapter_move > 1.0e-3))
+    blind_gate = art("blind_spectra")
+    open_gate = art("blind_open_spectra")
     bs = {
-        "normalized_flux_max": blind["spectra"]["normalized_flux"]["max_over_stars"],
+        "normalized_flux_max":
+            blind_gate["normalized_flux"]["max_over_stars"],
         "normalized_flux_stars_over_bar":
-            blind["spectra"]["normalized_flux"]["stars_over_bar"],
-        "paired_stars": blind["spectra"]["gated_star_count"],
+            blind_gate["normalized_flux"]["stars_over_bar"],
+        "paired_stars": blind_gate["gated_star_count"],
     }
-    prod_arm = art("blind_production")["solver"]["production"]
-    bsol = {
-        "candidate": {
-            # Filled from the rerun records below (converged of the 200-star
-            # holdout; 2 reconstruction failures are excluded from the solver).
-            "usable_products": None,
-            "requested": art("blind_profile")["star_count"],
-            "non_monotonic_fraction": blind["solver"]["non_monotonic_fraction"],
-        },
-        "production": {
-            "usable_products": prod_arm["usable_products"],
-            "requested": prod_arm["requested"],
-            "non_monotonic_fraction": prod_arm["non_monotonic_fraction"],
-        },
-        "paired_usable_products": {},
+    open_bs = {
+        "normalized_flux_max":
+            open_gate["normalized_flux"]["max_over_stars"],
+        "normalized_flux_stars_over_bar":
+            open_gate["normalized_flux"]["stars_over_bar"],
+        "paired_stars": open_gate["gated_star_count"],
     }
+    bsol = blind["solver"]
     dev_solver = policy["qualification"]["development_solver"]
     dev_spec = policy["qualification"]["development_spectral"]
 
-    # ---- paired blind-test statistics (computed before the table) -------
-    # The two records.jsonl files share the same slugs; the published paired
-    # counts are recomputed directly from them (the rerun summary reports only
-    # the candidate-arm aggregate, so the records are authoritative here).
+    # ---- paired iteration statistics ------------------------------------
+    # The original and open-set candidate records are paired separately with
+    # the same frozen six-field reference records.
     import numpy as np
     from scipy.stats import chi2 as _chi2
 
     cand_rec = load_jsonl_records(art, "blind_cand_records")
+    open_rec = load_jsonl_records(art, "blind_open_records")
     prod_rec = load_jsonl_records(art, "blind_prod_records")
-    gate_slugs = {row["slug"] for row in art("blind_spectra")["per_star"]}
-    paired_slugs = sorted(
-        s for s in set(cand_rec) & set(prod_rec) & gate_slugs
-        if cand_rec[s]["converged"] and prod_rec[s]["converged"])
-    diff = np.array([prod_rec[s]["converging_trial_iterations"]
-                     - cand_rec[s]["converging_trial_iterations"]
-                     for s in paired_slugs], float)
+
+    def paired_iteration_stats(candidate_records, gate):
+        gate_slugs = {row["slug"] for row in gate["per_star"]}
+        paired_slugs = sorted(
+            slug
+            for slug in set(candidate_records) & set(prod_rec) & gate_slugs
+            if candidate_records[slug]["converged"]
+            and prod_rec[slug]["converged"]
+        )
+        candidate_iterations = np.asarray(
+            [
+                candidate_records[slug]["converging_trial_iterations"]
+                for slug in paired_slugs
+            ],
+            dtype=float,
+        )
+        production_iterations = np.asarray(
+            [
+                prod_rec[slug]["converging_trial_iterations"]
+                for slug in paired_slugs
+            ],
+            dtype=float,
+        )
+        return {
+            "slugs": paired_slugs,
+            "candidate": candidate_iterations,
+            "production": production_iterations,
+            "difference": production_iterations - candidate_iterations,
+        }
+
+    paired = paired_iteration_stats(cand_rec, blind_gate)
+    paired_open = paired_iteration_stats(open_rec, open_gate)
+    diff = paired["difference"]
     n_pair = diff.size
-    cand_pair_iters = [cand_rec[s]["converging_trial_iterations"]
-                       for s in paired_slugs]
-    prod_pair_iters = [prod_rec[s]["converging_trial_iterations"]
-                       for s in paired_slugs]
+    cand_pair_iters = paired["candidate"]
+    prod_pair_iters = paired["production"]
     mean_diff = float(diff.mean())
     med_diff = float(np.median(diff))
     rng = np.random.default_rng(20260817)
@@ -1696,9 +2670,7 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     n_same = n_pair - n_faster - n_slower
     mcnemar_chi2 = (abs(n_faster - n_slower) - 1.0) ** 2 / (n_faster + n_slower)
     mcnemar_p = float(_chi2.sf(mcnemar_chi2, 1))
-    cand_converged = sum(1 for row in cand_rec.values() if row["converged"])
-    bsol["candidate"]["usable_products"] = cand_converged
-    bsol["paired_usable_products"] = {
+    independent_pair = {
         "stars": n_pair,
         "candidate_mean_iterations": float(np.mean(cand_pair_iters)),
         "production_mean_iterations": float(np.mean(prod_pair_iters)),
@@ -1706,73 +2678,95 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
         "same": n_same,
         "candidate_slower": n_slower,
     }
+    open_pair = {
+        "stars": len(paired_open["slugs"]),
+        "candidate_mean_iterations": float(np.mean(paired_open["candidate"])),
+        "production_mean_iterations": float(np.mean(paired_open["production"])),
+    }
+    independent_usable = int(bsol["candidate"]["usable_products"])
+    open_usable = int(sum(row["converged"] for row in open_rec.values()))
     rows = [
         " & ".join([
             r"Stars",
             integer(dev_profile["star_count"]),
             integer(bp["temperature_blowout_stars"] * 0 + art("blind_profile")["star_count"]),
+            integer(art("blind_profile")["star_count"]),
         ]) + r" \\",
         " & ".join([
             r"Temperature $p_{95}$",
             sci(dev_profile["pointwise"]["temperature_relative"]["p95"]),
             sci(bp["temperature_pointwise_p95"]),
+            r"same prediction",
         ]) + r" \\",
         " & ".join([
             r"Column mass $p_{95}$ (dex)",
             sci(dev_profile["pointwise"]["mass_dex"]["p95"]),
             sci(bp["column_mass_pointwise_p95_dex"]),
+            r"same prediction",
         ]) + r" \\",
         " & ".join([
-            r"Profile blow-outs ($T$ / $m$)",
+            r"Large profile errors ($T/m$)",
             rf"{len(dev_profile['failure_stars']['temperature'])} / "
             rf"{len(dev_profile['failure_stars']['mass'])}",
             rf"{bp['temperature_blowout_stars']} / {bp['column_mass_blowout_stars']}",
+            r"same prediction",
         ]) + r" \\",
         " & ".join([
-            r"Candidate usable products",
+            r"Usable two-field atmospheres",
             rf"{dev_solver['converged']}/{dev_solver['total']}",
-            rf"{bsol['candidate']['usable_products']}/{bsol['candidate']['requested']}",
+            rf"{independent_usable}/{bsol['candidate']['requested']}",
+            rf"{open_usable}/{art('blind_profile')['star_count']}",
         ]) + r" \\",
         " & ".join([
-            r"Production usable products",
+            r"Usable six-field atmospheres",
             rf"{dev_solver['total']}/{dev_solver['total']}",
+            rf"{bsol['production']['usable_products']}/{bsol['production']['requested']}",
             rf"{bsol['production']['usable_products']}/{bsol['production']['requested']}",
         ]) + r" \\",
         " & ".join([
-            r"Mean iterations, c.\ / p.",
+            r"Mean two-field iterations",
             dec(dev_solver["mean_iterations"], 2),
-            rf"{dec(bsol['paired_usable_products']['candidate_mean_iterations'], 2)} / "
-            rf"{dec(bsol['paired_usable_products']['production_mean_iterations'], 2)}",
+            dec(independent_pair["candidate_mean_iterations"], 2),
+            dec(open_pair["candidate_mean_iterations"], 2),
         ]) + r" \\",
         " & ".join([
-            r"Normalised flux, max",
+            r"Mean six-field iterations",
+            r"---",
+            dec(independent_pair["production_mean_iterations"], 2),
+            dec(open_pair["production_mean_iterations"], 2),
+        ]) + r" \\",
+        " & ".join([
+            r"Maximum spectral difference",
             sci(dev_spec["normalized_flux_max"]),
             sci(bs["normalized_flux_max"]),
+            sci(open_bs["normalized_flux_max"]),
         ]) + r" \\",
         " & ".join([
-            r"Normalised flux, over bar",
+            r"Above spectral reference level",
             rf"0/{dev_solver['total']}",
             rf"{bs['normalized_flux_stars_over_bar']}/{bs['paired_stars']}",
+            rf"{open_bs['normalized_flux_stars_over_bar']}/{open_bs['paired_stars']}",
         ]) + r" \\",
-        r"\noalign{\smallskip}\hline\noalign{\smallskip}",
-        " & ".join([r"Outcome", r"pass", r"\textbf{fail}"]) + r" \\",
     ]
     tables["tab_blind.tex"] = table_env(
         label="tab:blind",
         caption=(
-            "The frozen two-field candidate of Sect.~\\ref{sec:blind} on the "
-            "development sample used for qualification and on a 200-star holdout "
-            "sealed before the policy was opened. The holdout values shown here "
-            "come from the post-opening physical-seed rerun of the unchanged "
-            "prediction and solver. They confirm that the gate outcome is not "
-            "caused by querying the six-field checkpoint at inference, but they "
-            "are not a second blind test. The iteration speed-up survives, while "
-            "the profile and spectral reliability required for deployment does not."),
-        colspec="lrr",
-        header=r"Quantity & Development & Holdout rerun \\",
+            "The learned two-field initializer on the development sample "
+            "and the independent 200-star test, followed by a post-hoc check "
+            "that rebuilt the same predicted $(m,T)$ profiles without fields "
+            "from the six-field model. The independent column contains the "
+            "original independent calculation. The final column changes only the "
+            "reconstruction seed and is not additional independent evidence. "
+            "Iteration means for the 200-star columns use stars with both "
+            "compared atmospheres available."),
+        colspec="lrrr",
+        header=(
+            r"Quantity & Development & Independent test & Post-hoc reconstruction \\"
+        ),
         rows=rows,
-        colsep=4.0,
-        size="small",
+        wide=True,
+        colsep=3.5,
+        size="footnotesize",
     )
     macros.add("NblindStars", art("blind_profile")["star_count"],
                integer(art("blind_profile")["star_count"]), "blind_profile")
@@ -1790,7 +2784,9 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
                integer(bp["column_mass_blowout_stars"]), "blind_profile")
     macros.add("NblindUnionBlowouts", bp["union_blowout_stars"],
                integer(bp["union_blowout_stars"]), "blind_profile")
-    pair = bsol["paired_usable_products"]
+    macros.add("NblindAdapterMovedMillidex", adapter_moved_millidex,
+               integer(adapter_moved_millidex), "blind_final_prediction")
+    pair = independent_pair
     macros.add(
         "NblindPaired", pair["stars"], integer(pair["stars"]), "blind_cand_records"
     )
@@ -1805,8 +2801,8 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     )
     macros.add("NblindSlower", pair["candidate_slower"],
                integer(pair["candidate_slower"]), "blind_cand_records")
-    macros.add("NblindCandUsable", bsol["candidate"]["usable_products"],
-               integer(bsol["candidate"]["usable_products"]), "blind_cand_records")
+    macros.add("NblindCandUsable", independent_usable,
+               integer(independent_usable), "blind")
     macros.add("NblindProdUsable", bsol["production"]["usable_products"],
                integer(bsol["production"]["usable_products"]), "blind_production")
     macros.add("NblindSpecOver", bs["normalized_flux_stars_over_bar"],
@@ -1821,6 +2817,24 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
                pct(bsol["candidate"]["non_monotonic_fraction"]), "blind")
     macros.add("NblindProdNonmono", bsol["production"]["non_monotonic_fraction"],
                pct(bsol["production"]["non_monotonic_fraction"]), "blind_production")
+    macros.add("NblindOpenUsable", open_usable, integer(open_usable),
+               "blind_open_records")
+    macros.add("NblindOpenPaired", open_pair["stars"],
+               integer(open_pair["stars"]), "blind_open_records")
+    macros.add("NblindOpenCandIters", open_pair["candidate_mean_iterations"],
+               dec(open_pair["candidate_mean_iterations"], 2),
+               "blind_open_records")
+    macros.add("NblindOpenProdIters", open_pair["production_mean_iterations"],
+               dec(open_pair["production_mean_iterations"], 2),
+               "blind_prod_records")
+    macros.add("NblindOpenSpecOver",
+               open_bs["normalized_flux_stars_over_bar"],
+               integer(open_bs["normalized_flux_stars_over_bar"]),
+               "blind_open_spectra")
+    macros.add("NblindOpenSpecStars", open_bs["paired_stars"],
+               integer(open_bs["paired_stars"]), "blind_open_spectra")
+    macros.add("NblindOpenSpecMax", open_bs["normalized_flux_max"],
+               sci(open_bs["normalized_flux_max"]), "blind_open_spectra")
     macros.add("NdevIterMean", dev_solver["mean_iterations"],
                dec(dev_solver["mean_iterations"], 2), "frozen_policy")
     macros.add("NdevTempPfive", dev_profile["pointwise"]["temperature_relative"]["p95"],
@@ -1867,12 +2881,219 @@ def build(art: Artifacts, macros: Macros) -> dict[str, str]:
     macros.add("NdevQualIters", dev_solver["mean_iterations"],
                dec(dev_solver["mean_iterations"], 2), "frozen_policy")
 
+    # ---- bounded native-MARCS M-star science case ----------------------
+    mstar = art("mstar_cases")
+    mstar_cases = list(mstar.get("cases", []))
+    if mstar.get("campaign") != "m_star_science_case_v1":
+        raise SystemExit("wrong M-star case-study artifact")
+    if len(mstar_cases) != 8 or mstar.get("case_count") != 8:
+        raise SystemExit("M-star case-study artifact does not contain exactly 8 cases")
+
+    def _mstar_status(record: dict) -> str:
+        value = record.get("iterations")
+        if value is None:
+            return r"\ensuremath{--}"
+        status = "Yes" if bool(record.get("survives_solver")) else "No"
+        return f"{status} ({integer(value)})"
+
+    def _mstar_flux(record: dict) -> float | None:
+        value = record.get("flux_imbalance", {}).get("max_percent")
+        return None if value is None else float(value)
+
+    def _mstar_korg_p95(case: dict) -> float | None:
+        comparison = case.get("korg_comparison", {})
+        arm = comparison.get("arms", {}).get("molecular", {})
+        result = arm.get("payne_zero_vs_same_atmosphere_korg", {})
+        value = result.get("normalized_flux", {}).get("p95")
+        return None if value is None else float(value)
+
+    def _mstar_selected(case: dict) -> dict | None:
+        route = case.get("selected_route")
+        if route == "continuation_primary":
+            return case["continuation_primary"]
+        if route == "direct":
+            return case["direct"]
+        return None
+
+    direct_count = sum(bool(case["direct"].get("survives_solver")) for case in mstar_cases)
+    continuation_count = sum(bool(case["continuation_primary"].get("survives_solver")) for case in mstar_cases)
+    selected_count = sum(bool(case.get("selected_product_path")) for case in mstar_cases)
+    korg_count = sum(_mstar_korg_p95(case) is not None for case in mstar_cases)
+    selected_flux = [
+        _mstar_flux(selected)
+        for case in mstar_cases
+        if (selected := _mstar_selected(case)) is not None
+    ]
+    selected_flux = [value for value in selected_flux if value is not None]
+    korg_p95 = [value for value in (_mstar_korg_p95(case) for case in mstar_cases) if value is not None]
+    dwarf_cases = [case for case in mstar_cases if case["class"] == "M-dwarf"]
+    giant_cases = [case for case in mstar_cases if case["class"] == "M-giant"]
+    dwarf_direct_count = sum(
+        bool(case["direct"].get("survives_solver")) for case in dwarf_cases
+    )
+    giant_direct_count = sum(
+        bool(case["direct"].get("survives_solver")) for case in giant_cases
+    )
+    dwarf_continuation = [
+        case
+        for case in dwarf_cases
+        if case["continuation_primary"].get("survives_solver")
+    ]
+    coolest_dwarf_continuation = min(
+        dwarf_continuation,
+        key=lambda case: float(case["labels"]["effective_temperature"]),
+    )
+    dwarf_3750 = next(
+        case
+        for case in dwarf_cases
+        if float(case["labels"]["effective_temperature"]) == 3750.0
+    )
+    coolest_dwarf_flux = _mstar_flux(
+        coolest_dwarf_continuation["continuation_primary"]
+    )
+    warm_dwarf_flux = _mstar_flux(dwarf_3750["continuation_primary"])
+    giant_selected_flux = [
+        _mstar_flux(selected)
+        for case in giant_cases
+        if (selected := _mstar_selected(case)) is not None
+    ]
+    giant_selected_flux = [
+        value for value in giant_selected_flux if value is not None
+    ]
+    if (
+        coolest_dwarf_flux is None
+        or warm_dwarf_flux is None
+        or not giant_selected_flux
+    ):
+        raise SystemExit("M-star converged cases are missing final flux diagnostics")
+
+    macros.add("NMstarCases", len(mstar_cases), integer(len(mstar_cases)), "mstar_cases")
+    macros.add(
+        "NMstarDwarfCases",
+        len(dwarf_cases),
+        integer(len(dwarf_cases)),
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarGiantCases",
+        len(giant_cases),
+        integer(len(giant_cases)),
+        "mstar_cases",
+    )
+    macros.add("NMstarDirectConverged", direct_count, integer(direct_count), "mstar_cases")
+    macros.add("NMstarContinuationConverged", continuation_count, integer(continuation_count), "mstar_cases")
+    macros.add(
+        "NMstarDwarfDirectConverged",
+        dwarf_direct_count,
+        integer(dwarf_direct_count),
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarGiantDirectConverged",
+        giant_direct_count,
+        integer(giant_direct_count),
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarDwarfCoolestContinuation",
+        float(coolest_dwarf_continuation["labels"]["effective_temperature"]),
+        integer(coolest_dwarf_continuation["labels"]["effective_temperature"]),
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarDwarfFluxCoolest",
+        coolest_dwarf_flux,
+        integer(round(coolest_dwarf_flux)),
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarDwarfFluxWarm",
+        warm_dwarf_flux,
+        dec(warm_dwarf_flux, 1),
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarGiantFluxMinimum",
+        min(giant_selected_flux),
+        dec(min(giant_selected_flux), 2),
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarGiantFluxMaximum",
+        max(giant_selected_flux),
+        dec(max(giant_selected_flux), 2),
+        "mstar_cases",
+    )
+    macros.add("NMstarSelected", selected_count, integer(selected_count), "mstar_cases")
+    macros.add("NMstarKorgCompared", korg_count, integer(korg_count), "mstar_cases")
+    macros.add(
+        "NMstarFluxMaximum",
+        max(selected_flux) if selected_flux else 0.0,
+        sci(max(selected_flux)) if selected_flux else r"\ensuremath{--}",
+        "mstar_cases",
+    )
+    macros.add(
+        "NMstarKorgPfiveMaximum",
+        max(korg_p95) if korg_p95 else 0.0,
+        sci(max(korg_p95)) if korg_p95 else r"\ensuremath{--}",
+        "mstar_cases",
+    )
+
+    mstar_rows = []
+    ordered_mstar_cases = sorted(
+        mstar_cases,
+        key=lambda case: (
+            0 if case["class"] == "M-dwarf" else 1,
+            -float(case["labels"]["effective_temperature"]),
+        ),
+    )
+    for case in ordered_mstar_cases:
+        labels = case["labels"]
+        direct = case["direct"]
+        continuation = case["continuation_primary"]
+        selected = _mstar_selected(case)
+        flux = None if selected is None else _mstar_flux(selected)
+        title = "M dwarf" if case["class"] == "M-dwarf" else "M giant"
+        mstar_rows.append(" & ".join([
+            title,
+            integer(labels["effective_temperature"]),
+            dec(labels["log_surface_gravity"], 1),
+            dec(labels["microturbulence_km_s"], 1),
+            _mstar_status(direct),
+            _mstar_status(continuation),
+            sci(flux) if flux is not None else r"\ensuremath{--}",
+        ]) + r" \\")
+    tables["tab_mstar.tex"] = table_env(
+        label="tab:mstar",
+        caption=(
+            "Temperature continuation across eight solar-composition MARCS "
+            "M-star atmospheres. Direct-start and temperature-sequence entries "
+            "give convergence status with the iteration count in parentheses; "
+            "an em dash means that the sequence was not continued past a failed "
+            "warmer node. The final column gives the maximum absolute all-layer "
+            "flux imbalance for the retained atmosphere, using the temperature "
+            "sequence where it converges and the direct start otherwise. The "
+            "large residual at 3500 K prevents interpreting the formally "
+            "converged dwarf as a validated atmosphere."
+        ),
+        colspec="llrrrrr",
+        header=(
+            r"Class & $T_{\rm eff}$ & $\log g$ & $\xi$ & Direct start & "
+            r"$T_{\rm eff}$ sequence & $\max|\Delta F|$ (\%) \\"
+        ),
+        rows=mstar_rows,
+        wide=True,
+        colsep=5.0,
+        size="footnotesize",
+        spaced_rules=False,
+    )
+
     return tables
 
 
 def table_env(*, label: str, caption: str, colspec: str, header: str,
               rows: list[str], wide: bool = False, colsep: float | None = None,
-              size: str | None = None) -> str:
+              size: str | None = None, spaced_rules: bool = True) -> str:
     """Emit a complete A&A table environment.
 
     ``colsep`` overrides the inter-column padding in points and ``size`` sets a
@@ -1886,6 +3107,12 @@ def table_env(*, label: str, caption: str, colspec: str, header: str,
         preamble += f"\\setlength{{\\tabcolsep}}{{{colsep}pt}}\n"
     if size is not None:
         preamble += f"\\{size}\n"
+    top_rule = "\\hline\\hline\\noalign{\\smallskip}\n" if spaced_rules else "\\hline\\hline\n"
+    mid_rule = (
+        "\\noalign{\\smallskip}\\hline\\noalign{\\smallskip}\n"
+        if spaced_rules else "\\hline\n"
+    )
+    bottom_rule = "\\noalign{\\smallskip}\\hline\n" if spaced_rules else "\\hline\n"
     return (
         "% Generated by paper/collect_numbers.py -- do not edit by hand.\n"
         f"\\begin{{{env}}}\n"
@@ -1894,11 +3121,11 @@ def table_env(*, label: str, caption: str, colspec: str, header: str,
         "\\centering\n"
         f"{preamble}"
         f"\\begin{{tabular}}{{{colspec}}}\n"
-        "\\hline\\hline\\noalign{\\smallskip}\n"
+        f"{top_rule}"
         f"{header}\n"
-        "\\noalign{\\smallskip}\\hline\\noalign{\\smallskip}\n"
+        f"{mid_rule}"
         + "\n".join(rows) + "\n"
-        "\\noalign{\\smallskip}\\hline\n"
+        f"{bottom_rule}"
         "\\end{tabular}\n"
         f"\\end{{{env}}}\n"
     )
@@ -1920,14 +3147,13 @@ def provenance_table(art: Artifacts) -> str:
             "\n\\noalign{\\smallskip}"
         )
     caption = (
-        "Numerical sources and the physical-seed refresh manifest used by "
-        r"\texttt{paper/collect\_numbers.py}, which also writes the tables. "
-        "Hashes are the first 12 hexadecimal digits of the SHA-256 of the file as "
-        "used; the full values are in the accompanying "
+        "Numerical sources used to generate the reported values and tables. "
+        "Hashes are the first 12 hexadecimal digits of each file's SHA-256; "
+        "complete values are provided in "
         r"\texttt{paper/numbers.json}.")
     colspec = (r">{\raggedright\arraybackslash}p{0.40\hsize}"
                r">{\raggedright\arraybackslash}p{0.36\hsize}l")
-    header = r"Artifact & Content & SHA-256 \\"
+    header = r"Source file & Content & SHA-256 \\"
 
     # A table* cannot break across pages. Split this audit inventory into two
     # floats so additions to the manifest do not silently run off the page.
@@ -1971,8 +3197,6 @@ def main() -> int:
     except FileNotFoundError as exc:
         print(f"missing artifact: {exc}", file=sys.stderr)
         return 2
-
-    tables["tab_provenance.tex"] = provenance_table(art)
 
     payload = {
         "sources": {name: {"path": SOURCES[name], "sha256": art.hashes.get(name)}

@@ -163,3 +163,27 @@ def test_funnel_refuses_existing_rows_without_resume(tmp_path):
             jsonl_path=path,
             resume=False,
         )
+
+
+def test_funnel_refuses_resume_when_iteration_budget_changes(tmp_path):
+    path = tmp_path / "partial.jsonl"
+    path.write_text(
+        '{"corpus_index": 1, "arm": "parity", "iterations_per_trial": 15, '
+        '"effective_temperature": 5000.0, "log_surface_gravity": 4.0, '
+        '"metallicity": 0.0, "alpha_enhancement": 0.0, '
+        '"microturbulence_km_s": 1.0}\n',
+        encoding="utf-8",
+    )
+    corpus = SimpleNamespace(labels=np.tile([5000.0, 4.0, 0.0, 0.0, 1.0], (2, 1)))
+
+    with pytest.raises(SystemExit, match="15 iterations"):
+        _run_funnel(
+            corpus,
+            np.array([1]),
+            arm="parity",
+            reduced_state=None,
+            timeout=1.0,
+            jsonl_path=path,
+            resume=True,
+            iterations_per_trial=60,
+        )

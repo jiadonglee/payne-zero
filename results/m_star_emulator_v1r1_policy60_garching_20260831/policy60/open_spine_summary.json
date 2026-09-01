@@ -1,0 +1,31 @@
+{
+  "attempted_node_count": 33,
+  "campaign": "m_star_emulator_v1r1_policy60",
+  "existing_sealed_holdout_opened": false,
+  "first_ineligible_by_track": {
+    "g+0.50_m+0.00_a+0.00_c+0.00_x2.00": "g+0.50_m+0.00_a+0.00_c+0.00_x2.00_t4000",
+    "g+1.50_m+0.00_a+0.00_c+0.00_x2.00": "g+1.50_m+0.00_a+0.00_c+0.00_x2.00_t3500",
+    "g+2.00_m+0.00_a+0.00_c+0.00_x2.00": "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3700",
+    "g+2.50_m+0.00_a+0.00_c+0.00_x2.00": "g+2.50_m+0.00_a+0.00_c+0.00_x2.00_t3800",
+    "g+4.50_m+0.00_a+0.00_c+0.00_x1.00": "g+4.50_m+0.00_a+0.00_c+0.00_x1.00_t4000",
+    "g+4.75_m+0.00_a+0.00_c+0.00_x1.00": "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t3700",
+    "g+5.00_m+0.00_a+0.00_c+0.00_x1.00": "g+5.00_m+0.00_a+0.00_c+0.00_x1.00_t4000",
+    "g+5.50_m+0.00_a+0.00_c+0.00_x1.00": "g+5.50_m+0.00_a+0.00_c+0.00_x1.00_t4000"
+  },
+  "iteration_cap": 60,
+  "korg_run": false,
+  "new_sealed_tracks_run": false,
+  "parent_campaign": "m_star_emulator_v1",
+  "planned_node_count": 168,
+  "primary_solver_converged": 31,
+  "production_routing_changed": false,
+  "protocol_hash": "42b1e8bf45f4a89c92901ab4ea76edefab807afdb7296be945169d0a4d7afbd6",
+  "roles": [
+    "train",
+    "validation"
+  ],
+  "summary_hash": "cd1dcf9cb8d04b09aa5d5d0a32600b51f868928afac0807dacbf973edce5a774",
+  "track_count": 8,
+  "training_eligible_count": 26,
+  "within_15_count": 24
+}

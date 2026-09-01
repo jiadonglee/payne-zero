@@ -112,6 +112,11 @@ def main(argv=None) -> int:
     parser.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     parser.add_argument("--indices-from", type=Path, default=DEFAULT_INDICES)
     parser.add_argument("--checkpoint-dir", type=Path, default=DEFAULT_CHECKPOINT_DIR)
+    parser.add_argument(
+        "--checkpoint-template",
+        default="checkpoint_physical_seed{seed}.pt",
+        help="checkpoint filename template relative to --checkpoint-dir",
+    )
     parser.add_argument("--seeds", default="20260807,20260808,20260809")
     parser.add_argument(
         "--regional-seed",
@@ -157,7 +162,7 @@ def main(argv=None) -> int:
     temperatures = []
     checkpoint_provenance = []
     for seed in seeds:
-        checkpoint = args.checkpoint_dir / f"checkpoint_physical_seed{seed}.pt"
+        checkpoint = args.checkpoint_dir / args.checkpoint_template.format(seed=seed)
         model, standardization, meta = load_physical_checkpoint(checkpoint)
         excluded = set(meta.get("development_indices", [])) | set(
             meta.get("sealed_audit_indices", [])

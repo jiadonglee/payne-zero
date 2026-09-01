@@ -1,0 +1,16 @@
+{
+  "class_counts": {
+    "dwarf": 6,
+    "giant": 20
+  },
+  "path": "results/m_star_emulator_v1/cool_truth_corpus.npz",
+  "protocol_hash": "bc767110116b14a614a871c9d14bb06581f415ee02946b429d2039d6c7feb72c",
+  "role_counts": {
+    "train": 14,
+    "validation": 12
+  },
+  "row_count": 26,
+  "sealed_rows_included": false,
+  "sha256": "8b34a3b852cc7d268dbff4a8d7eba539e56173f2a51036afa0986c0f5ce56656",
+  "status": "complete"
+}

@@ -1,0 +1,53 @@
+# Exclusions for pulling a compute node's checkout back to the dev machine.
+#
+#   rsync -av -e "ssh -T" --exclude-from=.rsync-exclude-pull \
+#         USER@HOST:~/payne-zero/ ./
+#
+# This file exists because `.rsync-exclude` is **push-direction only**. That
+# file excludes `runs/`, `results/` and `*.log` so a code push does not clobber
+# remote results -- which is exactly the payload of a pull. Using it here
+# silently transfers nothing but source, and rsync reports success. See
+# solver-in-the-loop-cluster.md section 8.
+#
+# Everything not listed here comes back: code, notes, runs/, results/,
+# figures/, artifacts/, logs/.
+
+# Both sides have their own. The remote's is Linux; the local one is macOS.
+.git/
+.venv/
+.venv-linux/
+.cache/
+
+# 6.9 GB of static catalogs, already present locally. But note the exception:
+# corpora *generated* on the remote live under this prefix too and will be
+# missed. After a pull, check for remote-only files with
+#   rsync -avn --ignore-existing HOST:.../source_data_files/ source_data_files/
+# and fetch them by name. This is how strict_truth_52199.npz (199 MB) was
+# nearly left behind.
+source_data_files/
+
+# A second, root-level copy of the same four catalog trees -- a further 6.9 GB,
+# real directories rather than symlinks. Measured on Node-06, 2026-08-08:
+#   source_catalogs 6.8G   atmosphere_emulator 131M
+#   synthesis_tables 866K  atmosphere_tables 443K
+# Excluding only `source_data_files/` is therefore not enough; without these
+# four the pull drags the catalogs back a second time under new paths. The
+# leading slash anchors each to the transfer root, so a *nested*
+# `source_data_files/atmosphere_emulator/` is unaffected by these rules.
+/atmosphere_emulator/
+/atmosphere_tables/
+/source_catalogs/
+/synthesis_tables/
+
+# Per-machine agent state, not project content.
+.claude/
+
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+tmp/
+tutorial_output/

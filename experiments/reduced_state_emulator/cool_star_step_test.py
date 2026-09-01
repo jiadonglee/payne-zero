@@ -341,6 +341,8 @@ def _residual_summary(diagnostics: dict) -> dict[str, object]:
     fields = (
         "deep_layer_relative_temperature_change",
         "all_layer_relative_temperature_change",
+        "median_absolute_flux_error_percent",
+        "p95_absolute_flux_error_percent",
         "maximum_absolute_flux_error_percent",
     )
     return {
@@ -355,6 +357,8 @@ def _residual_summary(diagnostics: dict) -> dict[str, object]:
             for field in (
                 "deep_layer_relative_temperature_change",
                 "all_layer_relative_temperature_change",
+                "median_absolute_flux_error_percent",
+                "p95_absolute_flux_error_percent",
                 "maximum_absolute_flux_error_percent",
                 "total_seconds",
             )

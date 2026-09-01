@@ -1,0 +1,22 @@
+{
+  "arm": "textbook_v4r6_decoupled",
+  "environment": {
+    "NUMBA_NUM_THREADS": null,
+    "NUMBA_THREADING_LAYER": "workqueue"
+  },
+  "hostname": "Node-06",
+  "iterations": 60,
+  "numba": "0.66.0",
+  "numpy": "2.4.6",
+  "operating_system": "Linux-5.14.0-611.54.3.el9_7.x86_64-x86_64-with-glibc2.34",
+  "per_star_timeout_seconds": 900,
+  "policy": "v4r6_analytic_warm_start_policy60_v1",
+  "python": "3.12.9",
+  "sample": "results/paper_physical_seed_20260820/learned/convergence_metrics_learned_monotone.json",
+  "sample_sha256": "5e0238098f5811de7738d6e8fcf5b9eb5d94fe85a8fa9505ad3513769179e27e",
+  "source_git_diff_sha256": "eba51792d75efcb3dcc1d8ff7c94889330c7d14c68fb77add969488de0dc87dd",
+  "source_git_head": "d8d044b4e7fdd570fd1f06f2d9cc8c33da71d894",
+  "source_manifest": "results/analytic_initializer/textbook_opacity_v4r6_policy60_source_manifest_20260829.json",
+  "source_manifest_sha256": "fee015711e42bbca970e7e68ff66da57feb81eb21c786706a08739a8dfeffaa8",
+  "trials": 1
+}

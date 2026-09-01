@@ -1,0 +1,351 @@
+{
+  "arm": "textbook_v4r6_decoupled",
+  "authorizes_fresh_open": false,
+  "candidate": "v4r6_decoupled_mgrey_tconv_v1",
+  "converged_count": 0,
+  "corpus": "source_data_files/atmosphere_emulator/five_label/strict_truth_52199.npz",
+  "decision": "ITER100_RESIDUAL_DIAGNOSTIC_COMPLETE",
+  "error_count": 0,
+  "excluded_count": 1060,
+  "excluded_manifests": [
+    "results/reconstruction_metrics.json",
+    "results/sealed_solver_subset_20260808.json",
+    "results/sealed_audit_20260808.json",
+    "results/sealed_audit_20260811.json",
+    "results/sealed_initializer_holdout_20260812.json",
+    "results/initializer_calibration_20260812.json",
+    "results/four_initializer_benchmark_expanded_20260814/expanded200_manifest.json"
+  ],
+  "finite_count": 0,
+  "finite_unknown_count": 0,
+  "first_trial_converged_count": 0,
+  "frozen_15iter_decision": "FAIL_STOP_DEVELOPMENT",
+  "frozen_60iter_decision": "ITER60_DIAGNOSTIC_COMPLETE",
+  "frozen_controls": {
+    "v4r6_decoupled_15iter": {
+      "decision": "FAIL_STOP_DEVELOPMENT",
+      "path": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_20260828.json",
+      "sha256": "81211e9e61cf9e2ab39a517d3bc4c455a9a1fd702a9a92db35d70abd7609afb0"
+    },
+    "v4r6_decoupled_60iter": {
+      "decision": "ITER60_DIAGNOSTIC_COMPLETE",
+      "path": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_iter60_20260829.json",
+      "sha256": "9926fd75ba1ba948407a37c3886803e177f5cfe033d8754e6e2f64f42c7d595f"
+    }
+  },
+  "gravity_split": {
+    "dwarf_logg_at_least_3.5": {
+      "converged_count": 0,
+      "error_count": 0,
+      "not_converged_count": 0,
+      "star_count": 1,
+      "timeout_count": 1
+    },
+    "giant_logg_below_3.5": {
+      "converged_count": 0,
+      "error_count": 0,
+      "not_converged_count": 0,
+      "star_count": 5,
+      "timeout_count": 5
+    }
+  },
+  "initializer_provenance": {
+    "finite_seed_count": 6,
+    "fitted_parameter_count": 0,
+    "formal_temperature_floor_K": 4000.0,
+    "include_convection": true,
+    "initializer": "v4r6_decoupled_mgrey_tconv_v1",
+    "mass": "v4r6_grey_integrated_mass",
+    "mass_reintegrated_after_convection": false,
+    "offline_decision": "FAIL_STOP",
+    "offline_result": "results/analytic_initializer/textbook_opacity_v4r6_offline_validation_20260828.json",
+    "opacity": "textbook_rosseland_opacity_v4r6",
+    "registered_v4r6_grey_seed_unchanged": true,
+    "registered_v4r6_seed_unchanged": true,
+    "requires_neural_checkpoint_at_runtime": false,
+    "seed_error_splits_vs_stored_truth": {
+      "cool_below_7500K": {
+        "all_layers": {
+          "log_mass_dex": {
+            "count": 240,
+            "p50": 0.12944863213843982,
+            "p95": 2.4406948287901056
+          },
+          "temperature_relative": {
+            "count": 240,
+            "p50": 0.17849212575805518,
+            "p95": 0.4247012698604471
+          }
+        },
+        "star_count": 3,
+        "tau_gt_10": {
+          "log_mass_dex": {
+            "count": 48,
+            "p50": 0.06895115421537057,
+            "p95": 0.16810648048693216
+          },
+          "temperature_relative": {
+            "count": 48,
+            "p50": 0.3545135160665752,
+            "p95": 0.4268800795710636
+          }
+        }
+      },
+      "hot_at_least_7500K": {
+        "all_layers": {
+          "log_mass_dex": {
+            "count": 240,
+            "p50": 0.1713322893314354,
+            "p95": 2.036670702861522
+          },
+          "temperature_relative": {
+            "count": 240,
+            "p50": 0.17136937142295755,
+            "p95": 0.8145595050962328
+          }
+        },
+        "star_count": 3,
+        "tau_gt_10": {
+          "log_mass_dex": {
+            "count": 48,
+            "p50": 0.06470768845582087,
+            "p95": 0.17595934055036883
+          },
+          "temperature_relative": {
+            "count": 48,
+            "p50": 0.2444216707166933,
+            "p95": 1.7411652325090798
+          }
+        }
+      }
+    },
+    "seed_profile_errors_vs_stored_truth": {
+      "column_mass_dex_p50": 0.1562047777100597,
+      "column_mass_dex_p95": 2.151200006647598,
+      "finite_seed_count": 6,
+      "temperature_relative_p50": 0.17255607616671315,
+      "temperature_relative_p95": 0.5018236506171396
+    },
+    "substeps_per_layer": 8,
+    "temperature": "current_saha_aware_convective_temperature"
+  },
+  "iterations_per_trial": 100,
+  "not_converged_indices": [
+    6152,
+    33051,
+    33053,
+    44167,
+    46124,
+    48708
+  ],
+  "paired_summary": {
+    "vs_15iter_residual": {
+      "both_success": 0,
+      "candidate_only": 0,
+      "control_only": 0,
+      "control_success_count": 0,
+      "losses_among_control_successes": 0,
+      "neither": 6,
+      "net_gain": 0,
+      "shared_count": 6
+    },
+    "vs_60iter_residual": {
+      "both_success": 0,
+      "candidate_only": 0,
+      "control_only": 0,
+      "control_success_count": 0,
+      "losses_among_control_successes": 0,
+      "neither": 6,
+      "net_gain": 0,
+      "shared_count": 6
+    }
+  },
+  "per_star_timeout_seconds": 3600.0,
+  "product_dir": null,
+  "records": [
+    {
+      "alpha_enhancement": -0.09091821409832831,
+      "arm": "textbook_v4r6_decoupled",
+      "converged": false,
+      "corpus_index": 6152,
+      "effective_temperature": 8625.449535615986,
+      "finite_final_state": false,
+      "iterations_completed": null,
+      "iterations_per_trial": 100,
+      "log_surface_gravity": 0.870913336906177,
+      "metallicity": -1.384779267342142,
+      "microturbulence_km_s": 2.1006125442223578,
+      "seconds": 3600.1436822009273,
+      "slug": "five_label_bootstrap_wave2_003087",
+      "solver_outcome": "timeout"
+    },
+    {
+      "alpha_enhancement": -0.0815288829000887,
+      "arm": "textbook_v4r6_decoupled",
+      "converged": false,
+      "corpus_index": 33051,
+      "effective_temperature": 7306.443995255497,
+      "finite_final_state": false,
+      "iterations_completed": null,
+      "iterations_per_trial": 100,
+      "log_surface_gravity": 3.3664409386630174,
+      "metallicity": -0.5975855146862246,
+      "microturbulence_km_s": 1.9769306047520943,
+      "seconds": 3600.080990897026,
+      "slug": "five_label_bootstrap_wave13_002631",
+      "solver_outcome": "timeout"
+    },
+    {
+      "alpha_enhancement": -0.025742659428038273,
+      "arm": "textbook_v4r6_decoupled",
+      "converged": false,
+      "corpus_index": 33053,
+      "effective_temperature": 7769.69999214229,
+      "finite_final_state": false,
+      "iterations_completed": null,
+      "iterations_per_trial": 100,
+      "log_surface_gravity": 2.774977008459789,
+      "metallicity": -0.5561209747289824,
+      "microturbulence_km_s": 3.3946615389588444,
+      "seconds": 3600.1572248269804,
+      "slug": "five_label_bootstrap_wave13_002653",
+      "solver_outcome": "timeout"
+    },
+    {
+      "alpha_enhancement": 0.22805601301762077,
+      "arm": "textbook_v4r6_decoupled",
+      "converged": false,
+      "corpus_index": 44167,
+      "effective_temperature": 4049.66551750241,
+      "finite_final_state": false,
+      "iterations_completed": null,
+      "iterations_per_trial": 100,
+      "log_surface_gravity": 2.0966541745107463,
+      "metallicity": -1.9816084961863774,
+      "microturbulence_km_s": 2.8243554984059496,
+      "seconds": 3600.1360922087915,
+      "slug": "five_label_bootstrap_wave17_006846",
+      "solver_outcome": "timeout"
+    },
+    {
+      "alpha_enhancement": 0.37165878206823144,
+      "arm": "textbook_v4r6_decoupled",
+      "converged": false,
+      "corpus_index": 46124,
+      "effective_temperature": 7473.347970402287,
+      "finite_final_state": false,
+      "iterations_completed": null,
+      "iterations_per_trial": 100,
+      "log_surface_gravity": 3.7061718112365387,
+      "metallicity": -0.7045168729406825,
+      "microturbulence_km_s": 3.9406601585529004,
+      "seconds": 3600.140191382263,
+      "slug": "five_label_bootstrap_wave18_005053",
+      "solver_outcome": "timeout"
+    },
+    {
+      "alpha_enhancement": 0.04996552604656351,
+      "arm": "textbook_v4r6_decoupled",
+      "converged": false,
+      "corpus_index": 48708,
+      "effective_temperature": 8943.207474745248,
+      "finite_final_state": false,
+      "iterations_completed": null,
+      "iterations_per_trial": 100,
+      "log_surface_gravity": 1.2595589978060606,
+      "metallicity": -0.5282778579845053,
+      "microturbulence_km_s": 3.059562715005605,
+      "seconds": 3600.1679410799406,
+      "slug": "five_label_bootstrap_wave19_005620",
+      "solver_outcome": "timeout"
+    }
+  ],
+  "requested_count": 6,
+  "residual_indices": [
+    6152,
+    33051,
+    33053,
+    44167,
+    46124,
+    48708
+  ],
+  "residual_outcome": {
+    "paired_vs_60iter_residual": {
+      "both_success": 0,
+      "candidate_only": 0,
+      "control_only": 0,
+      "control_success_count": 0,
+      "losses_among_control_successes": 0,
+      "neither": 6,
+      "net_gain": 0,
+      "shared_count": 6
+    },
+    "recovered_count": 0,
+    "recovered_indices": [],
+    "residual_count": 6,
+    "still_failed_count": 6,
+    "still_failed_indices": [
+      6152,
+      33051,
+      33053,
+      44167,
+      46124,
+      48708
+    ],
+    "still_timeout_count": 6
+  },
+  "runtime_signature": {
+    "arm": "textbook_v4r6_decoupled",
+    "authorizes_fresh_open": false,
+    "candidate": "v4r6_decoupled_mgrey_tconv_v1",
+    "fifteen_iter_control": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_20260828.json",
+    "fifteen_iter_control_sha256": "81211e9e61cf9e2ab39a517d3bc4c455a9a1fd702a9a92db35d70abd7609afb0",
+    "frozen_15iter_decision": "FAIL_STOP_DEVELOPMENT",
+    "frozen_60iter_decision": "ITER60_DIAGNOSTIC_COMPLETE",
+    "iter60_control": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_iter60_20260829.json",
+    "iter60_control_sha256": "9926fd75ba1ba948407a37c3886803e177f5cfe033d8754e6e2f64f42c7d595f",
+    "iterations": 100,
+    "per_star_timeout_seconds": 3600,
+    "residual_indices": [
+      6152,
+      33051,
+      33053,
+      44167,
+      46124,
+      48708
+    ],
+    "source_manifest": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_source_manifest_20260828.json",
+    "source_manifest_sha256": "ebc932f2402d15a936cd1a96465c15262f4f5197ad3636794fe24245db7f152c",
+    "timeout_raised_because_residuals_are_wallclock": true,
+    "trials": 1
+  },
+  "seed": 20260817,
+  "solver_policy": {
+    "iterations": 100,
+    "per_star_timeout_seconds": 3600,
+    "trials": 1
+  },
+  "source_manifest": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_source_manifest_20260828.json",
+  "source_manifest_sha256": "ebc932f2402d15a936cd1a96465c15262f4f5197ad3636794fe24245db7f152c",
+  "split_seed": 20260816,
+  "star_count": 6,
+  "status": "development_only",
+  "streamed_records_path": "results/analytic_initializer/textbook_opacity_v4r6_decoupled_dev60_iter100_residual_20260829.jsonl",
+  "teff_split": {
+    "at_least_7500K": {
+      "converged_count": 0,
+      "error_count": 0,
+      "not_converged_count": 0,
+      "star_count": 3,
+      "timeout_count": 3
+    },
+    "below_7500K": {
+      "converged_count": 0,
+      "error_count": 0,
+      "not_converged_count": 0,
+      "star_count": 3,
+      "timeout_count": 3
+    }
+  },
+  "timeout_count": 6
+}

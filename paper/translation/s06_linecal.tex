@@ -1,0 +1,310 @@
+\section{谱线表定标 Line List Calibration}\label{sec:linecal}
+
+受控模拟确立了前向模型内部自洽时的恢复能力。观测光谱还会进一步检验模型的物理输入。沿用成熟的近红外天体物理谱线定标传统，我们考察可微分计算能否联合更新振子强度与三个阻尼族 \citep{MelendezBarbuy1999,Shetrone2015,Smith2021}。每项提议的修正都被约束为只能通过谱线不透明度与辐射转移来改变光谱。定标的评估对象是太阳与大角星的高分辨率傅里叶变换光谱仪（FTS）图集。
+
+\begin{EN}
+The controlled mock establishes recovery when the forward model is internally
+consistent. Observed spectra also test the physical inputs to that model.
+Following established near-infrared astrophysical line calibration, we ask
+whether the differentiable calculation can update oscillator strength and the
+three damping families jointly
+\citep{MelendezBarbuy1999,Shetrone2015,Smith2021}. Each proposed
+correction is constrained to change the spectrum through line opacity and
+radiative transfer. We evaluate the corrections against high-resolution
+Fourier transform spectrometer (FTS) atlases of the Sun and Arcturus.
+\end{EN}
+
+\begin{physbox}{为什么用太阳和大角星定标原子数据}
+振子强度 $gf$ 与阻尼常数原则上可由实验室或原子结构理论给出，但许多谱线（尤其近红外、过渡族元素）的数值误差很大甚至缺失。补救办法是\textbf{天体物理定标}：用光谱质量最高的恒星反推这些参数。太阳 FTS 图集来自傅里叶变换光谱仪，分辨本领可达 $10^6$、信噪比极高，且太阳的物理参数（$T_{\rm eff}=5777$ K、$\log g=4.44$、丰度）是所有恒星中测得最准的。大角星（Arcturus）是 K 型红巨星的标准星，气压低、分子带丰富，与太阳处于互补的物理区间。两者联合定标能约束不同压强与分子环境下的谱线行为。本文的新意在于：由于整个合成在 GPU 上可微分，超过 $10^5$ 个谱线参数可以\textbf{一次性联合优化}，而传统做法是逐条谱线手工调整。
+\end{physbox}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figure_08.pdf}
+\caption{对太阳与大角星 FTS 图集的全波段定标，分六个连续波长条带。每条带上图为归一化流量、下图为图集减模型。黑色为图集，灰虚线为原始谱线数据，橙虚线为对该标准星的独立四参数谱线拟合。残差面板在同一颗星内共用固定范围。大角星列显示冬季图集，其拟合对夏、冬两历元等权。定标使整段区间的“残差森林”在两颗星上都明显收缩。（Full-band calibration of the solar and Arcturus FTS atlases.）}
+\label{fig:linecal_overview}
+\end{figure}
+
+对分配给修正组 $q(l)$ 的谱线分量 $l$，定标量写为
+\begin{equation}
+\begin{aligned}
+(gf)'_l &= (gf)_l 10^{\delta_{q(l),gf}},\\
+\gamma'_{l,\beta} &= \gamma_{l,\beta}10^{\delta_{q(l),\beta}},
+\qquad \beta\in\{\mathrm{vdW},\mathrm{rad},\mathrm{S}\}.
+\end{aligned}
+\end{equation}
+\noindent 其中 $\gamma_{l,\beta}$ 为谱线分量 $l$、阻尼族 $\beta$ 的原始阻尼系数；三个族为范德瓦尔斯、辐射与斯塔克阻尼；撇号表示定标后的值。第四类拟合参数是 $\log(gf)$。在布居固定时，振子强度缩放频率积分的不透明度，阻尼把不透明度从线心重新分配到翼部 \citep{Barklem2000,Gray2005}；二者在饱和与混合特征中的响应有重叠。
+
+\begin{EN}
+For line component $l$ assigned to correction group $q(l)$, we write the
+calibrated quantities as
+\begin{equation}
+\begin{aligned}
+(gf)'_l &= (gf)_l 10^{\delta_{q(l),gf}},\\
+\gamma'_{l,\beta} &= \gamma_{l,\beta}10^{\delta_{q(l),\beta}},
+\qquad \beta\in\{\mathrm{vdW},\mathrm{rad},\mathrm{S}\}.
+\end{aligned}
+\label{eq:atomic_calibration_parameters}
+\end{equation}
+\noindent Here $\gamma_{l,\beta}$ is the original damping coefficient for line
+component $l$ and family $\beta$. The three families are van der Waals,
+radiative, and Stark damping, while the prime denotes the calibrated value.
+The fourth fitted atomic-parameter type is $\log(gf)$. At fixed population, oscillator strength
+scales the frequency-integrated opacity, while damping redistributes opacity
+from the core into the wings \citep{Barklem2000,Gray2005}. Their responses
+overlap in saturated and blended features.
+\end{EN}
+
+PyTorch 记录从每项原子修正经不透明度、辐射转移、致宽、采样、连续谱轮廓化直到最终目标的完整路径。一次反向传播即可同时给出所有活跃修正的导数，无需有限差分 \citep{Baydin2015}。逐条谱线的独立辐射转移工作在光谱推断中演示过同样的计算原理 \citep{Kawahara2022}。固定的大气、连续与分子不透明度以及目录几何全程常驻 GPU。
+
+\begin{EN}
+PyTorch records the path from each atomic correction through opacity,
+radiative transfer, broadening, sampling, continuum profiling, and the final
+objective. A reverse pass gives derivatives for every active correction
+together, without finite differences \citep{Baydin2015}. Independent
+line-by-line radiative-transfer work demonstrates the same computational
+principle in spectral inference \citep{Kawahara2022}. The fixed atmosphere, continuous and
+molecular opacity, and catalog geometry remain resident on the GPU.
+\end{EN}
+
+\begin{physbox}{自动微分为什么关键}
+要优化 101,124 个参数，必须知道目标函数对每个参数的导数。用有限差分需要每个参数各算一条扰动光谱——十万余次合成，不可行。\textbf{自动微分}（反向传播）利用链式法则，沿计算图反向走一遍就能同时得到所有参数的精确导数，成本仅为一次正向合成的数倍。这正是深度学习框架（PyTorch）被引入光谱计算的红利：只要把所有运算写成框架内的张量操作，梯度就“免费”获得。由此，逐条谱线人工调参的传统定标方式被一个联合辐射转移优化问题取代。
+\end{physbox}
+
+由于谱线中心通过整数网格放置进入不透明度叠加，计算图尚不能提供有效的波长导数，因此波长保持固定。低激发能也在本四参数概念验证之外——本次只定标公式~\ref{eq:atomic_calibration_parameters} 中的量。
+
+\begin{EN}
+Because line centers enter opacity deposition through integer grid placement,
+the graph does not yet provide a valid wavelength derivative. Wavelengths are
+therefore fixed. Lower excitation energies also remain outside this
+four-parameter proof of concept, which calibrates the quantities in
+Equation~\ref{eq:atomic_calibration_parameters}.
+\end{EN}
+
+我们使用 1500--1700 nm 区间以直接衔接 APOGEE 波长范围，并针对 FTS 图集而非 APOGEE 像素做定标。合成采用 $R_{\rm grid}=300{,}000$，然后采样到各图集网格。太阳用 Livingston 与 Wallace 的日面中心图集，大角星用 Hinkle 等人的两个历元 \citep{LivingstonWallace1991,Hinkle1995,Smith2021}。太阳取 $T_{\rm eff}=5777$ K、$\log g=4.44$、$\xi=0.7$ km s$^{-1}$；大角星取 $T_{\rm eff}=4286$ K、$\log g=1.66$、$[\mathrm{M}/\mathrm{H}]=-0.52$、$[\alpha/\mathrm{M}]=0.30$、$\xi=1.7$ km s$^{-1}$ \citep{Ramirez2011,Smith2021}，逐元素混合物采用 \citet{Smith2021} 的汇总表（多数值取自 \citet{Ramirez2011} 并辅以其他专门研究）。
+
+\begin{EN}
+We use the 1500--1700 nm interval to connect directly to the APOGEE wavelength
+range. We perform the calibration against these FTS atlases rather than APOGEE
+pixels. The synthesis calculation uses
+$R_{\rm grid}=300{,}000$ before sampling onto each atlas grid. We use the
+Livingston and Wallace solar center-of-disk atlas and two Hinkle et al.
+Arcturus epochs \citep{LivingstonWallace1991,Hinkle1995,Smith2021}. For the
+solar calculation we adopt $T_{\rm eff}=5777$ K,
+$\log g=4.44$, and $\xi=0.7$ km s$^{-1}$. For Arcturus we adopt
+$T_{\rm eff}=4286$ K, $\log g=1.66$, $[\mathrm{M}/\mathrm{H}]=-0.52$,
+$[\alpha/\mathrm{M}]=0.30$, and $\xi=1.7$ km s$^{-1}$
+\citep{Ramirez2011,Smith2021}.
+
+We adopt the
+element-by-element Arcturus mixture tabulated by
+\citet{Smith2021}. That compilation draws most values from
+\citet{Ramirez2011} and supplements them from other element-specific
+studies.
+\end{EN}
+
+每个标准星的收敛物理大气在内层定标中保持固定。太阳取 1.55 km s$^{-1}$ 的高斯致宽；大角星取 2.5 km s$^{-1}$ 高斯致宽加 $v\sin i=2.0$ km s$^{-1}$ 自转。给定的多普勒因子与残余配准修正把图集放入模型静止系。每次求值都用图集与基线模型中靠近连续谱的像素轮廓化一条平滑的乘性连续谱，紧凑的系数边界防止该调整吸收谱线轮廓失配。配套的地球大气透过率数组定义像素相对权重并掩去不可靠波长。
+
+\begin{EN}
+Each standard's converged physical atmosphere remains fixed during the inner calibration. We adopt a
+Gaussian dispersion of 1.55~km~s$^{-1}$ for the Sun. For Arcturus we adopt a Gaussian
+dispersion of 2.5~km~s$^{-1}$ and $v\sin i=2.0$~km~s$^{-1}$. The supplied Doppler
+factors and a residual registration correction place the atlases in the model
+rest frame.
+
+At every evaluation we profile a smooth multiplicative continuum using pixels
+near the continuum in both the atlas and the baseline model. Tight coefficient
+bounds prevent this adjustment from absorbing line-profile mismatch.
+Companion telluric-transmission arrays define relative pixel weights and mask
+unreliable wavelengths.
+\end{EN}
+
+对每个图集，我们在地球大气降权与连续谱轮廓化之后最小化均方流量差。独立的大角星解对夏、冬历元等权，独立的太阳解只用太阳图集——这些拟合衡量各标准星的定标容量。随后拟合一个共享的太阳—大角星解，对两颗星等总权、对大角星两历元等权；APOGEE 应用即使用这一公共定标。
+
+\begin{EN}
+For each atlas, we minimize the mean squared flux difference after telluric
+downweighting and continuum profiling. The independent Arcturus solution fits
+the summer and winter epochs with equal weight, while the independent solar
+solution uses only the solar atlas. These fits measure the calibration capacity
+of each standard. We then fit one shared Sun--Arcturus solution, giving equal
+total weight to each star and equal weight to the two Arcturus epochs. We use
+this common calibration for APOGEE.
+\end{EN}
+
+我们纳入该区间内所有在丰度向量中出现的物种的中性与一次电离原子记录。先保留一小组精选的锚定谱线群，再按强度排序的贪心遍历把每个剩余分量与同物种、同电离级、下激发能相差 2.0 cm$^{-1}$、波长相差 0.035 nm 以内的未使用谱线分组。42,886 条目录记录形成 25,281 个组，共 101,124 个拟合标量修正；同组所有分量共享其四个修正。
+
+\begin{EN}
+We include neutral and singly ionized atomic records in the interval for every
+species represented in the adopted abundance vector. We first preserve a small
+set of curated anchor complexes. A strength-ordered greedy pass then groups
+each remaining component with unused lines of the same species and ion stage
+within 2.0~cm$^{-1}$ in lower excitation and 0.035~nm in wavelength. The 42,886
+catalog records form 25,281 groups and give 101,124 fitted scalar corrections.
+All components in one group share its four corrections.
+\end{EN}
+
+我们用 PyTorch L-BFGS 联合优化完整 200 nm 区间 \citep{NocedalWright2006}。这种基于梯度的方法用近期梯度估计曲率，强 Wolfe 线搜索只接受以降低目标且局部斜率一致的步长。平滑参数变换保证物理边界。联合优化让混合像素同时约束多条跃迁，避免把一条谱线轮廓拆给各自独立拟合的波长窗口。
+
+\begin{EN}
+We optimize the complete 200 nm interval jointly with PyTorch L-BFGS
+\citep{NocedalWright2006}. This gradient-based method uses recent gradients to estimate
+curvature, while a strong-Wolfe line search accepts steps that lower the
+objective with a consistent local slope. Smooth parameter transforms enforce
+the physical bounds. Joint optimization lets blended pixels constrain several
+transitions and avoids splitting a line profile among independently fitted
+wavelength windows.
+\end{EN}
+
+\begin{notebox}{表~\ref{tab:linecal_ablation} 与表~\ref{tab:linecal_overlay} 说明（原文 Table 5、6，内容保留英文）}
+表 5：相对原始谱线数据，地球大气降权后“图集−模型”均方流量差的下降百分比。只调 $\log(gf)$ 即可下降 78\%（太阳）/57\%（大角星）；四类参数全调达 90\%/65\%；共享太阳—大角星解为 84\%/56\%。各参数类型的贡献不可相加，因为它们能解释部分相同的残差。表 6：发布的公共定标文件的内容与用法——源目录摘要与分量映射锁定谱线身份；每个链接组存四个对数修正：$\log(gf)$ 直接相加，三类阻尼乘以 $10^{\delta}$。
+\end{notebox}
+
+\begin{table}[t]
+\centering
+\captionof{table}{Reduction relative to the original line data in the
+telluric-downweighted mean squared atlas--model flux difference. The first five
+rows fit each standard independently. The final row fits the Sun and Arcturus
+with one common set of line-parameter corrections.}
+\label{tab:linecal_ablation}
+\begingroup
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.12}
+\footnotesize
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Calibration case} & \textbf{Sun} & \textbf{Arcturus} \\
+\midrule
+$\log(gf)$ & 78.2\% & 56.8\% \\
+van der Waals damping & 36.9\% & 7.7\% \\
+radiative damping & 19.0\% & 5.4\% \\
+Stark damping & 26.6\% & 2.7\% \\
+all four types & 90.1\% & 64.9\% \\
+\midrule
+shared Sun--Arcturus fit & 83.5\% & 56.0\% \\
+\addlinespace[2pt]
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+
+\begin{table}[t]
+\centering
+\captionof{table}{Contents and application of the released common
+Sun--Arcturus line-list calibration. Source identities bind the corrections to
+the intended catalog. Each linked transition group stores four logarithmic
+corrections, from which the calibrated component values are obtained.}
+\label{tab:linecal_overlay}
+\begingroup
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\footnotesize
+\begin{tabular}{@{}lll@{}}
+\toprule
+\tcell{0.24\linewidth}{\textbf{Quantity}} &
+\tcell{0.38\linewidth}{\textbf{Application}} &
+\tcell{0.27\linewidth}{\textbf{Physical role}} \\
+\midrule
+\tcell{0.24\linewidth}{source identity} & \tcell{0.38\linewidth}{catalog digest and\\component map} & \tcell{0.27\linewidth}{selects the exact\\source transitions} \\
+\tcell{0.24\linewidth}{linked group} & \tcell{0.38\linewidth}{component $\rightarrow$\\fitted group} & \tcell{0.27\linewidth}{shares one correction\\among linked lines} \\
+\midrule
+\tcell{0.24\linewidth}{$\log(gf)$} & \tcell{0.38\linewidth}{$\log(gf)_{\rm cal}=$\\$\log(gf)_{\rm base}+\delta_{q,gf}$} & \tcell{0.27\linewidth}{integrated line\\opacity} \\
+\tcell{0.24\linewidth}{van der Waals\\damping} & \tcell{0.38\linewidth}{$\gamma_{\rm cal}=$\\$\gamma_{\rm base}10^{\delta_{q,\rm vdW}}$} & \tcell{0.27\linewidth}{neutral-collision\\wings} \\
+\tcell{0.24\linewidth}{radiative damping} & \tcell{0.38\linewidth}{$\gamma_{\rm cal}=$\\$\gamma_{\rm base}10^{\delta_{q,\rm rad}}$} & \tcell{0.27\linewidth}{natural line\\width} \\
+\tcell{0.24\linewidth}{Stark damping} & \tcell{0.38\linewidth}{$\gamma_{\rm cal}=$\\$\gamma_{\rm base}10^{\delta_{q,\rm S}}$} & \tcell{0.27\linewidth}{electron-pressure\\wings} \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+
+表~\ref{tab:linecal_ablation} 把单参数对照与每个标准星的独立四参数拟合相比较。下降量不可相加，因为各参数类型可解释部分相同的残差。振子强度在两颗星上都贡献了主要增益，四参数拟合则进一步改进。阻尼在太阳光谱中杠杆更大——更高的光球压强产生更强的压致翼 \citep{Barklem2000,Gray2005}；在大角星中，拟合经验上把大部分增益归于线强，其拥挤的分子光谱提供的孤立翼部约束更少。
+
+\begin{EN}
+Table~\ref{tab:linecal_ablation} compares the single-parameter controls with
+each standard's independent four-parameter fit. The reductions are not additive because
+the parameter types can explain part of the same residual. Oscillator strength
+carries most of the gain in both stars, while the four-parameter fit improves
+further in each case. Damping adds more leverage in the solar
+spectrum, where the higher photospheric pressure produces stronger
+pressure-broadened wings \citep{Barklem2000,Gray2005}. In Arcturus, the fit
+empirically assigns most of the gain to line strength. Its crowded molecular
+spectrum provides fewer isolated wing constraints.
+\end{EN}
+
+\begin{physbox}{为什么阻尼在太阳上更重要}
+斯塔克与范德瓦尔斯致宽都来自碰撞：分别由带电粒子（电子、离子）和中性原子的扰动造成。碰撞频率正比于粒子密度，也就是气压。太阳（矮星，$\log g=4.44$）光球密度比大角星（巨星，$\log g=1.66$）高两个数量级以上，因此强线的阻尼翼在太阳光谱中宽阔显著，约束阻尼参数的信息多；在巨星中翼部窄，拟合自然把改进主要分配给线心强度（$gf$）。这也是为什么好的原子数据定标需要\textbf{多颗处于不同物理区间的标准星}——单颗星无法把线强与阻尼的退化解开。
+\end{physbox}
+
+有 101,124 个活跃修正时，反向传播避免了“每参数一条扰动光谱”。从独立解的键对齐均值出发，40 步共享太阳—大角星更新在单张 H100 上用 64 秒。
+
+\begin{EN}
+With 101,124 active corrections, the reverse pass avoids synthesizing one
+perturbed spectrum per parameter. Starting from the key-aligned mean of the
+independent solutions, 40 shared Sun--Arcturus updates take 64~s on one H100.
+\end{EN}
+
+图~\ref{fig:linecal_overview} 显示目标下降并不局限于少数孤立特征：残差森林在两个图集的整个展示区间内收缩。太阳的改进更强，大角星在其更拥挤的光谱中保留更大的结构化残差。图~\ref{fig:linecal_residual_distribution} 给出太阳图集与大角星冬季历元的未加权残差分布；表~\ref{tab:linecal_ablation} 报告的则是包含大角星两历元、经地球大气加权的均方下降。独立与共享拟合都收缩了长残差尾。
+
+\begin{EN}
+Figure~\ref{fig:linecal_overview} shows that the objective reduction is not
+confined to a few isolated features. The residual forest contracts across the
+displayed interval for both atlases. The change is stronger for the Sun, while
+Arcturus retains larger structured residuals in its more crowded spectrum.
+
+Figure~\ref{fig:linecal_residual_distribution} shows unweighted residual
+distributions for the solar atlas and the displayed Arcturus winter epoch.
+Table~\ref{tab:linecal_ablation} instead reports telluric-weighted mean-square
+reductions over the calibration data, including both Arcturus epochs. Both the
+independent and shared fits contract the long residual tail.
+\end{EN}
+
+图~\ref{fig:linecal_profiles} 放大六条单独的谱线轮廓。这些太阳示例由算法从共享太阳—大角星拟合中选取，未做局部重拟合；它们是可归属、波长上分开的不同物种跃迁。共享定标在这些示例中同时改进了线深与轮廓形状。
+
+\begin{EN}
+Figure~\ref{fig:linecal_profiles} zooms in on six individual line profiles. The
+solar examples are selected algorithmically from the
+shared Sun--Arcturus fit and are not refitted locally. They are attributable,
+wavelength-separated transitions from different species. The shared
+calibration improves both line depths and profile shapes across these examples.
+\end{EN}
+
+我们把共享太阳—大角星定标作为紧凑的修正文件发布。把它施加到匹配的基底目录即得到表~\ref{tab:linecal_overlay} 总结的定标谱线参数；\texttt{write\_substituted\_catalog} 辅助程序可把这些值写成完整的替换目录，默认目录保持不变。独立的太阳与大角星拟合作为诊断产物保留。
+
+\begin{EN}
+We distribute the shared Sun--Arcturus calibration as a compact correction
+file. Applying it to the matching base catalog produces the calibrated line
+parameters summarized in Table~\ref{tab:linecal_overlay}. The
+\texttt{write\_substituted\_catalog} helper can write those values as a complete
+replacement catalog, while the default catalog remains unchanged. Independent
+solar and Arcturus fits remain available as diagnostic products.
+\end{EN}
+
+这些是\textbf{模型依赖的标准星定标，而非实验室测量} \citep{Heiter2015,Heiter2021}，且内层拟合中每个标准星大气保持固定。生产级定标应在多个标准星之间共享信息 \citep{Heiter2015,Jofre2015,Smith2021}，并在大幅度不透明度更新之后重复大气与谱线表求解。
+
+\begin{EN}
+These are model-dependent standard-star calibrations, not laboratory
+measurements \citep{Heiter2021}, and each standard-star atmosphere remains fixed
+during the inner fit. A production calibration should share information across
+several standards \citep{Heiter2015,Jofre2015,Smith2021}. After a substantial
+opacity update, it should also repeat the atmosphere and line-list solutions.
+\end{EN}
+
+部分大残差仍然存在，因为当前参数化不能移动谱线中心，也不能创造缺失的跃迁。我们探索过一个由残差引导的预言原子跃迁子集，但留出测试不支持其转正。因此预言跃迁在进入通用谱线表之前，需要在多颗独立恒星上验证。
+
+\begin{EN}
+Some large residuals remain because the current parameterization cannot move
+line centers or create missing transitions. We explored a residual-guided
+subset of predicted atomic transitions, but held-out tests did not justify
+promotion. Predicted transitions therefore require validation across
+independent stars before inclusion in a general line list.
+\end{EN}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figure_09.pdf}
+\captionof{figure}{太阳与大角星的归一化流量绝对残差分布：横轴为残差阈值，纵轴为绝对残差超过该值的保留像素占比。灰虚线为原始谱线数据，蓝点划线只调振子强度，橙实线为各标准星独立四参数拟合，品红点线为共享太阳—大角星拟合。（Absolute normalized-flux residual distributions.）}
+\label{fig:linecal_residual_distribution}
+\vspace{8pt}
+\includegraphics[width=0.9\textwidth]{figure_10.pdf}
+\captionof{figure}{共享太阳—大角星定标下六条太阳日心 FTS 谱线轮廓。波长以所标跃迁的目录实验室中心为原点。黑色为图集，灰虚线为原始谱线数据，品红点线为振子强度加三项阻尼的共享拟合。六例跨六种原子物种，线深与轮廓形状均有改进。（Six solar center-of-disk FTS line profiles.）}
+\label{fig:linecal_profiles}
+\end{figure}
