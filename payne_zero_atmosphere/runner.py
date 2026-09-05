@@ -2158,6 +2158,7 @@ def _run_atmosphere_model(
     iteration_timings: list[dict[str, float | int]] = []
     after_iteration_diagnostics: dict[str, dict[str, Any]] = {}
     last_p95_flux_error: float | None = None
+    flux_residual_improving_at_stop: bool | None = None
 
     for iteration_index in range(1, int(setup.iterations) + 1):
         iteration_start_time = time.perf_counter()
@@ -2190,19 +2191,24 @@ def _run_atmosphere_model(
                 setup.maximum_all_layer_relative_temperature_change
             ),
         )
+        current_p95_flux_error = iteration_timing.get(
+            "p95_absolute_flux_error_percent"
+        )
+        if current_p95_flux_error is not None:
+            current_p95_flux_error = float(current_p95_flux_error)
+        residual_improving = (
+            current_p95_flux_error is None
+            or last_p95_flux_error is None
+            or not np.isfinite(last_p95_flux_error)
+            or current_p95_flux_error <= last_p95_flux_error
+        )
         if setup.require_improving_flux_residual:
-            current_p95_flux_error = float(
-                iteration_timing["p95_absolute_flux_error_percent"]
-            )
-            residual_improving = (
-                last_p95_flux_error is None
-                or not np.isfinite(last_p95_flux_error)
-                or current_p95_flux_error <= last_p95_flux_error
-            )
-            last_p95_flux_error = current_p95_flux_error
             temperature_change_within_limit = bool(
                 temperature_change_within_limit and residual_improving
             )
+            last_p95_flux_error = current_p95_flux_error
+        elif current_p95_flux_error is not None:
+            last_p95_flux_error = current_p95_flux_error
         # The opacity-lagging invariant -- convergence is never declared off a
         # lagged iteration -- is enforced inside evaluate_convergence_stop.
         # With lagging off, step.opacity_recomputed is always True and the
@@ -2227,6 +2233,7 @@ def _run_atmosphere_model(
             carry.force_exact_opacity = True
         if stop_decision.converged:
             converged = True
+            flux_residual_improving_at_stop = bool(residual_improving)
             iteration_timing["convergence_seconds"] = (
                 time.perf_counter() - stage_start_time
             )
@@ -2317,6 +2324,13 @@ def _run_atmosphere_model(
         diagnostics["flux_residual_guided_damping"] = True
     if setup.require_improving_flux_residual:
         diagnostics["require_improving_flux_residual"] = True
+    if setup.enable_convergence_stop and flux_residual_improving_at_stop is not None:
+        # Certification-phase guard: records whether the p95 flux error was
+        # not worsening in the iteration the stop fired on. Observation only;
+        # campaigns decide whether to require it.
+        diagnostics["flux_residual_improving_at_stop"] = bool(
+            flux_residual_improving_at_stop
+        )
     if setup.enable_opacity_lagging:
         # Only added when lagging is on; the default diagnostics payload keeps
         # exactly the keys it had before this feature existed.

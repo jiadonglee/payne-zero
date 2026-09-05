@@ -361,6 +361,7 @@ def _residual_summary(diagnostics: dict) -> dict[str, object]:
                 "p95_absolute_flux_error_percent",
                 "maximum_absolute_flux_error_percent",
                 "total_seconds",
+                "flux_residual_improving_at_stop",
             )
         },
     }
