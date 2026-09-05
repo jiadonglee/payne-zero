@@ -66,13 +66,14 @@ def case_figure(case_dir: Path, case_id: str, out_dir: Path) -> Path | None:
     sag = primary["superadiabatic_gradient"]
     newton = primary["molecular_newton_iterations"]
     applied = primary["applied_temperature_correction"]
-    signflip = np.asarray(
-        [
-            np.mean(np.sign(row[1:]) != np.sign(row[:-1]))
-            for row in applied
-        ]
+    # Temporal signflip: the SAME layer in consecutive iterations.
+    temporal_flip = np.sign(applied[1:]) != np.sign(applied[:-1])
+    flip_rows = np.vstack(
+        [np.zeros((1, temporal_flip.shape[1]), dtype=bool), temporal_flip]
     )
     p95_flux = primary["timing_p95_absolute_flux_error_percent"]
+    median_flux = primary["timing_median_absolute_flux_error_percent"]
+    max_flux = primary["timing_maximum_absolute_flux_error_percent"]
 
     figure, axes = plt.subplots(2, 2, figsize=(11.0, 7.5))
     figure.suptitle(
@@ -94,18 +95,15 @@ def case_figure(case_dir: Path, case_id: str, out_dir: Path) -> Path | None:
     heatmap(axes[1][0], newton, "molecular Newton passes", cmap="magma")
 
     axis = axes[1][1]
-    axis.plot(iterations, p95_flux, "o-", label="p95 |flux error| %")
-    axis.plot(iterations, signflip * 100.0, "s-", label="signflip fraction %")
-    axis.plot(
-        iterations,
-        np.max(raw_ratio, axis=1) * 100.0,
-        "^-",
-        label="max |dT_raw|/T %",
-    )
+    axis.plot(iterations, max_flux, "^-", ms=3, label="max (worst layer)")
+    axis.plot(iterations, p95_flux, "o-", ms=3, label="p95")
+    axis.plot(iterations, median_flux, "s-", ms=3, label="median")
+    axis.plot(iterations, flip_rows.mean(axis=1) * 100.0, "-",
+              color="grey", label="temporal signflip %")
     axis.set_xlabel("iteration")
     axis.set_yscale("log")
     axis.legend(fontsize=8)
-    axis.set_title("iteration scalars")
+    axis.set_title("flux error distribution + temporal signflip")
     axis.grid(alpha=0.3)
 
     figure.tight_layout()

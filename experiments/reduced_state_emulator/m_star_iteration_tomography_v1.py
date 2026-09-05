@@ -21,6 +21,7 @@ from __future__ import annotations
 from bench import environment as _environment  # noqa: F401,E402
 
 import argparse
+import dataclasses
 import hashlib
 import json
 from pathlib import Path
@@ -30,10 +31,13 @@ from typing import Any
 import numpy as np
 
 from .cool_star_step_test import (
+    _clone_atmosphere,
     _reconstruct_from_mt,
     _set_single_thread_environment,
     _solve_attempt,
 )
+from bench.run_reference import _solver_config
+from payne_zero_atmosphere.runner import run_atmosphere_model
 from . import m_star_bootstrap_v1r2_marcs100 as base
 from . import m_star_interpolated_mt_seed_v1 as interp
 from .m_star_bootstrap_v1 import (
@@ -414,6 +418,240 @@ def load_case_records(result_root: Path) -> list[dict[str, Any]]:
     ]
 
 
+def _product_arrays(path: Path) -> dict[str, np.ndarray]:
+    with np.load(path, allow_pickle=False) as data:
+        return {key: np.asarray(data[key], dtype=np.float64) for key in data.files}
+
+
+def _array_diff(left: np.ndarray, right: np.ndarray) -> dict[str, float]:
+    difference = np.abs(left - right)
+    return {
+        "max_abs": float(np.max(difference)),
+        "sum_abs": float(np.sum(difference)),
+    }
+
+
+def run_recorder_check(args: argparse.Namespace) -> int:
+    """Re-solve the 3400 K case twice from the identical seed, hook on and off.
+
+    Isolates whether the tomography recording changes the solve. A third
+    comparison against the campaign's stored product checks run-to-run
+    determinism on the same platform.
+    """
+
+    result_root = Path(args.result_root)
+    protocol = _read_json(result_root / "protocol.json")
+    track_slug, teff = "g+4.50_m+0.00_a+0.00_c+0.00_x1.00", 3400.0
+    candidate_id = f"{track_slug}_t{int(teff)}"
+    check_root = result_root / "recorder_check"
+    case_root = _case_dir(result_root, track_slug, teff)
+
+    _set_single_thread_environment()
+    seed, provenance = build_seed(
+        interp_root=Path(args.interp_root),
+        v1r2_root=Path(args.v1r2_root),
+        track_slug=track_slug,
+        teff=teff,
+    )
+    track = base._track_from_payload(provenance["track"])
+    labels = track.labels(teff)
+
+    attempts: dict[str, dict[str, Any]] = {}
+    for arm, hook in (
+        ("on", make_tomography_hook(check_root / "on" / "iterations")),
+        ("off", None),
+    ):
+        record, _state = _solve_attempt(
+            track=track,
+            method=f"recorder_check_{arm}",
+            schedule="independent_recorder_check",
+            source_temperature=teff,
+            target_labels=labels,
+            initial_atmosphere=seed,
+            product_dir=check_root / arm / "products",
+            iteration_cap=int(protocol["solver_policy"]["iteration_cap"]),
+            maximum_all_layer_relative_temperature_change=STRICT_ALL_LAYER_LIMIT,
+            after_iteration_hook=hook,
+        )
+        attempts[arm] = record
+
+    comparison: dict[str, Any] = {
+        "iterations": {
+            arm: record.get("iterations") for arm, record in attempts.items()
+        },
+        "converged": {
+            arm: record.get("converged") for arm, record in attempts.items()
+        },
+    }
+    products = {
+        arm: (
+            Path(record["product_path"])
+            if record.get("product_path") and Path(record["product_path"]).is_file()
+            else None
+        )
+        for arm, record in attempts.items()
+    }
+    if all(products.values()):
+        on_arrays = _product_arrays(products["on"])
+        off_arrays = _product_arrays(products["off"])
+        comparison["on_vs_off"] = {
+            field: _array_diff(on_arrays[field], off_arrays[field])
+            for field in sorted(set(on_arrays) & set(off_arrays))
+            if on_arrays[field].shape == off_arrays[field].shape
+        }
+    campaign_product = _history_product(result_root, track_slug, teff)
+    if campaign_product is not None and products["on"] is not None:
+        campaign_arrays = _product_arrays(campaign_product)
+        on_arrays = _product_arrays(products["on"])
+        comparison["on_vs_campaign"] = {
+            field: _array_diff(on_arrays[field], campaign_arrays[field])
+            for field in sorted(set(on_arrays) & set(campaign_arrays))
+            if on_arrays[field].shape == campaign_arrays[field].shape
+        }
+
+    output = {
+        "campaign": CAMPAIGN,
+        "stage": "recorder_check",
+        "protocol_hash": protocol["protocol_hash"],
+        "candidate_id": candidate_id,
+        "seed": {"array_sha256": _seed_array_sha256(case_root / "seed.npz")},
+        "attempts": {
+            arm: {
+                "converged": record.get("converged"),
+                "iterations": record.get("iterations"),
+                "seconds": record.get("seconds"),
+                "flux_p95": (
+                    (record.get("solver_diagnostics") or {})
+                    .get("final_diagnostics", {})
+                    .get("p95_absolute_flux_error_percent")
+                ),
+            }
+            for arm, record in attempts.items()
+        },
+        "comparison": comparison,
+    }
+    _write_json(check_root / "case.json", output)
+    identical = all(
+        block["max_abs"] == 0.0
+        for block in comparison.get("on_vs_off", {}).values()
+    )
+    print(f"on vs off identical: {identical}")
+    print(json.dumps(comparison.get("on_vs_off", {}), indent=1)[:800])
+    if "on_vs_campaign" in comparison:
+        campaign_max = max(
+            block["max_abs"] for block in comparison["on_vs_campaign"].values()
+        )
+        print(f"on vs campaign product max abs diff: {campaign_max}")
+    return 0
+
+
+def _continue_attempt(
+    *,
+    track,
+    labels,
+    initial_atmosphere,
+    extra_iterations: int,
+    hook,
+) -> dict[str, Any]:
+    """Iterate a fixed count from a converged state with the stop disabled.
+
+    Physics and thresholds are untouched; only the stopping rule is released,
+    so the flux residual's evolution past the formal stop is observable.
+    """
+
+    started = time.perf_counter()
+    config = _solver_config(
+        _clone_atmosphere(initial_atmosphere),
+        iterations_per_trial=int(extra_iterations),
+        structured_atmosphere_path=None,
+        debug_state_path=None,
+    )
+    config = dataclasses.replace(config, enable_convergence_stop=False)
+    result = run_atmosphere_model(config, after_iteration_hook=hook)
+    return {
+        "method": "continuation_from_terminal_mt_stop_disabled",
+        "extra_iterations": int(extra_iterations),
+        "iterations_completed": int(result.iterations_completed),
+        "converged": bool(result.converged),
+        "seconds": float(time.perf_counter() - started),
+    }
+
+
+def run_continue(args: argparse.Namespace) -> int:
+    """Continue each converged case past its formal stop, stop rule disabled."""
+
+    result_root = Path(args.result_root)
+    protocol = _read_json(result_root / "protocol.json")
+    extra = int(args.extra_iterations)
+    _set_single_thread_environment()
+
+    payloads = []
+    for track_slug, teff in CASES:
+        case_root = _case_dir(result_root, track_slug, teff)
+        product = _history_product(result_root, track_slug, teff)
+        if product is None:
+            print(f"{track_slug}_t{int(teff)}: no campaign product, skipped")
+            continue
+        payloads.append((track_slug, teff, case_root, product))
+
+    for track_slug, teff, case_root, product in payloads:
+        candidate_id = f"{track_slug}_t{int(teff)}"
+        seed_mass, seed_profile = _load_mt(product)
+        provenance_track = _read_json(case_root / "case.json")["seed"]["track"]
+        track = base._track_from_payload(provenance_track)
+        labels = track.labels(teff)
+        seed = _reconstruct_from_mt(labels, seed_mass, seed_profile)
+        continue_root = case_root / "continue"
+        record = _continue_attempt(
+            track=track,
+            labels=labels,
+            initial_atmosphere=seed,
+            extra_iterations=extra,
+            hook=make_tomography_hook(continue_root / "iterations"),
+        )
+        campaign_case = _read_json(case_root / "case.json")
+        summary = {
+            "campaign": CAMPAIGN,
+            "stage": "continue",
+            "protocol_hash": protocol["protocol_hash"],
+            "candidate_id": candidate_id,
+            "from_product": str(product),
+            "campaign_primary": {
+                "iterations": (campaign_case.get("primary") or {}).get("iterations"),
+                "converged": (campaign_case.get("primary") or {}).get("converged"),
+                "flux_p95": (
+                    (campaign_case.get("primary_flux_gate") or {})
+                    .get("metrics", {})
+                    .get("p95_absolute_flux_error_percent", {})
+                    .get("value")
+                ),
+            },
+            **record,
+        }
+        _write_json(continue_root / "case.json", summary)
+
+        paths = sorted((continue_root / "iterations").glob("iter_*.npz"))
+        flux_rows = []
+        tau = None
+        for path in paths:
+            with np.load(path, allow_pickle=False) as data:
+                flux_rows.append(
+                    np.abs(np.asarray(data["flux_error_percent"], dtype=np.float64))
+                )
+                tau = np.asarray(data["log_tau_standard"], dtype=np.float64)
+        flux = np.stack(flux_rows)
+        worst = int(np.argmax(flux[-1]))
+        print(
+            f"{candidate_id}: +{record['iterations_completed']} iters | "
+            f"flux p95 per iter: "
+            f"{[round(float(np.percentile(row, 95)), 2) for row in flux]} | "
+            f"final median {np.median(flux[-1]):.3f} p95 "
+            f"{np.percentile(flux[-1], 95):.2f} max {np.max(flux[-1]):.2f} "
+            f"at log tau {tau[worst]:.2f}"
+        )
+    return 0
+
+
 def _candidates(only: str | None = None) -> list[dict[str, Any]]:
     candidates = [
         {
@@ -560,10 +798,18 @@ def main(argv: list[str] | None = None) -> int:
         default=0,
         help="override the iteration cap (0 keeps the frozen production cap)",
     )
+    common.add_argument(
+        "--extra-iterations",
+        type=int,
+        default=12,
+        help="iterations for the continue stage past the formal stop",
+    )
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="stage", required=True)
     sub.add_parser("protocol", parents=[common])
     sub.add_parser("run", parents=[common])
+    sub.add_parser("recorder-check", parents=[common])
+    sub.add_parser("continue", parents=[common])
     sub.add_parser("status", parents=[common])
     args = parser.parse_args(argv)
 
@@ -572,6 +818,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.stage == "run":
         return run_campaign(args)
+    if args.stage == "recorder-check":
+        return run_recorder_check(args)
+    if args.stage == "continue":
+        return run_continue(args)
     return run_status(args)
 
 
