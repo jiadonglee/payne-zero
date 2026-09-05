@@ -104,10 +104,14 @@ if [[ -n "$PREWARM_R_GRID" \
         --r-grid "${PREWARM_R_GRID:-20000}" \
         "$@"
 fi
-echo "[payne-zero installer] validating full catalogs and prewarming hot/Sun/giant atmosphere branches"
-"$PYTHON" -m payne_zero_atmosphere.prewarm \
-    --out-dir "$REPO_DIR/.cache/payne-zero/prewarm-atmosphere" \
-    "$@"
+if [[ "${PAYNE_ZERO_SKIP_ATMOSPHERE_PREWARM:-0}" != "1" ]]; then
+    echo "[payne-zero installer] validating full catalogs and prewarming hot/Sun/giant atmosphere branches"
+    "$PYTHON" -m payne_zero_atmosphere.prewarm \
+        --out-dir "$REPO_DIR/.cache/payne-zero/prewarm-atmosphere" \
+        "$@"
+else
+    echo "[payne-zero installer] atmosphere prewarm skipped (PAYNE_ZERO_SKIP_ATMOSPHERE_PREWARM=1); atmosphere kernels will compile on first solve"
+fi
 
 echo "Payne Zero installed; persistent Numba cache: $RESOLVED_NUMBA_CACHE_DIR"
 echo "Payne Zero synthesis cache: $RESOLVED_SYNTHESIS_CACHE_DIR"

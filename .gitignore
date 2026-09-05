@@ -8,6 +8,7 @@ __pycache__/
 build/
 dist/
 .cache/
+.venv/
 .claude/
 runs/
 results/

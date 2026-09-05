@@ -378,7 +378,23 @@ def _read_standard_line_catalog_uncached(path: Path | str) -> np.ndarray:
         if catalog_path.stem.endswith("_part1"):
             stem = catalog_path.stem[: -len("_part1")]
             part_paths = sorted(catalog_path.parent.glob(f"{stem}_part*.npy"))
-            stored = np.concatenate([np.load(part) for part in part_paths])
+            # Memory-map each shard and copy it into a single preallocated
+            # array. This avoids the transient doubling of a plain
+            # ``np.concatenate`` over eagerly loaded shards, whose multi-GB
+            # temporary peak can exhaust memory on modest hosts. The joined
+            # array is byte-for-byte identical to the concatenated result.
+            mapped_parts = [np.load(part, mmap_mode="r") for part in part_paths]
+            total_rows = sum(part.shape[0] for part in mapped_parts)
+            stored = np.empty(
+                (total_rows, *mapped_parts[0].shape[1:]),
+                dtype=mapped_parts[0].dtype,
+            )
+            row_offset = 0
+            for part in mapped_parts:
+                stored[row_offset : row_offset + part.shape[0]] = part
+                row_offset += part.shape[0]
+                del part
+            del mapped_parts
         else:
             stored = np.load(catalog_path)
         if stored.dtype.fields is not None:
