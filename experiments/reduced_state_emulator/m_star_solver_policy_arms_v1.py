@@ -68,6 +68,7 @@ CONTINUATION_CASE = {
     "class": "dwarf",
     "track_slug": "g+4.50_m+0.00_a+0.00_c+0.00_x1.00",
     "temperature_K": 3200.0,
+    "seed_source": "continuation_from_t3400",
     "seed_source_candidate_id": "g+4.50_m+0.00_a+0.00_c+0.00_x1.00_t3400",
 }
 
