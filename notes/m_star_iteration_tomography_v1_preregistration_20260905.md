@@ -36,19 +36,25 @@
 - donor（v1r2 过门产品，单侧最近邻）：
   - A/B/C ← `g+4.50_m+0.00_a+0.00_c+0.00_x1.00_t3600`
   - D ← `g+4.50_m-0.50_a+0.00_c+0.00_x1.00_t3900`
-- 种子身份（`protocol` 阶段冻结，sha256 见 `results/<campaign>/protocol.json`；
-  Garching 复算的种子 sha256 必须与此一致）：
+- 种子身份（`protocol` 阶段冻结，**以 Garching 节点的种子数组内容 sha256
+  为准**，见 `results/<campaign>/protocol.json` 的 `seed_array_sha256`）：
 
-| case | seed sha256 |
+| case | seed array sha256 |
 | --- | --- |
-| A `…_t3500` | `09d34ef2d694249473753ee9826a9179d8837cde74d62ba57889d3c159fb0f24` |
-| B `…_t3400` | `09d34ef2d694249473753ee9826a9179d8837cde74d62ba57889d3c159fb0f24` |
-| C `…_t3300` | `09d34ef2d694249473753ee9826a9179d8837cde74d62ba57889d3c159fb0f24` |
-| D `…_t3600` | `e4f83d1c65487406320b08a9881350f3991aed404b0d850600fcd68304728e0c` |
+| A `…_t3500` | `d0c228894d46b33e3fddb050f71f58e4ad9e01d3e0d46268bd7748f895c6dcca` |
+| B `…_t3400` | `d0c228894d46b33e3fddb050f71f58e4ad9e01d3e0d46268bd7748f895c6dcca` |
+| C `…_t3300` | `d0c228894d46b33e3fddb050f71f58e4ad9e01d3e0d46268bd7748f895c6dcca` |
+| D `…_t3600` | `534233ce945414ea8e598d3afed856b340fdf4bc2405fd932e4bc22d9661c20c` |
 
 A/B/C 种子 (m,T) 完全相同（同一 donor 单侧拷贝），差别只在目标 labels
 （Teff 进入 flux 目标与谱窗）；sha256 相同是构造的直接结果，不是错误。
-protocol hash：`75972bbe479cdb3f9b144b3d0542706cd065c16db611c606c3b43e597d4a2369`。
+Garching protocol hash：`edfe64ede32b1deee5c2fcbdcdf814098ae529439a4c39dc724cbdf5dc144c58`。
+
+种子重建（`reconstruct_full_atmosphere` 的压力同步）在同一平台位级可复现，
+但跨 BLAS 后端（macOS Accelerate vs Linux）不位级一致；donor v1r2 产品
+两边已验证位级相同。campaign 以实际执行求解的 Garching 种子为准，macOS
+本地产物（`results/m_star_iteration_tomography_v1/`，本地 protocol hash
+`75972bbe…`）只作平台对照，不进入判读。
 
 - 过门的 case 追加 strict self-restart 腿（与插值臂同一定义），并做
   primary/restart path consistency、与插值臂历史产品的温度 parity

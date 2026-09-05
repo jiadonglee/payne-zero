@@ -76,6 +76,21 @@ def _file_sha256(path: Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def _seed_array_sha256(path: Path) -> str:
+    """Hash the seed columns themselves, not the npz container bytes.
+
+    The pressure-synchronization reconstruction is bit-stable per platform
+    but differs across BLAS backends (macOS Accelerate vs Linux), so the
+    campaign canon is the array content of the machine that runs it.
+    """
+
+    with np.load(path, allow_pickle=False) as data:
+        digest = hashlib.sha256()
+        digest.update(np.ascontiguousarray(data["column_mass"]).tobytes())
+        digest.update(np.ascontiguousarray(data["temperature"]).tobytes())
+    return digest.hexdigest()
+
+
 def _case_dir(result_root: Path, track_slug: str, teff: float) -> Path:
     return result_root / "cases" / "dwarf" / track_slug / f"t{int(teff):04d}"
 
@@ -369,6 +384,7 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
             "seed": {
                 "path": str(seed_path),
                 "sha256": _file_sha256(seed_path),
+                "array_sha256": _seed_array_sha256(seed_path),
                 **seed_provenance,
             },
             "iteration_tomography": {
@@ -437,6 +453,7 @@ def run_protocol(args: argparse.Namespace) -> dict[str, Any]:
         seeds[f"{track_slug}_t{int(teff)}"] = {
             **provenance,
             "seed_sha256": _file_sha256(seed_path),
+            "seed_array_sha256": _seed_array_sha256(seed_path),
         }
 
     protocol = {
@@ -464,7 +481,8 @@ def run_protocol(args: argparse.Namespace) -> dict[str, Any]:
     _write_json(result_root / "protocol.json", protocol)
     _write_json(result_root / "flux_gate.json", gate)
     for name, seed in seeds.items():
-        print(f"{name}: seed sha256 {seed['seed_sha256']}")
+        print(f"{name}: seed array sha256 {seed['seed_array_sha256']}")
+        print(f"{name}: seed file  sha256 {seed['seed_sha256']}")
     print(f"protocol hash {protocol['protocol_hash']}")
     return protocol
 
