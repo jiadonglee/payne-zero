@@ -67,6 +67,18 @@ class AtmosphereConfig:
     # production value is 1.0; values below 1.0 are only for solver-policy
     # experiments and do not change the default path.
     temperature_correction_damping: float = 1.0
+    # Experimental residual-guided step scaling (off by default; the default
+    # path is bit-identical to the historical solver). When enabled, the
+    # global temperature-correction step is rescaled each iteration from the
+    # p95 absolute-flux-error trend: halve on worsening, restore gradually
+    # after repeated improvements. See
+    # ``temperature_correction.next_flux_residual_step_scale``.
+    flux_residual_guided_damping: bool = False
+    # Experimental companion to the stopping rule (off by default; the
+    # default path is unchanged). When enabled together with
+    # ``enable_convergence_stop``, convergence additionally requires the p95
+    # absolute flux error not to be worse than the previous iteration's.
+    require_improving_flux_residual: bool = False
 
 
 DEFAULT_OPACITY_FLAGS = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0]

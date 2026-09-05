@@ -424,11 +424,15 @@ def _solve_attempt(
     iteration_cap: int,
     maximum_all_layer_relative_temperature_change: float | None = None,
     after_iteration_hook=None,
+    config_overrides: dict | None = None,
 ) -> tuple[dict, ModelAtmosphere | None]:
     """Run one exact solver attempt and return its final state for continuation.
 
     ``after_iteration_hook`` is forwarded to the runner unchanged; it lets a
     campaign record per-iteration diagnostics without touching the solver.
+    ``config_overrides`` applies experimental solver-policy fields (e.g.
+    ``temperature_correction_damping``) on top of the production config
+    without touching it for anyone else.
     """
 
     if initial_atmosphere is None:
@@ -469,6 +473,8 @@ def _solve_attempt(
                         maximum_all_layer_relative_temperature_change
                     ),
                 )
+            if config_overrides:
+                config = dataclasses.replace(config, **config_overrides)
             result = run_atmosphere_model(
                 config, after_iteration_hook=after_iteration_hook
             )

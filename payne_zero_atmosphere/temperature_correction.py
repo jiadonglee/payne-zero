@@ -357,6 +357,7 @@ def apply_temperature_correction(
     standard_log_tau_step: float = 0.125,
     standard_log_tau_start: float = -6.875,
     temperature_correction_damping: float = 1.0,
+    flux_residual_step_scale: float = 1.0,
 ) -> TemperatureCorrectionResult | None:
     """Apply one temperature-correction mode step in place."""
 
@@ -826,7 +827,9 @@ def apply_temperature_correction(
                 temperature_correction[layer_index] *= 1.25
             if previous * current < 0.0:
                 temperature_correction[layer_index] *= 0.5
-        temperature_correction[layer_index] *= correction_damping
+        temperature_correction[layer_index] *= (
+            correction_damping * float(flux_residual_step_scale)
+        )
         state.previous_temperature_correction[layer_index] = temperature_correction[
             layer_index
         ]
@@ -937,3 +940,46 @@ def apply_temperature_correction(
         column_mass=corrected_column_mass,
         column_mass_correction=column_mass_correction,
     )
+
+
+FLUX_RESIDUAL_MIN_STEP_SCALE = 0.125
+FLUX_RESIDUAL_RESTORE_STREAK = 2
+FLUX_RESIDUAL_RESTORE_FACTOR = 1.5
+FLUX_RESIDUAL_WORSEN_FACTOR = 0.5
+
+
+def next_flux_residual_step_scale(
+    previous_p95_flux_error: float | None,
+    current_p95_flux_error: float | None,
+    *,
+    current_scale: float = 1.0,
+    improving_streak: int = 0,
+) -> tuple[float, int]:
+    """Return the step scale and streak for the next correction.
+
+    Residual-guided globalization for the temperature iteration: when the
+    p95 absolute flux error worsened (by more than
+    ``FLUX_RESIDUAL_WORSEN_FACTOR`` percent relative to the previous
+    iteration), halve the global step down to
+    ``FLUX_RESIDUAL_MIN_STEP_SCALE``; after ``FLUX_RESIDUAL_RESTORE_STREAK``
+    consecutive non-worsening iterations, restore the scale gradually by
+    ``FLUX_RESIDUAL_RESTORE_FACTOR`` up to 1. Non-finite residuals keep the
+    current scale and reset the streak.
+    """
+
+    scale = float(current_scale)
+    if (
+        previous_p95_flux_error is None
+        or current_p95_flux_error is None
+        or not np.isfinite(previous_p95_flux_error)
+        or not np.isfinite(current_p95_flux_error)
+    ):
+        return scale, 0
+
+    tolerance = FLUX_RESIDUAL_WORSEN_FACTOR * abs(float(previous_p95_flux_error))
+    if float(current_p95_flux_error) <= float(previous_p95_flux_error) + tolerance:
+        streak = int(improving_streak) + 1
+        if streak >= FLUX_RESIDUAL_RESTORE_STREAK and scale < 1.0:
+            return min(scale * FLUX_RESIDUAL_RESTORE_FACTOR, 1.0), streak
+        return scale, streak
+    return max(scale * FLUX_RESIDUAL_WORSEN_FACTOR, FLUX_RESIDUAL_MIN_STEP_SCALE), 0

@@ -102,6 +102,7 @@ from .temperature_correction import (
     apply_temperature_correction,
     ingest_temperature_correction_rosseland_table,
     initialize_temperature_correction_state,
+    next_flux_residual_step_scale,
 )
 
 
@@ -249,6 +250,13 @@ class IterationCarry:
     transition_line_catalog: "LineTransitionCatalog | None"
     previous_exact_opacity: "OpacityState | None" = None
     force_exact_opacity: bool = False
+    # Residual-guided step scaling (used when the experimental
+    # ``flux_residual_guided_damping`` flag is on): the scale applied to the
+    # current correction, the previous iteration's p95 flux error, and the
+    # improvement streak feeding the scale scheduler.
+    flux_residual_step_scale: float = 1.0
+    previous_p95_flux_error: float | None = None
+    improving_streak: int = 0
 
 
 @dataclass
@@ -540,6 +548,11 @@ def run_single_iteration(
         molecular_convection_thermal_tracks_perturbation=bool(
             config.molecular_convection_thermal_tracks_perturbation
         ),
+        flux_residual_step_scale=(
+            float(carry.flux_residual_step_scale)
+            if setup.flux_residual_guided_damping
+            else 1.0
+        ),
     )
     iteration_timing["finalization_seconds"] = (
         time.perf_counter() - stage_start_time
@@ -640,6 +653,22 @@ def run_single_iteration(
             ),
         }
     )
+    if setup.flux_residual_guided_damping:
+        (
+            carry.flux_residual_step_scale,
+            carry.improving_streak,
+        ) = next_flux_residual_step_scale(
+            carry.previous_p95_flux_error,
+            float(iteration_timing["p95_absolute_flux_error_percent"]),
+            current_scale=float(carry.flux_residual_step_scale),
+            improving_streak=int(carry.improving_streak),
+        )
+        carry.previous_p95_flux_error = float(
+            iteration_timing["p95_absolute_flux_error_percent"]
+        )
+        iteration_timing["flux_residual_step_scale"] = float(
+            carry.flux_residual_step_scale
+        )
     return SingleIterationResult(
         carry=carry,
         remapped=remapped,
@@ -1454,6 +1483,7 @@ def finalize_transfer_state(
     integrated_radiation_pressure: np.ndarray | None = None,
     turbulent_pressure: np.ndarray | None = None,
     molecular_convection_thermal_tracks_perturbation: bool = False,
+    flux_residual_step_scale: float = 1.0,
 ) -> IterationFinalization:
     """Finalize one transfer pass on the original Rosseland-depth grid.
 
@@ -1647,6 +1677,7 @@ def finalize_transfer_state(
         ),
         surface_gravity_cgs=setup.surface_gravity_cgs,
         temperature_correction_damping=setup.temperature_correction_damping,
+        flux_residual_step_scale=float(flux_residual_step_scale),
     )
     if correction_result is None:
         raise RuntimeError("the final temperature correction returned no result")
@@ -2120,6 +2151,7 @@ def _run_atmosphere_model(
     last_all_layer_relative_temperature_change = float("inf")
     iteration_timings: list[dict[str, float | int]] = []
     after_iteration_diagnostics: dict[str, dict[str, Any]] = {}
+    last_p95_flux_error: float | None = None
 
     for iteration_index in range(1, int(setup.iterations) + 1):
         iteration_start_time = time.perf_counter()
@@ -2152,6 +2184,19 @@ def _run_atmosphere_model(
                 setup.maximum_all_layer_relative_temperature_change
             ),
         )
+        if setup.require_improving_flux_residual:
+            current_p95_flux_error = float(
+                iteration_timing["p95_absolute_flux_error_percent"]
+            )
+            residual_improving = (
+                last_p95_flux_error is None
+                or not np.isfinite(last_p95_flux_error)
+                or current_p95_flux_error <= last_p95_flux_error
+            )
+            last_p95_flux_error = current_p95_flux_error
+            temperature_change_within_limit = bool(
+                temperature_change_within_limit and residual_improving
+            )
         # The opacity-lagging invariant -- convergence is never declared off a
         # lagged iteration -- is enforced inside evaluate_convergence_stop.
         # With lagging off, step.opacity_recomputed is always True and the
@@ -2262,6 +2307,10 @@ def _run_atmosphere_model(
         diagnostics["temperature_correction_damping"] = float(
             setup.temperature_correction_damping
         )
+    if setup.flux_residual_guided_damping:
+        diagnostics["flux_residual_guided_damping"] = True
+    if setup.require_improving_flux_residual:
+        diagnostics["require_improving_flux_residual"] = True
     if setup.enable_opacity_lagging:
         # Only added when lagging is on; the default diagnostics payload keeps
         # exactly the keys it had before this feature existed.

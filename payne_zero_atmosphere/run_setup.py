@@ -54,6 +54,8 @@ class RunSetup:
     enable_opacity_lagging: bool = False
     opacity_recompute_interval: int = 1
     temperature_correction_damping: float = 1.0
+    flux_residual_guided_damping: bool = False
+    require_improving_flux_residual: bool = False
 
 
 def surface_gravity_from_atmosphere(atmosphere: ModelAtmosphere) -> float:
@@ -256,4 +258,6 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
         enable_opacity_lagging=enable_opacity_lagging,
         opacity_recompute_interval=opacity_recompute_interval,
         temperature_correction_damping=temperature_correction_damping,
+        flux_residual_guided_damping=bool(config.flux_residual_guided_damping),
+        require_improving_flux_residual=bool(config.require_improving_flux_residual),
     )
