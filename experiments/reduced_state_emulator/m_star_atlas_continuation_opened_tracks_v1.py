@@ -64,14 +64,24 @@ PREREGISTRATION_PATH = (
     / "m_star_atlas_continuation_opened_tracks_v1_preregistration_20260904.md"
 )
 
-TRACK_A = TrackSpec(
-    log_surface_gravity=4.5,
-    metallicity=0.0,
-).as_json()
-TRACK_B = TrackSpec(
-    log_surface_gravity=4.5,
-    metallicity=-0.5,
-).as_json()
+# The track payloads carry the same class/role fields the interpolation arm
+# records; _annotate_record reads them from the payload.
+TRACK_A = {
+    **TrackSpec(
+        log_surface_gravity=4.5,
+        metallicity=0.0,
+    ).as_json(),
+    "class": "dwarf",
+    "role": "train",
+}
+TRACK_B = {
+    **TrackSpec(
+        log_surface_gravity=4.5,
+        metallicity=-0.5,
+    ).as_json(),
+    "class": "dwarf",
+    "role": "train",
+}
 
 # Frozen seed identities from the interpolation arm.  The sha256 values are
 # the gated primary products on Garching at plan time; the remaining

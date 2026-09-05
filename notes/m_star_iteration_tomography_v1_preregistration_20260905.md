@@ -48,7 +48,7 @@
 
 A/B/C 种子 (m,T) 完全相同（同一 donor 单侧拷贝），差别只在目标 labels
 （Teff 进入 flux 目标与谱窗）；sha256 相同是构造的直接结果，不是错误。
-Garching protocol hash：`edfe64ede32b1deee5c2fcbdcdf814098ae529439a4c39dc724cbdf5dc144c58`。
+Garching protocol hash：`c58466b72f40d8217e0e5cd6b855c9a1c50ca83cb0c6906f82e3f9457c74705c`。
 
 种子重建（`reconstruct_full_atmosphere` 的压力同步）在同一平台位级可复现，
 但跨 BLAS 后端（macOS Accelerate vs Linux）不位级一致；donor v1r2 产品
