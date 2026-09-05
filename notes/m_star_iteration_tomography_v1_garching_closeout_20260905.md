@@ -71,5 +71,27 @@ gate。四个 case 的第 1 轮诊断相对历史都有 ~1e-8 相对差（种子
 
 - continuation probe 首次真实运行即崩溃：`TRACK_A/TRACK_B` 载荷缺
   `class`/`role` 键，`_annotate_record` 读 `track_payload["class"]` 抛
-  KeyError。已修复（载荷补齐两键，与插值臂结构一致），probe 重启后另行
-  closeout。
+  KeyError。已修复（载荷补齐两键，与插值臂结构一致）；修复后 probe
+  复跑时又在后处理暴露第二处同类路径缺陷（`_sha256` 收到 str），同样
+  已修复。两处均为该脚本首次真实执行暴露的既有缺陷，与 tomography 无关。
+
+## Continuation probe 结果（同日，紧接 tomography）
+
+探针按预注册执行（A：3500→3400；B：3700→3600，50 K 失败减半 25 K）：
+
+| probe | target | 路径 | eligible | 对照（插值臂直跳） |
+| --- | --- | --- | --- | --- |
+| A | 3400 K, [M/H] 0 | 50 K 一步；primary 20 轮 p95 6.98%，restart 3.85% | ✓ | 36 轮 p95 13.98%，失败 |
+| B | 3600 K, [M/H] −0.5 | 3700→3650 过；3650→3600 失败；25 K 重试最后一步发散（60 轮 p95 4.6e5%），minimum_step_failed | ✗ | 25 轮 p95 11.56%，形式收敛但超门 |
+
+- **3400 K 被 continuation 救活且质量更好**：同一种子家族，直跳落在
+  13.98%（历史）/9.15%（tomography 重跑）的刀尖盆，从 3500 K 走 50 K
+  稳定落在 6.98% 的好盆，restart 3.85% 是该格点迄今最好值。路径决定
+  归宿，与 tomography 的多解判读互为印证。
+- **3600 K [M/H] −0.5 不是路径问题**：continuation 在最后 25 K 直接
+  发散，直跳形式收敛但残差稳定在 11.56%（tomography case D 位级复现
+  同值）。该格点收敛解的对流区残差本身就压不过暖星定标的 gate，
+  归 physics/gate 口径。
+- 预注册决策规则（1/2 eligible → 只走通过轨）触发：轨 A 打开，链种子
+  为新过门的 `…_t3400`（primary p95 6.98%），walk 目标 3200/3100/3000 K；
+  轨 B 关闭。walk 结果另行记录。

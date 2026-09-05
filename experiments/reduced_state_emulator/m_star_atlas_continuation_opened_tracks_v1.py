@@ -1124,7 +1124,7 @@ def run_probe(
             record = probe_records[name]
             track["seed_candidate_id"] = str(record["candidate_id"])
             track["seed_product_sha256"] = _sha256(
-                record["primary"]["product_path"]
+                Path(record["primary"]["product_path"])
             )
     validate_walk_decision(decision, protocol=protocol)
     _write_json(result_root / "walk_decision.json", decision)
