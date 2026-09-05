@@ -68,6 +68,11 @@ class MolecularEquilibriumState:
     molecular_equation_densities: np.ndarray
     previous_molecular_equation_densities: np.ndarray
     specific_internal_energy_mode_enabled: bool = False
+    # Per-layer Newton-solve diagnostics from the most recent
+    # ``solve_molecular_equilibrium`` pass: loop passes used and whether the
+    # linear solve ever fell back to least squares.
+    newton_iterations: np.ndarray | None = None
+    newton_used_lstsq: np.ndarray | None = None
 
 
 def _load_hydrogen_molecule_partition_table() -> np.ndarray:
@@ -111,6 +116,8 @@ def initialize_molecular_equilibrium_state(
             (layer_count, equation_count), dtype=np.float64
         ),
         specific_internal_energy_mode_enabled=False,
+        newton_iterations=np.zeros(layer_count, dtype=np.int64),
+        newton_used_lstsq=np.zeros(layer_count, dtype=np.bool_),
     )
 
 
@@ -293,11 +300,17 @@ def solve_molecular_equilibrium(
                 layer_index
             ]
 
-        equation_density = solve_molecular_equilibrium_layer(
+        (
+            equation_density,
+            newton_iterations_used,
+            newton_layer_used_lstsq,
+        ) = _solve_molecular_equilibrium_layer_compiled(
             molecular_state,
             layer_index,
             equation_density,
         )
+        molecular_state.newton_iterations[layer_index] = newton_iterations_used
+        molecular_state.newton_used_lstsq[layer_index] = newton_layer_used_lstsq
         molecular_state.molecular_equation_densities[layer_index, :equation_count] = (
             equation_density[:equation_count]
         )
@@ -1151,12 +1164,13 @@ def _solve_molecular_equilibrium_layer_compiled(
     molecular_state: MolecularEquilibriumState,
     layer_index: int,
     equation_density_seed: np.ndarray,
-) -> np.ndarray:
+) -> tuple[np.ndarray, int, bool]:
     """Run the damped-Newton molecular-equilibrium solve for one layer.
 
     Jacobian/residual assembly and the damped Newton update run as numba
     kernels; ``np.linalg.solve`` (and the ``lstsq`` fallback) stays the exact
-    numpy LAPACK call.
+    numpy LAPACK call. Returns the converged densities, the number of Newton
+    passes taken, and whether any pass needed the least-squares fallback.
     """
 
     catalog = molecular_state.catalog
@@ -1177,6 +1191,8 @@ def _solve_molecular_equilibrium_layer_compiled(
         molecular_state.gas_pressure[layer_index] / max(thermal_energy, 1.0e-300)
     )
 
+    iterations_used = 0
+    used_lstsq = False
     for _ in range(_MAX_NEWTON_ITERATIONS):
         jacobian, residual = _newton_matrix_kernel(
             equation_count,
@@ -1194,9 +1210,11 @@ def _solve_molecular_equilibrium_layer_compiled(
             delta = np.linalg.solve(jacobian, residual)
         except np.linalg.LinAlgError:
             delta, *_ = np.linalg.lstsq(jacobian, residual, rcond=None)
+            used_lstsq = True
         if delta.size != equation_count:
             raise RuntimeError("molecular solver returned wrong vector size")
 
+        iterations_used += 1
         still_iterating = _newton_update_kernel(
             equation_count,
             equation_density,
@@ -1204,9 +1222,9 @@ def _solve_molecular_equilibrium_layer_compiled(
             np.ascontiguousarray(delta, dtype=np.float64),
         )
         if not still_iterating:
-            return equation_density
+            return equation_density, iterations_used, used_lstsq
 
-    return equation_density
+    return equation_density, iterations_used, used_lstsq
 
 
 def _compute_molecular_specific_internal_energy_compiled(
@@ -1384,9 +1402,10 @@ def solve_molecular_equilibrium_layer(
 ) -> np.ndarray:
     """Run the molecular-equilibrium Newton solve for one depth layer."""
 
-    return _solve_molecular_equilibrium_layer_compiled(
+    densities, _, _ = _solve_molecular_equilibrium_layer_compiled(
         molecular_state, layer_index, equation_density_seed
     )
+    return densities
 
 
 def compute_molecular_specific_internal_energy(

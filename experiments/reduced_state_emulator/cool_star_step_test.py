@@ -423,8 +423,13 @@ def _solve_attempt(
     product_dir: Path,
     iteration_cap: int,
     maximum_all_layer_relative_temperature_change: float | None = None,
+    after_iteration_hook=None,
 ) -> tuple[dict, ModelAtmosphere | None]:
-    """Run one exact solver attempt and return its final state for continuation."""
+    """Run one exact solver attempt and return its final state for continuation.
+
+    ``after_iteration_hook`` is forwarded to the runner unchanged; it lets a
+    campaign record per-iteration diagnostics without touching the solver.
+    """
 
     if initial_atmosphere is None:
         return (
@@ -464,7 +469,9 @@ def _solve_attempt(
                         maximum_all_layer_relative_temperature_change
                     ),
                 )
-            result = run_atmosphere_model(config)
+            result = run_atmosphere_model(
+                config, after_iteration_hook=after_iteration_hook
+            )
         captured_warnings = [str(item.message) for item in caught]
     except Exception as exc:  # noqa: BLE001 - a failed step is an outcome
         error = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"

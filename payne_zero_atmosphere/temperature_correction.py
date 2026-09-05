@@ -47,6 +47,7 @@ class TemperatureCorrectionResult:
     lambda_temperature_derivative: np.ndarray
     surface_temperature_derivative: np.ndarray
     temperature_correction: np.ndarray
+    raw_temperature_correction: np.ndarray
     flux_ratio: np.ndarray
     convective_flux: np.ndarray
     column_mass: np.ndarray
@@ -808,6 +809,7 @@ def apply_temperature_correction(
         + lambda_temperature_derivative
         + surface_temperature_derivative
     )
+    raw_temperature_correction = temperature_correction.copy()
 
     for layer_index in range(layer_count):
         skip_damping = False
@@ -929,6 +931,7 @@ def apply_temperature_correction(
         lambda_temperature_derivative=lambda_temperature_derivative,
         surface_temperature_derivative=surface_temperature_derivative,
         temperature_correction=temperature_correction,
+        raw_temperature_correction=raw_temperature_correction,
         flux_ratio=flux_ratio,
         convective_flux=smoothed_convective_flux,
         column_mass=corrected_column_mass,

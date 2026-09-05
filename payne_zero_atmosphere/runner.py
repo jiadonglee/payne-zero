@@ -267,6 +267,14 @@ class SingleIterationResult:
     # stop in ``_run_atmosphere_model`` reads this and refuses to declare
     # convergence when it is False.
     opacity_recomputed: bool = True
+    # Per-iteration solver diagnostics for tomography, all on the pre-remap
+    # Rosseland grid; None when the producing stage did not run (e.g. the
+    # convection or molecular stages).
+    raw_temperature_correction: np.ndarray | None = None
+    flux_ratio: np.ndarray | None = None
+    superadiabatic_gradient: np.ndarray | None = None
+    molecular_newton_iterations: np.ndarray | None = None
+    molecular_newton_used_lstsq: np.ndarray | None = None
 
 
 AfterIterationHook = Callable[
@@ -600,6 +608,17 @@ def run_single_iteration(
     iteration_absolute_flux_error_percent = np.abs(
         remapped.finalization.temperature_correction_result.flux_error_percent
     )
+    iteration_correction_result = (
+        remapped.finalization.temperature_correction_result
+    )
+    iteration_convection_result = remapped.finalization.convection_result
+    iteration_superadiabatic_gradient = (
+        iteration_convection_result.logarithmic_temperature_pressure_gradient
+        - iteration_convection_result.adiabatic_gradient
+        if iteration_convection_result is not None
+        else None
+    )
+    iteration_molecular_state = population.molecular_state
     iteration_timing.update(
         {
             "deep_layer_relative_temperature_change": float(deep_layer_change),
@@ -613,6 +632,12 @@ def run_single_iteration(
             "maximum_absolute_flux_error_percent": float(
                 np.max(iteration_absolute_flux_error_percent)
             ),
+            "maximum_abs_raw_relative_temperature_correction": float(
+                np.max(
+                    np.abs(iteration_correction_result.raw_temperature_correction)
+                    / np.maximum(iteration_setup.atmosphere.temperature, 1.0)
+                )
+            ),
         }
     )
     return SingleIterationResult(
@@ -624,6 +649,21 @@ def run_single_iteration(
         all_layer_relative_temperature_change=all_layer_change,
         timing=iteration_timing,
         opacity_recomputed=bool(recompute_opacity),
+        raw_temperature_correction=(
+            iteration_correction_result.raw_temperature_correction
+        ),
+        flux_ratio=iteration_correction_result.flux_ratio,
+        superadiabatic_gradient=iteration_superadiabatic_gradient,
+        molecular_newton_iterations=(
+            None
+            if iteration_molecular_state is None
+            else iteration_molecular_state.newton_iterations
+        ),
+        molecular_newton_used_lstsq=(
+            None
+            if iteration_molecular_state is None
+            else iteration_molecular_state.newton_used_lstsq
+        ),
     )
 
 
@@ -2033,10 +2073,19 @@ def _copy_iteration_atmosphere(
     )
 
 
-def run_atmosphere_model(config: AtmosphereConfig) -> AtmosphereRunResult:
-    """Run the exact atmosphere solver on the unchanged production path."""
+def run_atmosphere_model(
+    config: AtmosphereConfig,
+    *,
+    after_iteration_hook: AfterIterationHook | None = None,
+) -> AtmosphereRunResult:
+    """Run the exact atmosphere solver on the unchanged production path.
 
-    return _run_atmosphere_model(config)
+    ``after_iteration_hook`` is opt-in: when given, it is called after every
+    iteration (see ``_run_atmosphere_model``) and its return values are
+    recorded in the result diagnostics. The default path is untouched.
+    """
+
+    return _run_atmosphere_model(config, after_iteration_hook=after_iteration_hook)
 
 
 def _run_atmosphere_model(
