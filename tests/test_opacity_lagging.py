@@ -351,7 +351,9 @@ def stubbed_iteration(monkeypatch):
         runner,
         "prepare_population_state",
         lambda config, **kwargs: SimpleNamespace(
-            setup=kwargs["setup"], runtime_state=SimpleNamespace()
+            setup=kwargs["setup"],
+            runtime_state=SimpleNamespace(),
+            molecular_state=None,
         ),
     )
     monkeypatch.setattr(
@@ -397,8 +399,14 @@ def stubbed_iteration(monkeypatch):
         lambda finalization, **kwargs: SimpleNamespace(
             finalization=SimpleNamespace(
                 temperature_correction_result=SimpleNamespace(
-                    flux_error_percent=np.zeros(LAYERS)
-                )
+                    flux_error_percent=np.zeros(LAYERS),
+                    raw_temperature_correction=np.zeros(LAYERS),
+                    flux_ratio=np.zeros(LAYERS),
+                ),
+                convection_result=SimpleNamespace(
+                    logarithmic_temperature_pressure_gradient=np.zeros(LAYERS),
+                    adiabatic_gradient=np.zeros(LAYERS),
+                ),
             ),
             atmosphere=_atmosphere(),
             standard_rosseland_optical_depth=np.ones(LAYERS),
