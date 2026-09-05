@@ -43,7 +43,7 @@ from .m_star_bootstrap_v1 import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CAMPAIGN = "m_star_solver_policy_arms_v1"
+CAMPAIGN = "m_star_solver_policy_arms_v2"
 ITERATION_CAP = base.ITERATION_CAP
 STRICT_ALL_LAYER_LIMIT = base.STRICT_ALL_LAYER_LIMIT
 DEFAULT_RESULT_ROOT = REPO_ROOT / "results" / CAMPAIGN
@@ -51,7 +51,7 @@ DEFAULT_TOMOGRAPHY_ROOT = REPO_ROOT / "results" / "m_star_iteration_tomography_v
 DEFAULT_INTERP_ROOT = tomography.DEFAULT_INTERP_ROOT
 DEFAULT_V1R2_ROOT = tomography.DEFAULT_V1R2_ROOT
 PREREGISTRATION_PATH = (
-    REPO_ROOT / "notes" / "m_star_solver_policy_arms_v1_preregistration_20260905.md"
+    REPO_ROOT / "notes" / "m_star_solver_policy_arms_v2_preregistration_20260905.md"
 )
 
 ARMS: dict[str, dict[str, Any]] = {

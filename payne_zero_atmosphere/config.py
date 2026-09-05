@@ -69,9 +69,10 @@ class AtmosphereConfig:
     temperature_correction_damping: float = 1.0
     # Experimental residual-guided step scaling (off by default; the default
     # path is bit-identical to the historical solver). When enabled, the
-    # global temperature-correction step is rescaled each iteration from the
-    # p95 absolute-flux-error trend: halve on worsening, restore gradually
-    # after repeated improvements. See
+    # temperature-correction step of the deep superadiabatic zone (log tau
+    # >= 0.5) is rescaled each iteration after an arming delay, from the p95
+    # absolute-flux-error trend: halve on worsening, restore gradually after
+    # repeated improvements. See
     # ``temperature_correction.next_flux_residual_step_scale``.
     flux_residual_guided_damping: bool = False
     # Experimental companion to the stopping rule (off by default; the

@@ -97,6 +97,7 @@ from .synthesis_bridge import (
     save_structured_atmosphere_from_runtime_state,
 )
 from .temperature_correction import (
+    FLUX_RESIDUAL_ARMING_ITERATIONS,
     TemperatureCorrectionResult,
     TemperatureCorrectionState,
     apply_temperature_correction,
@@ -654,18 +655,23 @@ def run_single_iteration(
         }
     )
     if setup.flux_residual_guided_damping:
-        (
-            carry.flux_residual_step_scale,
-            carry.improving_streak,
-        ) = next_flux_residual_step_scale(
-            carry.previous_p95_flux_error,
-            float(iteration_timing["p95_absolute_flux_error_percent"]),
-            current_scale=float(carry.flux_residual_step_scale),
-            improving_streak=int(carry.improving_streak),
-        )
-        carry.previous_p95_flux_error = float(
+        current_p95_flux_error = float(
             iteration_timing["p95_absolute_flux_error_percent"]
         )
+        if int(iteration_index) >= FLUX_RESIDUAL_ARMING_ITERATIONS:
+            (
+                carry.flux_residual_step_scale,
+                carry.improving_streak,
+            ) = next_flux_residual_step_scale(
+                carry.previous_p95_flux_error,
+                current_p95_flux_error,
+                current_scale=float(carry.flux_residual_step_scale),
+                improving_streak=int(carry.improving_streak),
+            )
+        else:
+            carry.flux_residual_step_scale = 1.0
+            carry.improving_streak = 0
+        carry.previous_p95_flux_error = current_p95_flux_error
         iteration_timing["flux_residual_step_scale"] = float(
             carry.flux_residual_step_scale
         )

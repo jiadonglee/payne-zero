@@ -811,6 +811,14 @@ def apply_temperature_correction(
         + surface_temperature_derivative
     )
     raw_temperature_correction = temperature_correction.copy()
+    layer_step_scales = flux_residual_layer_scales(
+        rosseland_optical_depth,
+        flux_residual_step_scale,
+    )
+    if not isinstance(layer_step_scales, np.ndarray):
+        layer_step_scales = np.full(
+            layer_count, layer_step_scales, dtype=np.float64
+        )
 
     for layer_index in range(layer_count):
         skip_damping = False
@@ -828,7 +836,7 @@ def apply_temperature_correction(
             if previous * current < 0.0:
                 temperature_correction[layer_index] *= 0.5
         temperature_correction[layer_index] *= (
-            correction_damping * float(flux_residual_step_scale)
+            correction_damping * layer_step_scales[layer_index]
         )
         state.previous_temperature_correction[layer_index] = temperature_correction[
             layer_index
@@ -943,9 +951,15 @@ def apply_temperature_correction(
 
 
 FLUX_RESIDUAL_MIN_STEP_SCALE = 0.125
-FLUX_RESIDUAL_RESTORE_STREAK = 2
-FLUX_RESIDUAL_RESTORE_FACTOR = 1.5
+FLUX_RESIDUAL_RESTORE_STREAK = 3
+FLUX_RESIDUAL_RESTORE_FACTOR = 1.25
 FLUX_RESIDUAL_WORSEN_FACTOR = 0.5
+# The guided scale stays 1.0 during the early transient, whose large flux
+# spikes are normal production behaviour; scaling activates only afterwards.
+FLUX_RESIDUAL_ARMING_ITERATIONS = 15
+# The residual wander lives in the deep superadiabatic zone; layers above
+# this log tau carry the scale, shallower layers stay on the production step.
+FLUX_RESIDUAL_SCALED_LOG_TAU_MIN = 0.5
 
 
 def next_flux_residual_step_scale(
@@ -983,3 +997,26 @@ def next_flux_residual_step_scale(
             return min(scale * FLUX_RESIDUAL_RESTORE_FACTOR, 1.0), streak
         return scale, streak
     return max(scale * FLUX_RESIDUAL_WORSEN_FACTOR, FLUX_RESIDUAL_MIN_STEP_SCALE), 0
+
+
+def flux_residual_layer_scales(
+    rosseland_optical_depth: np.ndarray | None,
+    step_scale: float,
+) -> float | np.ndarray:
+    """Restrict the guided step scale to the deep superadiabatic zone.
+
+    Layers shallower than ``FLUX_RESIDUAL_SCALED_LOG_TAU_MIN`` keep the
+    production step; only the zone where the residual wander lives is
+    scaled. Returns the plain float when there is no depth grid or the
+    scale is unity, so unaffected callers keep bit-identical behaviour.
+    """
+
+    scale = float(step_scale)
+    if scale == 1.0 or rosseland_optical_depth is None:
+        return scale
+    log_tau = np.log10(np.asarray(rosseland_optical_depth, dtype=np.float64))
+    return np.where(
+        log_tau >= FLUX_RESIDUAL_SCALED_LOG_TAU_MIN,
+        scale,
+        1.0,
+    )

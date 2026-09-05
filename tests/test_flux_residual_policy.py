@@ -77,24 +77,29 @@ def test_scheduler_halves_on_worsening_and_floors():
     assert scale == pytest.approx(FLUX_RESIDUAL_MIN_STEP_SCALE)
 
 
-def test_scheduler_restores_after_two_improvements():
-    # First non-worsening iteration keeps the scale but arms the streak.
+def test_scheduler_restores_after_three_improvements():
+    # The first two non-worsening iterations keep the scale but arm the
+    # streak.
     scale, streak = next_flux_residual_step_scale(
         10.0, 9.0, current_scale=0.25, improving_streak=0
     )
     assert scale == pytest.approx(0.25) and streak == 1
-    # Second consecutive improvement restores by 1.5x.
     scale, streak = next_flux_residual_step_scale(
         9.0, 8.0, current_scale=0.25, improving_streak=1
     )
-    assert scale == pytest.approx(0.375) and streak == 2
+    assert scale == pytest.approx(0.25) and streak == 2
+    # The third consecutive improvement restores by 1.25x.
+    scale, streak = next_flux_residual_step_scale(
+        8.0, 7.0, current_scale=0.25, improving_streak=2
+    )
+    assert scale == pytest.approx(0.3125) and streak == 3
 
 
 def test_scheduler_restoration_caps_at_one():
     scale, streak = next_flux_residual_step_scale(
-        8.0, 7.0, current_scale=0.9, improving_streak=1
+        8.0, 7.0, current_scale=0.9, improving_streak=2
     )
-    assert scale == pytest.approx(1.0) and streak == 2
+    assert scale == pytest.approx(1.0) and streak == 3
 
 
 def test_scheduler_tolerates_small_bounces():
