@@ -30,6 +30,7 @@ from typing import Any
 import numpy as np
 
 from . import m_star_pipeline as pipeline
+from . import m_star_iteration_tomography_v1 as tomography
 from .cool_star_step_test import (
     _reconstruct_from_mt,
     _set_single_thread_environment,
@@ -84,7 +85,7 @@ NODES = [
         "arm": "phase_aware",
         "track": dict(GIANT_TRACK),
         "temperature_K": 4000.0,
-        "caps": (CERTIFICATION_CAP,),
+        "caps": (1500,),
     },
     {
         "node_id": "complete_dwarf_g+4.50_m-1.00_t3800",
@@ -222,6 +223,7 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
         marcs_grid_text,
         scaleout_root_text,
         tomography_root_text,
+        v1r2_root_text,
         gate,
         protocol_hash,
     ) = payload
@@ -235,7 +237,12 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
 
     scaleout_root = Path(scaleout_root_text)
     tomography_root = Path(tomography_root_text)
-    track = pipeline.track_payload(**node["track"])
+    track = pipeline.track_payload(
+        **node["track"],
+        microturbulence_km_s=pipeline.MICROTURBULENCE[
+            node["track"]["stellar_class"]
+        ],
+    )
     labels = pipeline.labels_for(track, node["temperature_K"])
     attempts: dict[str, Any] = {}
     notes: dict[str, Any] = {}
@@ -285,13 +292,19 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
             seed = _reconstruct_from_mt(labels, mass, profile)
             seed_kind = "continuation_waypoint"
         elif node["arm"] == "continuation_from_3600":
-            donor = tomography._history_product(
-                tomography_root,
-                "g+4.50_m+0.00_a+0.00_c+0.00_x1.00",
-                3600.0,
+            donor_dir = (
+                Path(v1r2_root_text)
+                / "cases"
+                / "dwarf"
+                / "g+4.50_m+0.00_a+0.00_c+0.00_x1.00"
+                / "t3600"
+                / "products"
+                / "primary"
             )
-            if donor is None:
-                raise FileNotFoundError("gated 3600 K product missing")
+            donor_products = sorted(donor_dir.glob("*.npz"))
+            if not donor_products:
+                raise FileNotFoundError(f"no gated 3600 K product in {donor_dir}")
+            donor = donor_products[0]
             seed = pipeline.continuation_seed(donor, labels)
             seed_kind = f"continuation_seed:{donor.name}"
         else:
@@ -376,6 +389,7 @@ def run_campaign(args: argparse.Namespace) -> int:
             str(Path(args.marcs_grid)),
             str(Path(args.scaleout_root)),
             str(Path(args.tomography_root)),
+            str(Path(args.v1r2_root)),
             gate,
             protocol["protocol_hash"],
         )
@@ -420,6 +434,10 @@ def main(argv: list[str] | None = None) -> int:
     common.add_argument("--scaleout-root", default=str(DEFAULT_SCALEOUT_ROOT))
     common.add_argument(
         "--tomography-root", default=str(DEFAULT_TOMOGRAPHY_ROOT)
+    )
+    common.add_argument(
+        "--v1r2-root",
+        default=str(REPO_ROOT / "results" / "m_star_emulator_v1r2_marcs100"),
     )
     common.add_argument("--workers", type=int, default=6)
     parser = argparse.ArgumentParser(description=__doc__)
