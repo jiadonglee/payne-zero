@@ -41,7 +41,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 CAMPAIGN = "m_star_downwalk_v1"
 TARGET_TEMPERATURE_K = 3600.0
 TRACK_SLUG = "g+4.50_m-1.00_a+0.00_c+0.00_x1.00"
-CHAIN_SEED_PRODUCT = (
+CHAIN_SEED_PRODUCTS_DIR = (
     REPO_ROOT
     / "results"
     / "m_star_pipeline_scaleout_v1"
@@ -87,12 +87,16 @@ def run_walk(args: argparse.Namespace) -> dict[str, Any]:
     result_root = Path(args.result_root)
     tomography_root = Path(args.tomography_root)
     gate = _read_json(Path(args.gate_path))
+    chain_products = sorted(CHAIN_SEED_PRODUCTS_DIR.glob("*.npz"))
+    if not chain_products:
+        raise FileNotFoundError(f"no chain-seed product in {CHAIN_SEED_PRODUCTS_DIR}")
+    chain_product = chain_products[0]
     protocol = {
         "campaign": CAMPAIGN,
         "preregistration": str(PREREGISTRATION_PATH),
         "track": TRACK_SLUG,
         "target_temperature_K": TARGET_TEMPERATURE_K,
-        "chain_seed_product": str(CHAIN_SEED_PRODUCT),
+        "chain_seed_product": str(chain_product),
         "step_policy": {
             "initial_step_K": INITIAL_STEP_K,
             "minimum_step_K": MINIMUM_STEP_K,
@@ -111,8 +115,6 @@ def run_walk(args: argparse.Namespace) -> dict[str, Any]:
     ).hexdigest()
     _write_json(result_root / "protocol.json", protocol)
 
-    if not CHAIN_SEED_PRODUCT.is_file():
-        raise FileNotFoundError(CHAIN_SEED_PRODUCT)
     track_payload = pipeline.track_payload(
         stellar_class="dwarf",
         log_surface_gravity=4.5,
@@ -123,7 +125,7 @@ def run_walk(args: argparse.Namespace) -> dict[str, Any]:
     case_root = (
         result_root / "cases" / f"dwarf_g+4.50_m-1.00_t{int(TARGET_TEMPERATURE_K):04d}"
     )
-    start_mass, start_profile = _load_mt(CHAIN_SEED_PRODUCT)
+    start_mass, start_profile = _load_mt(chain_product)
 
     steps: list[dict[str, Any]] = []
     current_temperature = float(CHAIN_SEED_TEMPERATURE_K)
@@ -299,8 +301,8 @@ def run_walk(args: argparse.Namespace) -> dict[str, Any]:
             "steps": steps,
             "reached_target": reached,
             "chain_seed": {
-                "product_path": str(CHAIN_SEED_PRODUCT),
-                "product_sha256": _sha256(CHAIN_SEED_PRODUCT),
+                "product_path": str(chain_product),
+                "product_sha256": _sha256(chain_product),
                 "temperature_K": CHAIN_SEED_TEMPERATURE_K,
             },
         },
