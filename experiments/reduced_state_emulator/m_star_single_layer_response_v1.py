@@ -34,6 +34,7 @@ from .cool_star_step_test import (
     _set_single_thread_environment,
     _solve_attempt,
 )
+from .m_star_bootstrap_v1 import _write_json
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CAMPAIGN = "m_star_single_layer_response_v1"
@@ -77,11 +78,20 @@ BASELINES = {
 }
 
 
-def _baseline_atmosphere(product_dir: Path):
+def _baseline_atmosphere(product_dir: Path, temperature_k: float):
     products = sorted(Path(product_dir).glob("*.npz"))
     if not products:
         raise FileNotFoundError(f"no baseline product in {product_dir}")
-    return pipeline.continuation_seed(products[0]), products[0]
+    track = pipeline.track_payload(**_baseline_track_spec(product_dir))
+    labels = pipeline.labels_for(track, temperature_k)
+    return pipeline.continuation_seed(products[0], labels), products[0]
+
+
+def _baseline_track_spec(product_dir: Path) -> dict[str, str]:
+    for name, spec in BASELINES.items():
+        if str(spec["product_dir"]) == str(product_dir):
+            return dict(spec["track"])
+    raise KeyError(product_dir)
 
 
 def _response_summary(iterations_dir: Path) -> dict[str, Any]:
@@ -121,7 +131,7 @@ def run_sweep(args: argparse.Namespace) -> dict[str, Any]:
     sweep: dict[str, Any] = {"baselines": {}}
     for name, spec in BASELINES.items():
         baseline_atmosphere, baseline_product = _baseline_atmosphere(
-            spec["product_dir"]
+            spec["product_dir"], spec["temperature_K"]
         )
         baseline_record = {
             "product": str(baseline_product),
@@ -137,7 +147,7 @@ def run_sweep(args: argparse.Namespace) -> dict[str, Any]:
             hook = tomography.make_tomography_hook(case_root / "iterations")
             started = time.perf_counter()
             record, _state = _solve_attempt(
-                track=track,
+                track=pipeline._track(track),
                 method=f"response_sweep_delta_{delta:+.2f}",
                 schedule="single_layer_response",
                 source_temperature=None,
