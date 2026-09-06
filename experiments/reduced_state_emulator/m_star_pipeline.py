@@ -129,14 +129,20 @@ def certified_solve(
     flux_gate: dict[str, Any],
     iteration_cap: int = ITERATION_CAP,
     require_phase_guard: bool = True,
+    solver_overrides: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Primary plus strict self-restart under the full admission set.
 
     Certification: both legs survive the solver with a valid finite state,
     both pass the frozen flux gate, the two products agree (path
     consistency), and -- when ``require_phase_guard`` is on -- both legs
-    stopped on a non-worsening p95 flux error.
+    stopped on a non-worsening p95 flux error. ``solver_overrides`` carries
+    certification-strategy solver fields (e.g.
+    ``require_improving_flux_residual``) to both legs; physics is never
+    overridden here.
     """
+
+    overrides = dict(solver_overrides or {})
 
     product_dir = Path(product_dir)
     primary, _primary_state = _solve_attempt(
@@ -149,6 +155,7 @@ def certified_solve(
         product_dir=product_dir / "products" / "primary",
         iteration_cap=int(iteration_cap),
         maximum_all_layer_relative_temperature_change=STRICT_ALL_LAYER_LIMIT,
+        config_overrides=overrides or None,
     )
     primary = _annotate_record(
         primary,
@@ -170,6 +177,7 @@ def certified_solve(
             product_dir=product_dir / "products" / "restart",
             iteration_cap=int(iteration_cap),
             maximum_all_layer_relative_temperature_change=STRICT_ALL_LAYER_LIMIT,
+            config_overrides=overrides or None,
         )
         restart = _annotate_record(
             restart,
@@ -221,6 +229,7 @@ def certified_solve(
     return {
         "candidate_id": str(candidate_id),
         "labels": labels.as_kwargs(),
+        "solver_overrides": overrides,
         "primary": primary,
         "restart": restart,
         "primary_flux_gate": primary_flux,
