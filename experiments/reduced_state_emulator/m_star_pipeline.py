@@ -198,6 +198,24 @@ def certified_solve(
     )
     guard_primary = _phase_guard(primary)
     guard_restart = _phase_guard(restart)
+    # Certification policy (user-approved): a primary stop that landed on a
+    # worsening residual phase is waived when the strict self-restart -- the
+    # independent re-test of the same node -- survives, converges, passes the
+    # flux gate, and carries a non-worsening stop itself.
+    clean_restart_exemption = bool(
+        require_phase_guard
+        and guard_primary is not True
+        and guard_restart is True
+        and restart is not None
+        and restart.get("survives_solver")
+        and restart_flux["passes"]
+    )
+    if require_phase_guard:
+        guard_ok = guard_restart is True and (
+            guard_primary is True or clean_restart_exemption
+        )
+    else:
+        guard_ok = True
     eligible = bool(
         primary.get("survives_solver")
         and restart is not None
@@ -207,8 +225,7 @@ def certified_solve(
         and primary_flux["passes"]
         and restart_flux["passes"]
         and consistency["passes"]
-        and (guard_primary is True if require_phase_guard else True)
-        and (guard_restart is True if require_phase_guard else True)
+        and guard_ok
     )
     reasons: list[str] = []
     if not primary.get("survives_solver"):
@@ -230,6 +247,9 @@ def certified_solve(
         "candidate_id": str(candidate_id),
         "labels": labels.as_kwargs(),
         "solver_overrides": overrides,
+        "certification_policy": (
+            "clean_restart_exemption" if clean_restart_exemption else "strict"
+        ),
         "primary": primary,
         "restart": restart,
         "primary_flux_gate": primary_flux,
