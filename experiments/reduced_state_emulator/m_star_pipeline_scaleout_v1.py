@@ -112,7 +112,9 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
     result_root = Path(result_root_text)
     case_path = result_root / "cases" / f"{node['node_id']}_pipeline.json"
     if case_path.is_file():
-        return json.loads(case_path.read_text())
+        existing = json.loads(case_path.read_text())
+        if existing.get("status") == "complete":
+            return existing
 
     track = pipeline.track_payload(
         stellar_class=node["stellar_class"],
@@ -124,7 +126,9 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
     try:
         for cap in node["caps"]:
             labels = pipeline.labels_for(track, node["temperature_K"])
-            seed = pipeline.marcs_seed(labels)
+            seed = pipeline.marcs_seed(
+                labels, marcs_grid=Path(marcs_grid_text)
+            )
             attempts[str(cap)] = pipeline.certified_solve(
                 labels=labels,
                 track=track,
