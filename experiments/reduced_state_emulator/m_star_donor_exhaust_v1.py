@@ -156,9 +156,6 @@ def run_campaign(args: argparse.Namespace) -> int:
     _set_single_thread_environment()
     results = []
     for probe in PROBES:
-        if not Path(probe["donor_product"]).is_file():
-            print(f"{probe['probe_id']}: donor missing, skipped")
-            continue
         result = _run_probe(probe, result_root)
         results.append(result)
         print(
