@@ -80,6 +80,14 @@ class AtmosphereConfig:
     # ``enable_convergence_stop``, convergence additionally requires the p95
     # absolute flux error not to be worse than the previous iteration's.
     require_improving_flux_residual: bool = False
+    # Experimental convection mixing length (off by default; the default
+    # path is bit-identical to the historical solver). When set, it replaces
+    # the production mixing length 1.25 in the convective stage. Intended
+    # for deep-cool-zone adaptation experiments: the response sweep showed
+    # cooling raises the deep superadiabatic gradient (positive feedback),
+    # and MLT efficiency -- set by the mixing length -- is the standard
+    # lever on that gradient.
+    convection_mixing_length: float | None = None
 
 
 DEFAULT_OPACITY_FLAGS = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0]

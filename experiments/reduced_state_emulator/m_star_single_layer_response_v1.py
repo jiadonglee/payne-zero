@@ -156,6 +156,11 @@ def run_sweep(args: argparse.Namespace) -> dict[str, Any]:
                 product_dir=case_root / "products",
                 iteration_cap=1,
                 after_iteration_hook=hook,
+                config_overrides=(
+                    {"convection_mixing_length": float(args.mixing_length)}
+                    if args.mixing_length
+                    else None
+                ),
             )
             curves[f"{delta:+.2f}"] = {
                 "converged": record.get("converged"),
@@ -191,6 +196,12 @@ def run_sweep(args: argparse.Namespace) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--result-root", default=str(DEFAULT_RESULT_ROOT))
+    parser.add_argument(
+        "--mixing-length",
+        type=float,
+        default=None,
+        help="experimental convection mixing length (production: 1.25 default path)",
+    )
     args = parser.parse_args(argv)
     run_sweep(args)
     return 0

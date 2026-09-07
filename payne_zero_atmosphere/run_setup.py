@@ -56,6 +56,7 @@ class RunSetup:
     temperature_correction_damping: float = 1.0
     flux_residual_guided_damping: bool = False
     require_improving_flux_residual: bool = False
+    convection_mixing_length: float | None = None
 
 
 def surface_gravity_from_atmosphere(atmosphere: ModelAtmosphere) -> float:
@@ -190,6 +191,16 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
             "temperature_correction_damping must be finite and in (0, 1]"
         )
 
+    convection_mixing_length = (
+        None
+        if config.convection_mixing_length is None
+        else float(config.convection_mixing_length)
+    )
+    if convection_mixing_length is not None and (
+        not np.isfinite(convection_mixing_length) or convection_mixing_length <= 0.0
+    ):
+        raise ValueError("convection_mixing_length must be finite and positive")
+
     surface_gravity_cgs = surface_gravity_from_atmosphere(atmosphere)
     opacity_flags = opacity_flags_from_atmosphere(atmosphere)
     molecules_enabled = bool(config.enable_molecules)
@@ -202,7 +213,11 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
 
     convection = ConvectionSettings(
         enabled=bool(config.enable_convection),
-        mixing_length=1.25,
+        mixing_length=(
+            1.25
+            if convection_mixing_length is None
+            else convection_mixing_length
+        ),
         overshoot_weight=0.0,
         zero_top_layer_count=0,
     )
@@ -260,4 +275,5 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
         temperature_correction_damping=temperature_correction_damping,
         flux_residual_guided_damping=bool(config.flux_residual_guided_damping),
         require_improving_flux_residual=bool(config.require_improving_flux_residual),
+        convection_mixing_length=convection_mixing_length,
     )
