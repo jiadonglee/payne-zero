@@ -99,6 +99,10 @@ def _product_in(directory: Path) -> Path | None:
     return products[0] if products else None
 
 
+def _read_json(path: Path) -> dict[str, Any]:
+    return json.loads(Path(path).read_text())
+
+
 def run_walk(args: argparse.Namespace) -> dict[str, Any]:
     _set_single_thread_environment()
     result_root = Path(args.result_root)
