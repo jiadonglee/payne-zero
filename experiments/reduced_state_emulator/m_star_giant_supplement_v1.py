@@ -96,7 +96,11 @@ def build_candidates() -> list[dict[str, Any]]:
                 "temperature_K": float(teff),
                 "class": "giant",
                 "role": "train",
-                "track": track.as_json(),
+                "track": {
+                    **track.as_json(),
+                    "class": "giant",
+                    "role": "train",
+                },
             }
         )
     return candidates
