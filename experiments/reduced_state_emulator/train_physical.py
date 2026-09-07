@@ -261,11 +261,11 @@ def _evaluate(
             surface_weight=surface_weight,
         )
     log_temperature = (
-        raw_temperature.numpy() * standardization.log_temperature_ratio_std
+        raw_temperature.cpu().numpy() * standardization.log_temperature_ratio_std
         + standardization.log_temperature_ratio_mean
     )
     log_mass_increment = (
-        raw_mass.numpy() * standardization.log_mass_increment_std
+        raw_mass.cpu().numpy() * standardization.log_mass_increment_std
         + standardization.log_mass_increment_mean
     )
     tau = production_tau_grid(truth_column_mass.shape[1])
