@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from bench import environment as _environment  # noqa: F401,E402
 
+import argparse
 import json
 from pathlib import Path
 import time
@@ -27,6 +28,7 @@ from .cool_star_step_test import (
     _set_single_thread_environment,
     _solve_attempt,
 )
+from . import m_star_pipeline as pipeline
 from . import m_star_bootstrap_v1r2_marcs100 as base
 from . import m_star_iteration_tomography_v1 as tomography
 from .m_star_bootstrap_v1 import _load_mt, _write_json
@@ -37,6 +39,16 @@ DEFAULT_RESULT_ROOT = REPO_ROOT / "results" / CAMPAIGN
 TOMOGRAPHY_ROOT = REPO_ROOT / "results" / "m_star_iteration_tomography_v1"
 DONOR_WALK_ROOT = REPO_ROOT / "results" / "m_star_donor_walk_3600_v1"
 
+FINE_CONTINUATION_DIR = (
+    REPO_ROOT
+    / "results"
+    / "m_star_fine_donor_walk_v1"
+    / "cases"
+    / "dwarf_g+4.50_m-1.00_t3600"
+    / "products"
+    / "continuation"
+)
+
 PROBES = [
     {
         "probe_id": "poor_3662.5_from_3687.5",
@@ -45,12 +57,7 @@ PROBES = [
         "metallicity": -1.0,
         "microturbulence_km_s": 1.0,
         "target_temperature_K": 3662.5,
-        "donor_product": DONOR_WALK_ROOT
-        / "cases"
-        / "dwarf_g+4.50_m-1.00_t3687.5"
-        / "products"
-        / "continuation"
-        / "t03687.5_g+4.50_m-1.00_a+0.00_x1.00.npz",
+        "donor_glob": "t03687.5_*.npz",
     },
     {
         "probe_id": "poor_3662.5_from_3681.25",
@@ -59,12 +66,7 @@ PROBES = [
         "metallicity": -1.0,
         "microturbulence_km_s": 1.0,
         "target_temperature_K": 3662.5,
-        "donor_product": DONOR_WALK_ROOT
-        / "cases"
-        / "dwarf_g+4.50_m-1.00_t3681.2"
-        / "products"
-        / "continuation"
-        / "t03681.2_g+4.50_m-1.00_a+0.00_x1.00.npz",
+        "donor_glob": "t03681.2_*.npz",
     },
     {
         "probe_id": "poor_3662.5_from_3675",
@@ -73,12 +75,7 @@ PROBES = [
         "metallicity": -1.0,
         "microturbulence_km_s": 1.0,
         "target_temperature_K": 3662.5,
-        "donor_product": DONOR_WALK_ROOT
-        / "cases"
-        / "dwarf_g+4.50_m-1.00_t3675"
-        / "products"
-        / "continuation"
-        / "t03675.0_g+4.50_m-1.00_a+0.00_x1.00.npz",
+        "donor_glob": "t03675.0_*.npz",
     },
     {
         "probe_id": "rich_3275_from_3500",
@@ -109,10 +106,17 @@ def _run_probe(probe: dict[str, Any], result_root: Path) -> dict[str, Any]:
     )
     track = base._track_from_payload(track_payload)
     labels = track.labels(float(probe["target_temperature_K"]))
-    donor_product = Path(probe["donor_product"])
-    if not donor_product.is_file():
-        return {**probe, "status": "missing_donor",
-                "donor_product": str(donor_product)}
+    if "donor_glob" in probe:
+        matches = sorted(FINE_CONTINUATION_DIR.glob(probe["donor_glob"]))
+        if not matches:
+            return {**probe, "status": "missing_donor",
+                    "donor_glob": probe["donor_glob"]}
+        donor_product = matches[0]
+    else:
+        donor_product = Path(probe["donor_product"])
+        if not donor_product.is_file():
+            return {**probe, "status": "missing_donor",
+                    "donor_product": str(donor_product)}
     seed_mass, seed_profile = _load_mt(donor_product)
     try:
         seed = _reconstruct_from_mt(labels, seed_mass, seed_profile)
