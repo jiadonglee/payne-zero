@@ -54,6 +54,9 @@ MINIMUM_ROWS_PER_CLASS_TRAIN = 5
 MINIMUM_ROWS_PER_CLASS_VALIDATION = 2
 GROUP_SAMPLING_WEIGHT = {"existing": 0.5, "cool": 0.5}
 LOSS_VERSION = "mstar_balanced_physical_v1"
+PROFILE_TEMPERATURE_P95_LIMIT = 3.0e-3
+PROFILE_MASS_P95_DEX_LIMIT = 7.7e-3
+CHECKPOINT_SELECTION = "minimax_normalized_profile_p95_v1"
 
 
 def _sha256(path: Path) -> str:
@@ -320,7 +323,7 @@ def _train_one(
         optimizer, T_max=max(1, epochs)
     )
     best_state = copy.deepcopy(model.state_dict())
-    best_loss = float("inf")
+    best_score = float("inf")
     stale = 0
     history = []
     for epoch in range(epochs):
@@ -363,6 +366,28 @@ def _train_one(
                 standardization,
             )
             validation_loss = 0.5 * old_loss + 0.5 * cool_loss
+            old_profile = _evaluate(
+                model,
+                standardization,
+                existing["labels"][existing_validation_index],
+                existing["column_mass"][existing_validation_index],
+                existing["temperature"][existing_validation_index],
+            )
+            cool_profile = _evaluate(
+                model,
+                standardization,
+                cool["labels"][cool_validation_index],
+                cool["column_mass"][cool_validation_index],
+                cool["temperature"][cool_validation_index],
+            )
+        selection_score = max(
+            old_profile["temperature_relative_p95"]
+            / PROFILE_TEMPERATURE_P95_LIMIT,
+            old_profile["mass_dex_p95"] / PROFILE_MASS_P95_DEX_LIMIT,
+            cool_profile["temperature_relative_p95"]
+            / PROFILE_TEMPERATURE_P95_LIMIT,
+            cool_profile["mass_dex_p95"] / PROFILE_MASS_P95_DEX_LIMIT,
+        )
         value = float(validation_loss)
         history.append(
             {
@@ -371,6 +396,19 @@ def _train_one(
                 "validation_loss": value,
                 "existing_validation_loss": float(old_loss),
                 "cool_validation_loss": float(cool_loss),
+                "selection_score": float(selection_score),
+                "existing_temperature_relative_p95": old_profile[
+                    "temperature_relative_p95"
+                ],
+                "existing_mass_dex_p95": old_profile["mass_dex_p95"],
+                "cool_temperature_relative_p95": cool_profile[
+                    "temperature_relative_p95"
+                ],
+                "cool_mass_dex_p95": cool_profile["mass_dex_p95"],
+                "monotonicity_violations": int(
+                    old_profile["monotonicity_violations"]
+                    + cool_profile["monotonicity_violations"]
+                ),
                 "existing_validation_terms": old_terms,
                 "cool_validation_terms": cool_terms,
             }
@@ -379,11 +417,12 @@ def _train_one(
             print(
                 f"seed={seed} epoch={epoch + 1:03d} "
                 f"train={total / max(seen, 1):.3e} "
-                f"old={float(old_loss):.3e} cool={float(cool_loss):.3e}",
+                f"old={float(old_loss):.3e} cool={float(cool_loss):.3e} "
+                f"score={selection_score:.3f}",
                 flush=True,
             )
-        if value < best_loss:
-            best_loss = value
+        if selection_score < best_score:
+            best_score = selection_score
             best_state = copy.deepcopy(model.state_dict())
             stale = 0
         else:
@@ -393,7 +432,8 @@ def _train_one(
     model.load_state_dict(best_state)
     model = model.cpu()
     return model, standardization, {
-        "best_validation_loss": best_loss,
+        "checkpoint_selection": CHECKPOINT_SELECTION,
+        "best_selection_score": best_score,
         "epochs_completed": len(history),
         "history": history,
         "existing_validation": _evaluate(
@@ -471,6 +511,11 @@ def main(argv: list[str] | None = None) -> int:
         "campaign": str(args.campaign),
         "status": "training",
         "loss_version": LOSS_VERSION,
+        "checkpoint_selection": CHECKPOINT_SELECTION,
+        "profile_selection_limits": {
+            "temperature_relative_p95": PROFILE_TEMPERATURE_P95_LIMIT,
+            "mass_dex_p95": PROFILE_MASS_P95_DEX_LIMIT,
+        },
         "group_sampling_weight": GROUP_SAMPLING_WEIGHT,
         "existing_corpus": str(args.existing_corpus),
         "existing_corpus_sha256": _sha256(args.existing_corpus),

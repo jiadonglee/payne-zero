@@ -52,6 +52,12 @@ FROZEN_GATE_FALLBACK = {
     "median_absolute_flux_error_percent": 0.23421537419224742,
 }
 
+FLUX_METRIC_NAMES = (
+    "median_absolute_flux_error_percent",
+    "p95_absolute_flux_error_percent",
+    "maximum_absolute_flux_error_percent",
+)
+
 GIANT_TEFF = (3500.0, 3600.0, 3750.0, 3800.0, 3900.0, 4000.0)
 GIANT_LOGGS = (0.5, 1.5, 2.5)
 GIANT_METALLICITIES = (0.5, 0.0, -0.5, -1.0)
@@ -124,6 +130,14 @@ def _load_frozen_gate(repo: Path) -> dict[str, float]:
     return dict(FROZEN_GATE_FALLBACK)
 
 
+def _flux_metrics(record: dict[str, Any]) -> dict[str, float | None]:
+    metrics = (record.get("primary_flux_gate") or {}).get("metrics") or {}
+    return {
+        name: (metrics.get(name) or {}).get("value")
+        for name in FLUX_METRIC_NAMES
+    }
+
+
 def _flat_case_rows(repo: Path, campaign: str, admitted: dict, notes: dict) -> None:
     for case_path in sorted((repo / "results" / campaign).glob(FLAT_CASE_GLOBS[campaign])):
         record = json.loads(case_path.read_text())
@@ -146,6 +160,7 @@ def _flat_case_rows(repo: Path, campaign: str, admitted: dict, notes: dict) -> N
             "restart_product": restart_rel if restart_ok else None,
             "primary_flux_gate_passes": (record.get("primary_flux_gate") or {}).get("passes"),
             "restart_flux_gate_passes": (record.get("restart_flux_gate") or {}).get("passes"),
+            "primary_flux_metrics": _flux_metrics(record),
             "path_consistency_passes": (record.get("path_consistency") or {}).get("passes"),
             "phase_guard": record.get("phase_guard"),
             "primary_iterations": primary.get("iterations"),
@@ -197,6 +212,7 @@ def _attempt_rows(repo: Path, campaign: str, admitted: dict, notes: dict) -> Non
                 "restart_product": restart_rel if restart_ok else None,
                 "primary_flux_gate_passes": (attempt.get("primary_flux_gate") or {}).get("passes"),
                 "restart_flux_gate_passes": (attempt.get("restart_flux_gate") or {}).get("passes"),
+                "primary_flux_metrics": _flux_metrics(attempt),
                 "path_consistency_passes": path_pass,
                 "phase_guard": phase_guard,
                 "primary_iterations": primary.get("iterations"),
@@ -294,6 +310,7 @@ def main(argv: list[str] | None = None) -> int:
                 "canonical_campaign": canonical["campaign"],
                 "canonical_product": canonical["primary_product"],
                 "canonical_restart_product": canonical["restart_product"],
+                "primary_flux_metrics": canonical["primary_flux_metrics"],
                 "primary_iterations": canonical["primary_iterations"],
                 "sources": sorted({entry["campaign"] for entry in entries}),
             }
