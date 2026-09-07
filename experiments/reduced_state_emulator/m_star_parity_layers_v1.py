@@ -73,7 +73,13 @@ def run_parity(args: argparse.Namespace) -> dict[str, Any]:
                 "electron_density": np.asarray(
                     data["electron_density"], dtype=np.float64
                 ),
+                "gas_pressure": np.asarray(data["gas_pressure"], dtype=np.float64),
             }
+        from .marcs_h5 import BOLTZMANN_CGS
+
+        pz["total_number_density"] = pz["gas_pressure"] / (
+            BOLTZMANN_CGS * pz["temperature"]
+        )
         labels = pipeline.labels_for(
             pipeline.track_payload(
                 stellar_class="dwarf",
@@ -109,6 +115,9 @@ def run_parity(args: argparse.Namespace) -> dict[str, Any]:
             "pz_log_ne": np.log10(np.maximum(interp(pz["electron_density"]), 1.0)).tolist(),
             "marcs_log_ntot": np.log10(
                 np.maximum(node_marcs.native_total_number_density, 1.0)
+            ).tolist(),
+            "pz_log_ntot": np.log10(
+                np.maximum(interp(pz["total_number_density"]), 1.0)
             ).tolist(),
         }
         dz["d_log_T"] = [
