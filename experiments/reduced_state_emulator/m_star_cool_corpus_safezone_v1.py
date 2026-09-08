@@ -48,6 +48,11 @@ CARVED_VALIDATION_NODES = (
     (2.5, 0.0, 3500.0),
     (1.5, 0.5, 3500.0),
 )
+GIANT_CARVED_VALIDATION_NODES = (
+    (1.5, -1.0, 3500.0),
+    (2.5, 0.0, 3500.0),
+    (1.5, 0.5, 3500.0),
+)
 
 
 def _hash_payload(payload: dict[str, Any]) -> str:
@@ -62,22 +67,44 @@ def main(argv: list[str] | None = None) -> int:
         "--validation-corpus", type=Path, default=DEFAULT_VALIDATION_CORPUS
     )
     parser.add_argument("--flux-gate", type=Path, default=DEFAULT_FLUX_GATE)
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument(
+        "--stellar-class",
+        choices=("all", "giant"),
+        default="all",
+        help=(
+            "giant restricts the cool corpus to M giants: giant-only pool, "
+            "the giant carve-out, and only giant rows from the imported "
+            "validation corpus"
+        ),
+    )
+    parser.add_argument("--campaign", default=CAMPAIGN)
     args = parser.parse_args(argv)
+    if args.out is None:
+        args.out = REPO_ROOT / "results" / args.campaign
 
     inventory = json.loads(args.inventory.read_text())
-    rows = inventory["in_boundary_rows"]
+    rows = [
+        row
+        for row in inventory["in_boundary_rows"]
+        if args.stellar_class == "all" or row["stellar_class"] == "giant"
+    ]
+    carved_nodes = (
+        GIANT_CARVED_VALIDATION_NODES
+        if args.stellar_class == "giant"
+        else CARVED_VALIDATION_NODES
+    )
     by_node = {
         (float(row["logg"]), float(row["metallicity"]), float(row["teff_K"])): row
         for row in rows
     }
-    missing = [node for node in CARVED_VALIDATION_NODES if node not in by_node]
+    missing = [node for node in carved_nodes if node not in by_node]
     if missing:
         raise SystemExit(f"FAIL_STOP: carved validation nodes absent: {missing}")
 
-    carved = set(CARVED_VALIDATION_NODES)
+    carved = set(carved_nodes)
     train_rows = [row for node, row in by_node.items() if node not in carved]
-    validation_rows = [by_node[node] for node in CARVED_VALIDATION_NODES]
+    validation_rows = [by_node[node] for node in carved_nodes]
 
     def row_values(row: dict[str, Any]) -> tuple[list[float], np.ndarray, np.ndarray]:
         mass, temperature = _load_mt(REPO_ROOT / row["canonical_product"])
@@ -130,6 +157,12 @@ def main(argv: list[str] | None = None) -> int:
         imported_labels = np.asarray(
             parent["labels"][validation_index], dtype=np.float64
         )
+        if args.stellar_class == "giant":
+            keep = imported_labels[:, 1] < 3.5
+            if not keep.any():
+                raise ValueError("giant mode needs giant rows to import")
+            imported_labels = imported_labels[keep]
+            validation_index = validation_index[keep]
         imported_mass = np.asarray(
             parent["column_mass"][validation_index], dtype=np.float64
         )
@@ -226,9 +259,10 @@ def main(argv: list[str] | None = None) -> int:
     payload = {
         "inventory_sha256": _sha256(args.inventory),
         "validation_import_sha256": _sha256(args.validation_corpus),
+        "stellar_class": args.stellar_class,
         "carved_validation_nodes": [
             {"logg": logg, "metallicity": metallicity, "teff_K": teff}
-            for logg, metallicity, teff in CARVED_VALIDATION_NODES
+            for logg, metallicity, teff in carved_nodes
         ],
     }
     output_path = args.out / "cool_truth_corpus.npz"
@@ -265,7 +299,8 @@ def main(argv: list[str] | None = None) -> int:
     train_labels_array = labels[roles == "train"]
     validation_labels_array = labels[roles == "validation"]
     summary = {
-        "campaign": CAMPAIGN,
+        "campaign": args.campaign,
+        "stellar_class": args.stellar_class,
         "status": "complete",
         "path": str(output_path),
         "sha256": _sha256(output_path),

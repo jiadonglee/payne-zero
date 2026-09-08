@@ -178,12 +178,17 @@ def validate_cool_corpus(cool: dict[str, np.ndarray]) -> dict[str, Any]:
     validation = cool["roles"] == "validation"
     train_counts = _class_counts(cool["labels"][train])
     validation_counts = _class_counts(cool["labels"][validation])
+    present = {
+        stellar_class
+        for stellar_class in ("giant", "dwarf")
+        if train_counts[stellar_class] or validation_counts[stellar_class]
+    }
     failures = []
     if int(np.sum(train)) < MINIMUM_COOL_TRAIN_ROWS:
         failures.append("cool_train_row_count")
     if int(np.sum(validation)) < MINIMUM_COOL_VALIDATION_ROWS:
         failures.append("cool_validation_row_count")
-    for stellar_class in ("giant", "dwarf"):
+    for stellar_class in sorted(present):
         if train_counts[stellar_class] < MINIMUM_ROWS_PER_CLASS_TRAIN:
             failures.append(f"cool_train_{stellar_class}_count")
         if validation_counts[stellar_class] < MINIMUM_ROWS_PER_CLASS_VALIDATION:
