@@ -1,12 +1,13 @@
-"""Fill the open giant-track gaps inside the 3500-4000 K safe zone.
+"""Fill the open giant-track gaps inside the M-giant safe zone.
 
 The v1r2 campaign stopped at its 50-row giant quota with 53 eligible giants.
-The certified cold-star inventory then identified the standard giant nodes on
-open train tracks between 3500 K and 4000 K that still have no eligible
-product.  This campaign runs exactly those 17 nodes with the unchanged
-truth-generation machinery: same-node native MARCS ``(m,T)`` seed, cap 60,
-strict self-restart leg, and the same imported frozen flux gate.  No quota,
-no dwarf candidates, and no re-adjudication of any earlier campaign record.
+The certified cold-star inventory identifies the standard giant nodes on open
+train tracks that still have no eligible product.  ``--from-v1r2-gap`` derives
+the candidate set directly from the v1r2 train grid (3000-4000 K) minus every
+node the inventory marks admitted.  Truth generation is unchanged: same-node
+native MARCS ``(m,T)`` seed, strict self-restart leg, the same imported frozen
+flux gate; ``--iteration-cap`` raises only the compute budget.  No quota, no
+dwarf candidates, and no re-adjudication of any earlier campaign record.
 """
 
 from __future__ import annotations
@@ -42,6 +43,7 @@ from .m_star_bootstrap_v1 import (
 )
 from .m_star_bootstrap_v1r2_marcs100 import (
     STRICT_ALL_LAYER_LIMIT,
+    TEMPERATURE_PRIORITY,
     _read_json,
     _track_from_payload,
 )
@@ -106,11 +108,70 @@ def build_candidates() -> list[dict[str, Any]]:
     return candidates
 
 
+def build_candidates_from_records(
+    v1r2_protocol_path: Path,
+    inventory_path: Path,
+) -> list[dict[str, Any]]:
+    """Open-track giant candidates in 3000-4000 K without an admitted product.
+
+    The candidate set is the v1r2 train-role giant grid minus every node the
+    certified inventory marks admitted, so already-eligible products are never
+    re-solved.  Ordering follows the v1r2 space-filling temperature priority.
+    """
+
+    protocol = _read_json(v1r2_protocol_path)
+    inventory = json.loads(inventory_path.read_text())
+    admitted = set()
+    for row in inventory["in_boundary_rows"]:
+        if row["stellar_class"] != "giant":
+            continue
+        admitted.add(
+            f"g{row['logg']:+.2f}_m{row['metallicity']:+.2f}"
+            f"_a+0.00_c+0.00_x{row['vmic_km_s']:.2f}"
+            f"_t{int(row['teff_K']):04d}"
+        )
+    priority_order = {
+        temperature: index
+        for index, temperature in enumerate(TEMPERATURE_PRIORITY)
+    }
+    pending = [
+        candidate
+        for candidate in protocol["split"]["new_train_candidates"]
+        if candidate["class"] == "giant"
+        and candidate["role"] == "train"
+        and 3000.0 <= float(candidate["temperature_K"]) <= 4000.0
+        and str(candidate["candidate_id"]) not in admitted
+    ]
+    pending.sort(
+        key=lambda row: (
+            priority_order.get(float(row["temperature_K"]), 99),
+            float(row["track"]["metallicity"]),
+            float(row["track"]["log_surface_gravity"]),
+        )
+    )
+    candidates = []
+    for priority, candidate in enumerate(pending):
+        candidates.append(
+            {
+                "candidate_id": str(candidate["candidate_id"]),
+                "priority": priority,
+                "temperature_K": float(candidate["temperature_K"]),
+                "class": "giant",
+                "role": "train",
+                "track": dict(candidate["track"]),
+            }
+        )
+    return candidates
+
+
 def protocol_payload(
     result_root: Path,
     *,
     marcs_grid: Path,
     flux_parent_root: Path,
+    candidates: list[dict[str, Any]],
+    candidate_source: str,
+    iteration_cap: int,
 ) -> dict[str, Any]:
     schema = inspect_marcs_grid(marcs_grid, verify_sha256=True)
     flux_gate_path = flux_parent_root / "flux_gate.json"
@@ -122,7 +183,7 @@ def protocol_payload(
     if set(parent_gate.get("thresholds", {})) != set(FLUX_METRICS):
         raise ValueError("parent flux gate does not contain the expected metrics")
 
-    candidates = build_candidates()
+    candidates = sorted(candidates, key=lambda row: int(row["priority"]))
     payload = {
         "campaign": CAMPAIGN,
         "status": "preregistered_before_heavy_solver",
@@ -135,6 +196,7 @@ def protocol_payload(
                 / "m_star_cold_library_inventory_v1"
                 / "inventory.json"
             ),
+            "candidate_source": candidate_source,
         },
         "marcs_seed": {
             "path": str(schema.path),
@@ -147,7 +209,7 @@ def protocol_payload(
         "grid": {
             "candidates": candidates,
             "candidate_count": len(candidates),
-            "selection": "open train tracks missing standard nodes in 3500-4000 K",
+            "selection": "open train tracks missing standard nodes in 3000-4000 K",
             "alpha_enhancement": 0.0,
             "carbon_enhancement": 0.0,
             "microturbulence_km_s": MICROTURBULENCE,
@@ -167,7 +229,7 @@ def protocol_payload(
             "truth_source": "terminal Payne-Zero ATLAS atmosphere",
             "independent_nodes": True,
             "continuation": False,
-            "iteration_cap": ITERATION_CAP,
+            "iteration_cap": iteration_cap,
             "maximum_all_layer_relative_temperature_change": (
                 STRICT_ALL_LAYER_LIMIT
             ),
@@ -286,6 +348,7 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
         marcs_sha256,
         flux_gate,
         protocol_hash,
+        iteration_cap,
     ) = payload
     _set_single_thread_environment()
     result_root = Path(result_root_text)
@@ -318,7 +381,7 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
             target_labels=labels,
             initial_atmosphere=seed,
             product_dir=case_root / "products" / "primary",
-            iteration_cap=ITERATION_CAP,
+            iteration_cap=iteration_cap,
             maximum_all_layer_relative_temperature_change=STRICT_ALL_LAYER_LIMIT,
         )
         primary = _annotate_record(
@@ -339,7 +402,7 @@ def _case_worker(payload: tuple[Any, ...]) -> dict[str, Any]:
                 target_labels=labels,
                 initial_atmosphere=restart_seed,
                 product_dir=case_root / "products" / "restart",
-                iteration_cap=ITERATION_CAP,
+                iteration_cap=iteration_cap,
                 maximum_all_layer_relative_temperature_change=(
                     STRICT_ALL_LAYER_LIMIT
                 ),
@@ -465,6 +528,7 @@ def run_gap(
     flux_gate: dict[str, Any],
     marcs_grid: Path,
     workers: int,
+    iteration_cap: int,
 ) -> dict[str, Any]:
     candidates = protocol["grid"]["candidates"]
     pending = [
@@ -485,6 +549,7 @@ def run_gap(
                 protocol["marcs_seed"]["sha256"],
                 flux_gate,
                 protocol["protocol_hash"],
+                iteration_cap,
             )
             for candidate in pending
         ],
@@ -520,7 +585,42 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_FLUX_PARENT_ROOT,
     )
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--iteration-cap", type=int, default=ITERATION_CAP)
+    parser.add_argument(
+        "--from-v1r2-gap",
+        action="store_true",
+        help=(
+            "derive candidates from the v1r2 train-role giant grid minus "
+            "inventory-admitted nodes (3000-4000 K) instead of the "
+            "preregistered GAP_NODES list"
+        ),
+    )
+    parser.add_argument(
+        "--inventory",
+        type=Path,
+        default=REPO_ROOT
+        / "results"
+        / "m_star_cold_library_inventory_v1"
+        / "inventory.json",
+    )
+    parser.add_argument(
+        "--v1r2-protocol",
+        type=Path,
+        default=REPO_ROOT
+        / "results"
+        / "m_star_emulator_v1r2_marcs100"
+        / "protocol.json",
+    )
     args = parser.parse_args(argv)
+
+    if args.from_v1r2_gap:
+        candidates = build_candidates_from_records(
+            args.v1r2_protocol, args.inventory
+        )
+        candidate_source = "v1r2_grid_minus_inventory"
+    else:
+        candidates = build_candidates()
+        candidate_source = "inventory_gap_list_v1"
 
     args.result_root.mkdir(parents=True, exist_ok=True)
     protocol_path = args.result_root / "protocol.json"
@@ -533,6 +633,9 @@ def main(argv: list[str] | None = None) -> int:
             args.result_root,
             marcs_grid=args.marcs_grid,
             flux_parent_root=args.flux_parent_root,
+            candidates=candidates,
+            candidate_source=candidate_source,
+            iteration_cap=args.iteration_cap,
         )
         _write_json(protocol_path, protocol)
 
@@ -562,6 +665,7 @@ def main(argv: list[str] | None = None) -> int:
             flux_gate=flux_gate,
             marcs_grid=args.marcs_grid,
             workers=args.workers,
+            iteration_cap=args.iteration_cap,
         )
         print(json.dumps(status, indent=2, sort_keys=True))
         if status["complete"]:

@@ -27,6 +27,7 @@ CAMPAIGN_PRIORITY = (
     "m_star_pipeline_complete_v1",
     "m_star_pipeline_scaleout_v1",
     "m_star_iteration_tomography_v1",
+    "m_star_giant_supplement_v2_cap240",
     "m_star_giant_supplement_v1",
     "m_star_emulator_v1r2_marcs100",
     "m_star_emulator_v1r3_dwarf_iter120",
@@ -39,6 +40,7 @@ FLAT_CASE_GLOBS = {
     "m_star_iteration_tomography_v1": "cases/*/*/*/case.json",
     "m_star_atlas_continuation_opened_tracks_v1": "cases/*/*/*/case.json",
     "m_star_giant_supplement_v1": "cases/*/*/*/case.json",
+    "m_star_giant_supplement_v2_cap240": "cases/*/*/*/case.json",
     "m_star_downwalk_v1": "cases/*/case.json",
 }
 
@@ -60,7 +62,7 @@ FLUX_METRIC_NAMES = (
     "maximum_absolute_flux_error_percent",
 )
 
-GIANT_TEFF = (3500.0, 3600.0, 3750.0, 3800.0, 3900.0, 4000.0)
+GIANT_TEFF = (3000.0, 3100.0, 3200.0, 3300.0, 3400.0, 3500.0, 3600.0, 3700.0, 3750.0, 3800.0, 3900.0, 4000.0)
 GIANT_LOGGS = (0.5, 1.5, 2.5)
 GIANT_METALLICITIES = (0.5, 0.0, -0.5, -1.0)
 VALIDATION_GIANT_TRACKS = {(1.5, -0.5), (2.5, 0.5)}
@@ -107,7 +109,9 @@ def _node_key(labels: dict[str, float]) -> tuple:
 
 def _in_boundary(stellar_class: str, teff: float, logg: float, metallicity: float) -> bool:
     if stellar_class == "giant":
-        return 3500.0 <= teff <= 4000.0 and 0.5 <= logg <= 2.5
+        # M giants: the v1r2 corpus contains gate-passing products down to
+        # 3000 K; the EOS walls are a dwarf phenomenon.
+        return 3000.0 <= teff <= 4000.0 and 0.5 <= logg <= 2.5
     if stellar_class == "dwarf":
         if logg < 4.5 or not 3300.0 <= teff <= 4000.0:
             return False
