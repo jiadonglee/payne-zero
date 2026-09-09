@@ -183,7 +183,16 @@ def main(argv: list[str] | None = None) -> int:
         "stars": {},
     }
     for teff in STARS:
-        index = int(np.argmin(np.abs(corpus["labels"][:, 0] - teff)))
+        index = None
+        for probe_index, node in enumerate(corpus["node_ids"]):
+            track_id, _, temperature = str(node).rpartition("_t")
+            if abs(float(temperature) - teff) < 0.5 and str(node).startswith(
+                "g+2.00_m+0.00"
+            ):
+                index = probe_index
+                break
+        if index is None:
+            raise SystemExit(f"FAIL_STOP: no corpus row for t{int(teff)}")
         labels_row = corpus["labels"][index]
         node_id = str(corpus["node_ids"][index])
         labels = _labels_from_row(labels_row)
