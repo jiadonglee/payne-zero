@@ -742,6 +742,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--flux-gate", type=Path, default=DEFAULT_FLUX_GATE)
     parser.add_argument("--marcs-grid", type=Path, default=DEFAULT_MARCS_GRID)
     parser.add_argument("--extra-iterations", type=int, default=40)
+    parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--emulator-cap", type=int, default=EMULATOR_CAP)
     parser.add_argument("--reference-cap", type=int, default=REFERENCE_CAP)
     args = parser.parse_args(argv)
