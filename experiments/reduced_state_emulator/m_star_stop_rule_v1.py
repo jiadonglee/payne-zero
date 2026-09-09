@@ -38,12 +38,11 @@ from emulator_v1_2.gates.compare_spectra import (
 from .cool_star_step_test import (
     TrackSpec,
     _clone_atmosphere,
-    _load_mt,
     _reconstruct_from_mt,
     _set_single_thread_environment,
 )
 from .marcs_h5 import inspect_marcs_grid, load_marcs_node
-from .m_star_bootstrap_v1 import _write_json
+from .m_star_bootstrap_v1 import _load_mt, _write_json
 
 from bench.run_reference import _solver_config  # noqa: E402
 from payne_zero_atmosphere.runner import run_atmosphere_model  # noqa: E402
