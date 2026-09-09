@@ -160,11 +160,25 @@ def _continue_arm(
     )
     residual_handle = (arm_dir / "iterations.jsonl").open("w")
     history: list[np.ndarray] = [start_temperature]
+    divergence: dict[str, Any] | None = None
+
+    class _ArmDiverged(Exception):
+        pass
 
     def hook(iteration_index, setup, step):
+        nonlocal divergence
         post_temperature = np.asarray(
             step.remapped.atmosphere.temperature, dtype=np.float64
         )
+        post_column_mass = np.asarray(
+            step.remapped.atmosphere.column_mass, dtype=np.float64
+        )
+        if not np.all(post_column_mass > 0.0):
+            divergence = {
+                "iteration": int(iteration_index),
+                "reason": "non_positive_column_mass",
+            }
+            raise _ArmDiverged(str(divergence))
         flux_error = np.asarray(
             step.remapped.finalization.temperature_correction_result.flux_error_percent,
             dtype=np.float64,
@@ -204,11 +218,17 @@ def _continue_arm(
         ),
         enable_convergence_stop=False,
     )
-    result = run_atmosphere_model(config, after_iteration_hook=hook)
+    try:
+        result = run_atmosphere_model(config, after_iteration_hook=hook)
+    except _ArmDiverged:
+        pass
     residual_handle.close()
     return {
-        "iterations_completed": int(result.iterations_completed),
-        "converged": bool(result.converged),
+        "iterations_completed": int(result.iterations_completed)
+        if divergence is None
+        else int(divergence["iteration"]),
+        "converged": bool(result.converged) if divergence is None else False,
+        "diverged": divergence,
     }
 
 
@@ -588,10 +608,15 @@ def _validate_evaluate(args: argparse.Namespace) -> int:
                 if consecutive >= STABLE_SEGMENTS_REQUIRED and first_stable is None:
                     first_stable = k_end
                     break
+            diverged = None
+            divergence_path = arm_dir / "diverged.json"
+            if divergence_path.is_file():
+                diverged = json.loads(divergence_path.read_text())
             arm_results[arm] = {
                 "original_stop_iteration": k_original,
                 "frozen_iteration": first_stable,
-                "reached_cap_unstable": first_stable is None,
+                "unstable": first_stable is None,
+                "diverged": diverged,
                 "last_segment": previous_changes,
             }
         emulator = arm_results["emulator"]
@@ -599,6 +624,7 @@ def _validate_evaluate(args: argparse.Namespace) -> int:
         comparable = (
             emulator["frozen_iteration"] is not None
             and reference["frozen_iteration"] is not None
+            and reference["diverged"] is None
         )
         if comparable:
             candidate_product = (
@@ -673,7 +699,8 @@ def _validate_evaluate(args: argparse.Namespace) -> int:
                 "emulator_frozen_iteration": emulator["frozen_iteration"],
                 "reference_original_stop": reference["original_stop_iteration"],
                 "reference_frozen_iteration": reference["frozen_iteration"],
-                "reference_unstable": reference["reached_cap_unstable"],
+                "reference_unstable": reference["unstable"],
+                "reference_diverged": reference["diverged"],
                 "cross_structure": cross_structure,
                 "cross_tio": cross_spectrum,
                 "verdict": verdict,
