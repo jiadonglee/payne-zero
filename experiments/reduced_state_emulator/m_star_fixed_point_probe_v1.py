@@ -247,12 +247,28 @@ def main(argv: list[str] | None = None) -> int:
             ("candidate", candidate_product),
             ("truth", truth_product),
         ):
+            arm_dir = star_root / arm
+            done = (
+                (arm_dir / "iterations.jsonl").is_file()
+                and sum(1 for _ in (arm_dir / "iterations.jsonl").open())
+                >= args.extra_iterations
+                and all(
+                    (arm_dir / f"iter_{k:04d}.npz").is_file()
+                    for k in checkpoints
+                )
+            )
+            if done:
+                star_report["arms"][arm] = {
+                    "resumed": True,
+                    "residual_path": str(arm_dir / "iterations.jsonl"),
+                }
+                continue
             mass, temperature = _load_mt(product)
             start = _reconstruct_from_mt(labels, mass, temperature)
             star_report["arms"][arm] = _continue_with_hook(
                 labels=labels,
                 initial_atmosphere=start,
-                checkpoint_dir=star_root / arm,
+                checkpoint_dir=arm_dir,
                 extra_iterations=args.extra_iterations,
                 checkpoints=checkpoints,
             )
@@ -264,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
         star_report = report["stars"][f"t{int(teff):04d}"]
         spectra: dict[tuple[str, int], dict] = {}
         for arm in ("candidate", "truth"):
-            for k in CHECKPOINTS:
+            for k in checkpoints:
                 spectrum_path = (
                     synthesis_dir / f"t{int(teff):04d}_{arm}_k{k:02d}.npz"
                 )
