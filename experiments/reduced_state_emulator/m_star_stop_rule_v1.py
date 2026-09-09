@@ -442,9 +442,11 @@ def _emulator_seed(
         model, standardization, _meta = load_physical_checkpoint(
             checkpoint_dir / f"checkpoint_mstar_seed{seed}.pt"
         )
-        mass, temperature = predict_physical_state(model, standardization, labels_row)
-        masses.append(mass)
-        temperatures.append(temperature)
+        mass, temperature = predict_physical_state(
+            model, standardization, labels_row.reshape(1, -1)
+        )
+        masses.append(np.asarray(mass)[0])
+        temperatures.append(np.asarray(temperature)[0])
     median_mass = np.median(np.stack(masses, axis=0), axis=0)
     median_temperature = np.median(np.stack(temperatures, axis=0), axis=0)
     return _reconstruct_from_mt(
