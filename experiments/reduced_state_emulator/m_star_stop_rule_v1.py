@@ -178,6 +178,7 @@ def _continue_arm(
             "flux_error_median_percent": float(
                 np.percentile(np.abs(flux_error), 50.0)
             ),
+            "flux_error_max_percent": float(np.max(np.abs(flux_error))),
             "update_temperature_relative_max": float(
                 np.max(np.abs(post_temperature - reference) / reference)
             ),
