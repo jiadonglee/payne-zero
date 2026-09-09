@@ -74,9 +74,11 @@ def _repo_relative(product_path: str | None) -> str | None:
     if not product_path:
         return None
     marker = product_path.find("/results/")
-    if marker < 0:
-        return None
-    return product_path[marker + 1 :]
+    if marker >= 0:
+        return product_path[marker + 1 :]
+    if product_path.startswith("results/"):
+        return product_path
+    return None
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
