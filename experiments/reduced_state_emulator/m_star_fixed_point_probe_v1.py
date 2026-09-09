@@ -33,11 +33,10 @@ from emulator_v1_2.gates.compare_spectra import (
 from .cool_star_step_test import (
     TrackSpec,
     _clone_atmosphere,
-    _load_mt,
     _reconstruct_from_mt,
     _set_single_thread_environment,
 )
-from .m_star_bootstrap_v1 import _write_json
+from .m_star_bootstrap_v1 import _load_mt, _write_json
 from .train_mstar_physical_v1 import load_cool_corpus
 
 from bench.labels import StellarLabels  # noqa: E402
