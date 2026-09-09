@@ -79,7 +79,7 @@ RESOLUTION = 20000.0
 def _product_name(teff: float, labels_row: np.ndarray) -> str:
     return (
         f"t{teff:07.1f}_g{labels_row[1]:+05.2f}_m{labels_row[2]:+05.2f}"
-        f"_a+0.00_x{labels_row[4]:05.2f}.npz"
+        f"_a+0.00_x{labels_row[4]:.2f}.npz"
     )
 
 
