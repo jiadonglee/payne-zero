@@ -419,8 +419,10 @@ def _nearest_marcs_seed(
         expected_sha256=None,
         schema=schema,
     )
+    # MARCS provides only the starting (m,T) profile; the reconstruction and
+    # the solver target carry the requested labels, not the snapped node's.
     atmosphere = _reconstruct_from_mt(
-        snapped_labels, node.reduced_column_mass, node.reduced_temperature
+        labels, node.reduced_column_mass, node.reduced_temperature
     )
     return atmosphere, {"snapped": snapped, "distances": distances}
 
