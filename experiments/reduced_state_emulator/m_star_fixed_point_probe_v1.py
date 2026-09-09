@@ -70,8 +70,8 @@ DEFAULT_CANDIDATE_DIR = (
 )
 
 STARS = (3850.0, 3900.0, 3950.0)
-CHECKPOINTS = (0, 1, 3, 5, 10)
-EXTRA_ITERATIONS = 10
+DEFAULT_CHECKPOINTS = (0, 1, 3, 5, 10, 15, 20)
+DEFAULT_EXTRA_ITERATIONS = 20
 WINDOW_NM = (665.0, 667.0)
 RESOLUTION = 20000.0
 
@@ -100,24 +100,75 @@ def _continue_with_hook(
     initial_atmosphere,
     checkpoint_dir: Path,
     extra_iterations: int,
+    checkpoints: tuple[int, ...],
 ) -> dict[str, Any]:
     """Run ``extra_iterations`` updates from ``initial_atmosphere``.
 
-    The stopping rule is released; the iteration hook writes a structured
-    product per iteration so the checkpoint spectra can be synthesized from
-    the same fixed-column path as the gate.
+    The stopping rule is released; the iteration hook appends one JSONL line
+    per iteration (flux residual, update size, cumulative drift) and writes a
+    structured product at each checkpoint iteration so the checkpoint spectra
+    can be synthesized from the same fixed-column path as the gate.
     """
 
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    start_temperature = np.asarray(
+        initial_atmosphere.temperature, dtype=np.float64
+    )
+    start_column_mass = np.asarray(
+        initial_atmosphere.column_mass, dtype=np.float64
+    )
     save_product_structured_atmosphere(
         _clone_atmosphere(initial_atmosphere),
         checkpoint_dir / "iter_0000.npz",
         device="cpu",
         dtype="float64",
     )
+    residual_path = checkpoint_dir / "iterations.jsonl"
+    residual_handle = residual_path.open("w")
+
+    previous_temperature = start_temperature.copy()
 
     def hook(iteration_index, setup, step):
-        record = make_hook_record(checkpoint_dir, iteration_index, setup, step)
+        nonlocal previous_temperature
+        post_temperature = np.asarray(
+            step.remapped.atmosphere.temperature, dtype=np.float64
+        )
+        post_column_mass = np.asarray(
+            step.remapped.atmosphere.column_mass, dtype=np.float64
+        )
+        flux_error = np.asarray(
+            step.remapped.finalization.temperature_correction_result.flux_error_percent,
+            dtype=np.float64,
+        )
+        update = np.abs(post_temperature - previous_temperature) / previous_temperature
+        record = {
+            "iteration": int(iteration_index),
+            "flux_error_p95_percent": float(np.percentile(np.abs(flux_error), 95.0)),
+            "flux_error_median_percent": float(np.percentile(np.abs(flux_error), 50.0)),
+            "flux_error_max_percent": float(np.max(np.abs(flux_error))),
+            "update_temperature_relative_max": float(np.max(update)),
+            "update_temperature_relative_p95": float(np.percentile(update, 95.0)),
+            "drift_temperature_relative_max": float(
+                np.max(np.abs(post_temperature - start_temperature) / start_temperature)
+            ),
+            "drift_column_mass_dex_max": float(
+                np.max(
+                    np.abs(
+                        np.log10(post_column_mass) - np.log10(start_column_mass)
+                    )
+                )
+            ),
+        }
+        residual_handle.write(json.dumps(record, sort_keys=True) + "\n")
+        residual_handle.flush()
+        if int(iteration_index) in checkpoints:
+            save_product_structured_atmosphere(
+                _clone_atmosphere(step.remapped.atmosphere),
+                checkpoint_dir / f"iter_{int(iteration_index):04d}.npz",
+                device="cpu",
+                dtype="float64",
+            )
+        previous_temperature = post_temperature
         return record
 
     config = dataclasses.replace(
@@ -130,31 +181,11 @@ def _continue_with_hook(
         enable_convergence_stop=False,
     )
     result = run_atmosphere_model(config, after_iteration_hook=hook)
+    residual_handle.close()
     return {
         "iterations_completed": int(result.iterations_completed),
         "converged": bool(result.converged),
-    }
-
-
-def make_hook_record(checkpoint_dir: Path, iteration_index, setup, step):
-    atmosphere = step.remapped.atmosphere
-    flux_error = np.asarray(
-        step.remapped.finalization.temperature_correction_result.flux_error_percent,
-        dtype=np.float64,
-    )
-    save_product_structured_atmosphere(
-        _clone_atmosphere(atmosphere),
-        checkpoint_dir / f"iter_{int(iteration_index):04d}.npz",
-        device="cpu",
-        dtype="float64",
-    )
-    return {
-        "iteration": int(iteration_index),
-        "flux_error_p95_percent": float(np.percentile(np.abs(flux_error), 95.0)),
-        "flux_error_median_percent": float(np.percentile(np.abs(flux_error), 50.0)),
-        "flux_error_max_percent": float(np.max(np.abs(flux_error))),
-        "temperature_post": np.asarray(atmosphere.temperature, dtype=np.float64),
-        "column_mass_post": np.asarray(atmosphere.column_mass, dtype=np.float64),
+        "residual_path": str(residual_path),
     }
 
 
@@ -165,7 +196,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--truth-dir", type=Path, default=DEFAULT_TRUTH_DIR)
     parser.add_argument("--candidate-dir", type=Path, default=DEFAULT_CANDIDATE_DIR)
     parser.add_argument("--workers", type=int, default=3)
+    parser.add_argument(
+        "--extra-iterations", type=int, default=DEFAULT_EXTRA_ITERATIONS
+    )
+    parser.add_argument(
+        "--checkpoints",
+        default=",".join(str(k) for k in DEFAULT_CHECKPOINTS),
+    )
     args = parser.parse_args(argv)
+    checkpoints = tuple(sorted(int(k) for k in args.checkpoints.split(",")))
     _set_single_thread_environment()
     args.result_root.mkdir(parents=True, exist_ok=True)
 
@@ -177,8 +216,8 @@ def main(argv: list[str] | None = None) -> int:
 
     report: dict[str, Any] = {
         "campaign": CAMPAIGN,
-        "extra_iterations": EXTRA_ITERATIONS,
-        "checkpoints": list(CHECKPOINTS),
+        "extra_iterations": int(args.extra_iterations),
+        "checkpoints": list(checkpoints),
         "window_nm": list(WINDOW_NM),
         "stars": {},
     }
@@ -214,7 +253,8 @@ def main(argv: list[str] | None = None) -> int:
                 labels=labels,
                 initial_atmosphere=start,
                 checkpoint_dir=star_root / arm,
-                extra_iterations=EXTRA_ITERATIONS,
+                extra_iterations=args.extra_iterations,
+                checkpoints=checkpoints,
             )
         report["stars"][f"t{int(teff):04d}"] = star_report
         print(f"t{int(teff)}: continuations done", flush=True)
@@ -242,7 +282,7 @@ def main(argv: list[str] | None = None) -> int:
                 spectra[(arm, k)] = _load_spectrum_npz(spectrum_path)
 
         star_report["spectral"] = {}
-        for k in CHECKPOINTS:
+        for k in checkpoints:
             cross = {
                 "normalized_flux": _absolute_stats(
                     spectra[("candidate", k)]["normalized_flux"],
@@ -300,7 +340,7 @@ def main(argv: list[str] | None = None) -> int:
                 start_data["temperature"], dtype=np.float64
             )
             states[arm] = {}
-            for k in CHECKPOINTS:
+            for k in checkpoints:
                 data = np.load(
                     probe_dir / f"t{int(teff):04d}" / arm / f"iter_{k:04d}.npz",
                     allow_pickle=False,
@@ -313,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
                         data["column_mass"], dtype=np.float64
                     ),
                 }
-        for k in CHECKPOINTS:
+        for k in checkpoints:
             candidate, truth = states["candidate"][k], states["truth"][k]
             star_report["profile"][f"k{k}"] = {
                 "cross_arm_temperature_relative_p95": float(
