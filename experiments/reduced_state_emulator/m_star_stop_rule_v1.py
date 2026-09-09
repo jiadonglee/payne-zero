@@ -265,6 +265,52 @@ def _spectrum_for(product: Path, spectra_dir: Path, tag: str) -> Path:
     return spectrum_path
 
 
+def _segment_changes(
+    arm_dir: Path, k_end: int, spectra_dir: Path, tag_prefix: str
+) -> dict[str, Any]:
+    product_end = arm_dir / f"iter_{k_end:04d}.npz"
+    product_start = arm_dir / f"iter_{k_end - SEGMENT:04d}.npz"
+    end = np.load(product_end, allow_pickle=False)
+    start = np.load(product_start, allow_pickle=False)
+    temperature_start = np.asarray(start["temperature"], dtype=np.float64)
+    temperature_end = np.asarray(end["temperature"], dtype=np.float64)
+    mass_start = np.asarray(start["column_mass"], dtype=np.float64)
+    mass_end = np.asarray(end["column_mass"], dtype=np.float64)
+    spectrum_start = _load_spectrum_npz(
+        _spectrum_for(product_start, spectra_dir, f"{tag_prefix}_k{k_end - SEGMENT:04d}")
+    )
+    spectrum_end = _load_spectrum_npz(
+        _spectrum_for(product_end, spectra_dir, f"{tag_prefix}_k{k_end:04d}")
+    )
+    tiO = {
+        "normalized_flux": _absolute_stats(
+            spectrum_end["normalized_flux"], spectrum_start["normalized_flux"]
+        )["max"],
+        "flux_total": _continuum_scaled_stats(
+            spectrum_end["flux_total"],
+            spectrum_start["flux_total"],
+            spectrum_start["flux_continuum"],
+        )["max"],
+        "flux_continuum": _relative_stats(
+            spectrum_end["flux_continuum"], spectrum_start["flux_continuum"]
+        )["max"],
+    }
+    return {
+        "tiO": tiO,
+        "temperature_p95": float(
+            np.percentile(
+                np.abs(temperature_end - temperature_start) / temperature_start,
+                95.0,
+            )
+        ),
+        "mass_dex_p95": float(
+            np.percentile(
+                np.abs(np.log10(mass_end) - np.log10(mass_start)), 95.0
+            )
+        ),
+    }
+
+
 def _segment_flux_pass(arm_dir: Path, k_end: int, gate: dict) -> bool:
     rows = [
         json.loads(line)
