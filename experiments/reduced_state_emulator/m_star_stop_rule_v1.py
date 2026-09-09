@@ -456,39 +456,80 @@ def _emulator_seed(
     ), {"seeds": list(SEEDS), "policy": "coordinate-wise median"}
 
 
-def _validate_solve(args: argparse.Namespace) -> int:
+def _validate_point_worker(payload: tuple) -> dict[str, Any]:
+    (
+        teff,
+        logg,
+        metallicity,
+        point_dir_text,
+        emulator_cap,
+        reference_cap,
+        marcs_grid_text,
+        checkpoint_dir_text,
+        gate,
+    ) = payload
     _set_single_thread_environment()
+    labels = _labels_for(teff, logg, metallicity)
+    node = _node_id(teff, logg, metallicity)
+    point_dir = Path(point_dir_text)
+    point_dir.mkdir(parents=True, exist_ok=True)
+    arms = {
+        "emulator": (emulator_cap, "emulator"),
+        "reference": (reference_cap, "marcs"),
+    }
+    summary = {"node_id": node}
+    for arm, (cap, kind) in arms.items():
+        arm_dir = point_dir / arm
+        if (arm_dir / "iterations.jsonl").is_file():
+            summary[arm] = "already done"
+            continue
+        arm_dir.mkdir(parents=True, exist_ok=True)
+        if kind == "emulator":
+            start, seed_info = _emulator_seed(
+                labels, Path(checkpoint_dir_text)
+            )
+        else:
+            start, seed_info = _nearest_marcs_seed(
+                labels, Path(marcs_grid_text)
+            )
+        _write_json(arm_dir / "seed.json", seed_info)
+        record = _continue_arm(
+            labels=labels,
+            start_atmosphere=start,
+            arm_dir=arm_dir,
+            cap=cap,
+            gate=gate,
+        )
+        summary[arm] = record
+    return summary
+
+
+def _validate_solve(args: argparse.Namespace) -> int:
+    from concurrent.futures import ProcessPoolExecutor
+
     gate = json.loads(args.flux_gate.read_text())
     root = args.result_root / "validate"
     root.mkdir(parents=True, exist_ok=True)
-    marcs_grid = args.marcs_grid
+    payloads = []
     for teff, logg, metallicity in VALIDATION_POINTS:
-        labels = _labels_for(teff, logg, metallicity)
         node = _node_id(teff, logg, metallicity)
         point_dir = root / node
-        point_dir.mkdir(parents=True, exist_ok=True)
-        arms = {
-            "emulator": (args.emulator_cap, "emulator"),
-            "reference": (args.reference_cap, "marcs"),
-        }
-        for arm, (cap, kind) in arms.items():
-            arm_dir = point_dir / arm
-            if (arm_dir / "iterations.jsonl").is_file():
-                continue
-            arm_dir.mkdir(parents=True, exist_ok=True)
-            if kind == "emulator":
-                start, seed_info = _emulator_seed(labels, args.checkpoint_dir)
-            else:
-                start, seed_info = _nearest_marcs_seed(labels, marcs_grid)
-            _write_json(arm_dir / "seed.json", seed_info)
-            _continue_arm(
-                labels=labels,
-                start_atmosphere=start,
-                arm_dir=arm_dir,
-                cap=cap,
-                gate=gate,
+        payloads.append(
+            (
+                teff,
+                logg,
+                metallicity,
+                str(point_dir),
+                args.emulator_cap,
+                args.reference_cap,
+                str(args.marcs_grid),
+                str(args.checkpoint_dir),
+                gate,
             )
-            print(f"{node} {arm}: solved to cap {cap}", flush=True)
+        )
+    with ProcessPoolExecutor(max_workers=args.workers) as pool:
+        for summary in pool.map(_validate_point_worker, payloads):
+            print(json.dumps(summary, sort_keys=True), flush=True)
     return 0
 
 
