@@ -391,7 +391,9 @@ def _freeze(args: argparse.Namespace) -> int:
 def _nearest_marcs_seed(
     labels: StellarLabels, marcs_grid: Path
 ) -> tuple[Any, dict[str, Any]]:
-    schema = inspect_marcs_grid(marcs_grid, verify_sha256=False)
+    schema = inspect_marcs_grid(
+        marcs_grid, verify_sha256=False, expected_sha256=None
+    )
     requested = {
         "effective_temperature": labels.effective_temperature,
         "log_surface_gravity": labels.log_surface_gravity,
