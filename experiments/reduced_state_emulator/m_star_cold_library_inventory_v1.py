@@ -159,6 +159,9 @@ def _flat_case_rows(repo: Path, campaign: str, admitted: dict, notes: dict) -> N
         primary = record.get("primary") or {}
         restart = record.get("restart") or {}
         primary_rel = _repo_relative(primary.get("product_path"))
+        relaxed_rel = _repo_relative(record.get("final_product"))
+        if relaxed_rel:
+            primary_rel = relaxed_rel
         restart_rel = _repo_relative(restart.get("product_path"))
         primary_ok = bool(primary_rel) and (repo / primary_rel).is_file()
         restart_ok = bool(restart_rel) and (repo / restart_rel).is_file()

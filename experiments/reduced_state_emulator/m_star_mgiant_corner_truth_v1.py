@@ -287,6 +287,12 @@ def _solve_case_worker(payload: tuple) -> dict[str, Any]:
         "primary_flux_gate": primary_flux,
         "relax": relax_report,
         "final_product": final_product_rel,
+        "training_eligible": bool(
+            relax_report
+            and relax_report["stable"]
+            and final_mass is not None
+            and primary_flux["passes"]
+        ),
         "marcs_seed": {
             "source_sha256": _sha256(Path(marcs_grid_text)),
             "fields_used": ["column_mass", "temperature"],
