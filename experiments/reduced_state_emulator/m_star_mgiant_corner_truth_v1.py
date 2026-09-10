@@ -245,8 +245,9 @@ def _solve_case_worker(payload: tuple) -> dict[str, Any]:
         iteration_cap=ITERATION_CAP,
         maximum_all_layer_relative_temperature_change=STRICT_ALL_LAYER_LIMIT,
     )
+    track_payload = {**track.as_json(), "class": "giant", "role": "train"}
     primary = _annotate_record(
-        primary, track_payload=track.as_json(), role="train", node_id=candidate_id
+        primary, track_payload=track_payload, role="train", node_id=candidate_id
     )
     primary_flux = _passes_flux_gate(primary, flux_gate)
 
