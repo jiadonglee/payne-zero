@@ -33,7 +33,6 @@ from payne_zero_atmosphere.synthesis_bridge import (  # noqa: E402
 from .cool_star_step_test import (
     TrackSpec,
     _clone_atmosphere,
-    _load_mt,
     _marcs_diagnostics,
     _reconstruct_from_mt,
     _set_single_thread_environment,
@@ -41,6 +40,7 @@ from .cool_star_step_test import (
 )
 from .marcs_h5 import inspect_marcs_grid, load_marcs_node
 from .m_star_bootstrap_v1 import (
+    _load_mt,
     PATH_COLUMN_MASS_P95_DEX_LIMIT,
     PATH_TEMPERATURE_P95_LIMIT,
     _annotate_record,
