@@ -27,6 +27,7 @@ CAMPAIGN_PRIORITY = (
     "m_star_pipeline_complete_v1",
     "m_star_pipeline_scaleout_v1",
     "m_star_iteration_tomography_v1",
+    "m_star_mgiant_corner_truth_v1",
     "m_star_giant_supplement_v2_cap240",
     "m_star_giant_supplement_v1",
     "m_star_emulator_v1r2_marcs100",
@@ -41,6 +42,7 @@ FLAT_CASE_GLOBS = {
     "m_star_atlas_continuation_opened_tracks_v1": "cases/*/*/*/case.json",
     "m_star_giant_supplement_v1": "cases/*/*/*/case.json",
     "m_star_giant_supplement_v2_cap240": "cases/*/*/*/case.json",
+    "m_star_mgiant_corner_truth_v1": "cases/*/*/case.json",
     "m_star_downwalk_v1": "cases/*/case.json",
 }
 
