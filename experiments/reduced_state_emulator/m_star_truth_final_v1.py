@@ -31,7 +31,6 @@ from emulator_v1_2.gates.compare_spectra import (
 from .cool_star_step_test import (
     TrackSpec,
     _clone_atmosphere,
-    _load_mt,
     _reconstruct_from_mt,
     _set_single_thread_environment,
 )
