@@ -340,15 +340,9 @@ def main(argv: list[str] | None = None) -> int:
                 / f"iter_{fallback:04d}.npz"
             )
             spectrum = _load_spectrum_npz(
-                _synthesize_one(
+                _spectrum_cached(
                     product,
                     spectra_dir / f"{star}_{arm}_final.npz",
-                    wavelength_start_nm=WINDOW_NM[0],
-                    wavelength_end_nm=WINDOW_NM[1],
-                    resolution=RESOLUTION,
-                    molecular_lines=True,
-                    device=None,
-                    dtype="float64",
                 )
             )
             metrics[arm] = spectrum
