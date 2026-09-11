@@ -198,6 +198,7 @@ def _solve_case_worker(payload: tuple) -> dict[str, Any]:
         result_root_text,
         marcs_grid_text,
         flux_gate,
+        anchor_product_text,
     ) = payload
     _set_single_thread_environment()
     result_root = Path(result_root_text)
@@ -206,6 +207,7 @@ def _solve_case_worker(payload: tuple) -> dict[str, Any]:
     if case_path.is_file():
         return json.loads(case_path.read_text())
     labels = _labels_for(logg, metallicity, teff)
+    anchor_product = Path(anchor_product_text)
     candidate_id = (
         f"g{logg:+05.2f}_m{metallicity:+05.2f}_a+0.00_c+0.00"
         f"_x{MICROTURBULENCE:.2f}_t{int(teff):04d}"
@@ -245,6 +247,40 @@ def _solve_case_worker(payload: tuple) -> dict[str, Any]:
         iteration_cap=ITERATION_CAP,
         maximum_all_layer_relative_temperature_change=STRICT_ALL_LAYER_LIMIT,
     )
+    if not primary.get("survives_solver"):
+        anchor_state = np.load(anchor_product_text, allow_pickle=False)
+        leg_mass = np.asarray(anchor_state["column_mass"], dtype=np.float64)
+        leg_temperature_profile = np.asarray(
+            anchor_state["temperature"], dtype=np.float64
+        )
+        leg_temperature = float(anchor_state["temperature_K"])
+        while leg_temperature > teff + 1e-6:
+            leg_temperature = max(leg_temperature - 100.0, teff)
+            leg_labels = _labels_for(logg, metallicity, leg_temperature)
+            leg_seed = _reconstruct_from_mt(
+                leg_labels, leg_mass, leg_temperature_profile
+            )
+            leg, _s = _solve_attempt(
+                track=track,
+                method="continuation_walk_leg",
+                schedule="continuation_walk",
+                source_temperature=float(teff),
+                target_labels=leg_labels,
+                initial_atmosphere=leg_seed,
+                product_dir=case_dir
+                / "products"
+                / f"walk_t{int(leg_temperature):04d}",
+                iteration_cap=ITERATION_CAP,
+                maximum_all_layer_relative_temperature_change=STRICT_ALL_LAYER_LIMIT,
+            )
+            if not leg.get("survives_solver"):
+                break
+            leg_mass, leg_temperature_profile = _load_mt(leg["product_path"])
+        if leg_temperature > teff + 1e-6:
+            primary = {"survives_solver": False, "status": "walk_failed"}
+        else:
+            primary = leg
+            primary["method"] = "continuation_walk_final"
     track_payload = {**track.as_json(), "class": "giant", "role": "train"}
     primary = _annotate_record(
         primary, track_payload=track_payload, role="train", node_id=candidate_id
@@ -311,6 +347,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--marcs-grid", type=Path, default=DEFAULT_MARCS_GRID)
     parser.add_argument("--flux-parent-root", type=Path, default=DEFAULT_FLUX_PARENT_ROOT)
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument(
+        "--anchor-product",
+        type=Path,
+        required=True,
+        help="converged same-track product whose (m,T) seeds the walk legs",
+    )
+    parser.add_argument(
+        "--anchor-temperature",
+        type=float,
+        default=3500.0,
+        help="formal Teff of the walk anchor",
+    )
     args = parser.parse_args(argv)
     args.result_root.mkdir(parents=True, exist_ok=True)
 
@@ -333,6 +381,19 @@ def main(argv: list[str] | None = None) -> int:
     if not flux_gate.get("frozen"):
         raise SystemExit("FAIL_STOP: flux gate not frozen")
 
+    anchor_product = args.anchor_product
+    if not anchor_product.is_file():
+        raise SystemExit(f"FAIL_STOP: missing walk anchor {anchor_product}")
+    with np.load(anchor_product, allow_pickle=False) as data:
+        anchor_state = {
+            "column_mass": np.asarray(data["column_mass"], dtype=np.float64),
+            "temperature": np.asarray(data["temperature"], dtype=np.float64),
+            "temperature_K": float(args.anchor_temperature),
+        }
+    np.savez(
+        args.result_root / "anchor_state.npz",
+        **anchor_state,
+    )
     payloads = [
         (
             logg,
@@ -341,6 +402,7 @@ def main(argv: list[str] | None = None) -> int:
             str(args.result_root),
             str(args.marcs_grid),
             flux_gate,
+            str(args.result_root / "anchor_state.npz"),
         )
         for logg, metallicity, teff in CORNER_NODES
     ]
