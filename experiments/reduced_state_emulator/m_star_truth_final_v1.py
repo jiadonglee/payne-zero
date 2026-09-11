@@ -296,13 +296,13 @@ def main(argv: list[str] | None = None) -> int:
     report: dict[str, Any] = {"campaign": CAMPAIGN, "stars": {}}
     for node_id, labels_row, truth_rel in corpus:
         teff = float(labels_row[0])
-        star = f"t{int(teff):04d}"
+        star = str(node_id)
         labels = _labels_for(teff, float(labels_row[1]), float(labels_row[2]))
         truth_product = Path(truth_rel)
         if not truth_product.is_absolute():
             truth_product = REPO_ROOT / truth_product
         candidate_product = args.candidate_dir / Path(truth_rel).name
-        star_root = probe_dir / star
+        star_root = probe_dir / node_id
         star_report: dict[str, Any] = {
             "node_id": node_id,
             "candidate_product": str(candidate_product),
@@ -325,9 +325,10 @@ def main(argv: list[str] | None = None) -> int:
                 "frozen_iteration": _frozen_final_iteration(arm_dir, gate)
             }
         report["stars"][star] = star_report
-        print(f"{star}: {json.dumps(star_report)}", flush=True)
+        print(f"{star}: continuation done", flush=True)
 
     for star, star_report in report["stars"].items():
+        star = star_report["node_id"]
         metrics = {}
         for arm in ("candidate", "truth"):
             frozen = star_report[arm]["frozen_iteration"]
@@ -379,6 +380,7 @@ def main(argv: list[str] | None = None) -> int:
     _write_json(args.result_root / "truth_final.json", report)
     print(json.dumps(report["summary"], indent=2))
     for star, star_report in report["stars"].items():
+        star = star_report["node_id"]
         print(
             star,
             "relaxed:",
