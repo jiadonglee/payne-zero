@@ -56,8 +56,10 @@ from .m_star_stop_rule_v1 import (
     STABLE_SEGMENTS_REQUIRED,
     TEMPERATURE_STABLE_P95,
     TIO_STABLE_LIMIT,
+    _segment_changes,
+    _segment_flux_pass,
+    _segment_stable,
 )
-from .m_star_stop_rule_v1 import _segment_changes, _segment_flux_pass
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
