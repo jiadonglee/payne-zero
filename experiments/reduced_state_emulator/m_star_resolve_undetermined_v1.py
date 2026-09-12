@@ -436,7 +436,7 @@ def main(argv: list[str] | None = None) -> int:
         node = _node_id(teff, logg, metallicity)
         point_dir = args.result_root / "points" / node
         if remedy == "seeded_reference":
-            arms = (("reference_walk", 40),)
+            arms = (("reference_walk", 40), ("emulator60", EMULATOR_BUDGET_SLOW))
         else:
             arms = (("emulator60", EMULATOR_BUDGET_SLOW),)
         payloads.append(
@@ -476,11 +476,7 @@ def main(argv: list[str] | None = None) -> int:
             if remedy == "seeded_reference"
             else args.stop_rule_root / "validate" / node / "reference"
         )
-        emulator_arm = (
-            point_dir / "emulator60"
-            if remedy == "longer_budget"
-            else args.stop_rule_root / "validate" / node / "emulator"
-        )
+        emulator_arm = point_dir / "emulator60"
         for name, arm_dir in (
             ("reference", reference_arm),
             ("emulator", emulator_arm),
