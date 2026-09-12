@@ -82,20 +82,24 @@ EMULATOR_BUDGET_SLOW = 60
 SEEDS = (20260831, 20260901, 20260902)
 MICROTURBULENCE = 2.0
 
-# (teff, logg, metallicity, remedy)
+# (teff, logg, metallicity, remedy, leg_size, same_track_only)
 TARGETS = (
-    (3250.0, 2.0, 0.0, "seeded_reference"),
-    (3050.0, 2.0, 0.5, "seeded_reference"),
-    (3850.0, 0.5, -0.5, "seeded_reference"),
-    (3150.0, 1.5, -0.5, "longer_budget"),
-    (3300.0, 0.75, 0.5, "longer_budget"),
+    (3250.0, 2.0, 0.0, "seeded_reference", 25.0, True),
+    (3050.0, 2.0, 0.5, "seeded_reference", 25.0, False),
+    (3850.0, 0.5, -0.5, "seeded_reference", 25.0, True),
+    (3150.0, 1.5, -0.5, "longer_budget", 50.0, True),
+    (3300.0, 0.75, 0.5, "longer_budget", 50.0, True),
 )
 
 
 def _walk_seed_product(
-    teff: float, logg: float, metallicity: float, corpus_path: Path
+    teff: float,
+    logg: float,
+    metallicity: float,
+    corpus_path: Path,
+    same_track_only: bool = True,
 ) -> Path | None:
-    """Nearest converged truth product on the same (logg, [M/H]) track."""
+    """Nearest converged truth product on the same track (optionally any)."""
 
     with np.load(corpus_path, allow_pickle=False) as data:
         roles = np.asarray(data["roles"]).astype(str)
@@ -104,10 +108,18 @@ def _walk_seed_product(
     best = None
     best_distance = None
     for row_index in range(len(labels)):
-        if abs(labels[row_index, 1] - logg) > 1e-6:
-            continue
-        if abs(labels[row_index, 2] - metallicity) > 1e-6:
-            continue
+        if same_track_only:
+            if abs(labels[row_index, 1] - logg) > 1e-6:
+                continue
+            if abs(labels[row_index, 2] - metallicity) > 1e-6:
+                continue
+        else:
+            separation = (
+                0.6 * abs(labels[row_index, 1] - logg)
+                + 0.1 * abs(labels[row_index, 2] - metallicity)
+            )
+            if separation > 0.16:
+                continue
         distance = abs(float(labels[row_index, 0]) - teff)
         if best_distance is None or distance < best_distance:
             best_distance = distance
@@ -121,12 +133,18 @@ def _walk_seed_product(
 
 
 def _anchor_temperature(
-    teff: float, logg: float, metallicity: float, corpus_path: Path
+    teff: float,
+    logg: float,
+    metallicity: float,
+    corpus_path: Path,
+    same_track_only: bool = True,
 ) -> float | None:
     with np.load(corpus_path, allow_pickle=False) as data:
         labels_all = np.asarray(data["labels"], dtype=np.float64)
         products_all = np.asarray(data["source_product_paths"]).astype(str)
-    product = _walk_seed_product(teff, logg, metallicity, corpus_path)
+    product = _walk_seed_product(
+        teff, logg, metallicity, corpus_path, same_track_only=same_track_only
+    )
     if product is None:
         return None
     target = str(product)
@@ -231,8 +249,10 @@ def _solve_reference_walk(
     corpus: Path,
     arm_dir: Path,
     gate: dict,
+    leg_size: float = 50.0,
+    same_track_only: bool = True,
 ) -> dict[str, Any]:
-    """Continuation-seeded reference: walk <=50 K legs from the nearest truth."""
+    """Continuation-seeded reference: walk small legs from the nearest truth."""
 
     track = TrackSpec(
         log_surface_gravity=float(logg),
@@ -241,7 +261,9 @@ def _solve_reference_walk(
         carbon_enhancement=0.0,
         microturbulence_km_s=MICROTURBULENCE,
     )
-    anchor_product = _walk_seed_product(teff, logg, metallicity, corpus)
+    anchor_product = _walk_seed_product(
+        teff, logg, metallicity, corpus, same_track_only=same_track_only
+    )
     if anchor_product is None:
         return {"status": "no_anchor"}
     anchor_temperature = float(
@@ -250,9 +272,8 @@ def _solve_reference_walk(
         .read_text()
         )["anchor_temperature"]
     ) if False else None
-    labels_all = None
     anchor_temperature = _anchor_temperature(
-        teff, logg, metallicity, corpus
+        teff, logg, metallicity, corpus, same_track_only=same_track_only
     )
     if anchor_temperature is None:
         return {"status": "no_anchor_temperature"}
@@ -261,7 +282,7 @@ def _solve_reference_walk(
     leg_temperature = anchor_temperature
     leg_record = None
     while leg_temperature > teff + 1e-6:
-        leg_temperature = max(leg_temperature - 50.0, teff)
+        leg_temperature = max(leg_temperature - leg_size, teff)
         leg_labels = track.labels(leg_temperature)
         leg_seed = _reconstruct_from_mt(
             leg_labels, leg_mass, leg_temperature_profile
@@ -357,6 +378,8 @@ def _run_one_point(payload) -> dict[str, Any]:
         checkpoint_text,
         gate,
         arms,
+        leg_size,
+        same_track,
     ) = payload
     _set_single_thread_environment()
     point_dir = Path(point_dir_text)
@@ -375,6 +398,8 @@ def _run_one_point(payload) -> dict[str, Any]:
                 corpus=Path(corpus_text),
                 arm_dir=arm_dir,
                 gate=gate,
+                leg_size=leg_size,
+                same_track_only=same_track,
             )
         else:
             summary[arm_name] = _solve_emulator(
@@ -407,7 +432,7 @@ def main(argv: list[str] | None = None) -> int:
     from concurrent.futures import ProcessPoolExecutor
 
     payloads = []
-    for teff, logg, metallicity, remedy in TARGETS:
+    for teff, logg, metallicity, remedy, leg_size, same_track in TARGETS:
         node = _node_id(teff, logg, metallicity)
         point_dir = args.result_root / "points" / node
         if remedy == "seeded_reference":
@@ -425,6 +450,8 @@ def main(argv: list[str] | None = None) -> int:
                 str(args.checkpoint_dir),
                 gate,
                 arms,
+                leg_size,
+                same_track,
             )
         )
 
@@ -434,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Judge: frozen iteration per arm, cross-arm gate where both sides exist.
     rows = []
-    for teff, logg, metallicity, remedy in TARGETS:
+    for teff, logg, metallicity, remedy, _leg, _same in TARGETS:
         node = _node_id(teff, logg, metallicity)
         point_dir = args.result_root / "points" / node
         row = {
