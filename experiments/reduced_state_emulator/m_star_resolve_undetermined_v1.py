@@ -330,6 +330,49 @@ def _solve_emulator(
     )
 
 
+def _run_one_point(payload) -> dict[str, Any]:
+    (
+        teff,
+        logg,
+        metallicity,
+        remedy,
+        point_dir_text,
+        corpus_text,
+        checkpoint_text,
+        gate,
+        arms,
+    ) = payload
+    _set_single_thread_environment()
+    point_dir = Path(point_dir_text)
+    point_dir.mkdir(parents=True, exist_ok=True)
+    summary = {}
+    for arm_name, budget in arms:
+        arm_dir = point_dir / arm_name
+        if (arm_dir / "iterations.jsonl").is_file():
+            summary[arm_name] = "already done"
+            continue
+        if arm_name == "reference_walk":
+            summary[arm_name] = _solve_reference_walk(
+                teff=teff,
+                logg=logg,
+                metallicity=metallicity,
+                corpus=Path(corpus_text),
+                arm_dir=arm_dir,
+                gate=gate,
+            )
+        else:
+            summary[arm_name] = _solve_emulator(
+                teff=teff,
+                logg=logg,
+                metallicity=metallicity,
+                checkpoint_dir=Path(checkpoint_text),
+                arm_dir=arm_dir,
+                budget=budget,
+            )
+    summary["node_id"] = _node_id(teff, logg, metallicity)
+    return summary
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--result-root", type=Path, default=DEFAULT_RESULT_ROOT)
@@ -366,50 +409,8 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
 
-    def run_one(payload):
-        (
-            teff,
-            logg,
-            metallicity,
-            remedy,
-            point_dir_text,
-            corpus_text,
-            checkpoint_text,
-            gate,
-            arms,
-        ) = payload
-        _set_single_thread_environment()
-        point_dir = Path(point_dir_text)
-        point_dir.mkdir(parents=True, exist_ok=True)
-        summary = {}
-        for arm_name, budget in arms:
-            arm_dir = point_dir / arm_name
-            if (arm_dir / "iterations.jsonl").is_file():
-                summary[arm_name] = "already done"
-                continue
-            if arm_name == "reference_walk":
-                summary[arm_name] = _solve_reference_walk(
-                    teff=teff,
-                    logg=logg,
-                    metallicity=metallicity,
-                    corpus=Path(corpus_text),
-                    arm_dir=arm_dir,
-                    gate=gate,
-                )
-            else:
-                summary[arm_name] = _solve_emulator(
-                    teff=teff,
-                    logg=logg,
-                    metallicity=metallicity,
-                    checkpoint_dir=Path(checkpoint_text),
-                    arm_dir=arm_dir,
-                    budget=budget,
-                )
-        summary["node_id"] = _node_id(teff, logg, metallicity)
-        return summary
-
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
-        for summary in pool.map(run_one, payloads):
+        for summary in pool.map(_run_one_point, payloads):
             print(json.dumps(summary, sort_keys=True), flush=True)
 
     # Judge: frozen iteration per arm, cross-arm gate where both sides exist.
