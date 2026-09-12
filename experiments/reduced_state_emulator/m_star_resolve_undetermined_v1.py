@@ -32,6 +32,7 @@ from emulator_v1_2.gates.compare_spectra import (
     _continuum_scaled_stats,
     _load_spectrum_npz,
     _relative_stats,
+    _synthesize_one,
 )
 
 from .cool_star_step_test import (
