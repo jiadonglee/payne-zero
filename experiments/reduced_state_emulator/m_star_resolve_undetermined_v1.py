@@ -396,6 +396,9 @@ def main(argv: list[str] | None = None) -> int:
         "--checkpoint-dir", type=Path, default=DEFAULT_CHECKPOINT_DIR
     )
     parser.add_argument("--flux-gate", type=Path, default=DEFAULT_FLUX_GATE)
+    parser.add_argument(
+        "--stop-rule-root", type=Path, default=DEFAULT_STOP_RULE_ROOT
+    )
     parser.add_argument("--workers", type=int, default=5)
     args = parser.parse_args(argv)
     gate = json.loads(args.flux_gate.read_text())
