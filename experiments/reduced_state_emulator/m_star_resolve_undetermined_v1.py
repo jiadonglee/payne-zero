@@ -119,6 +119,25 @@ def _walk_seed_product(
     return product if product.is_file() else None
 
 
+def _anchor_temperature(
+    teff: float, logg: float, metallicity: float, corpus_path: Path
+) -> float | None:
+    with np.load(corpus_path, allow_pickle=False) as data:
+        labels_all = np.asarray(data["labels"], dtype=np.float64)
+        products_all = np.asarray(data["source_product_paths"]).astype(str)
+    product = _walk_seed_product(teff, logg, metallicity, corpus_path)
+    if product is None:
+        return None
+    target = str(product)
+    for row_index in range(len(labels_all)):
+        candidate = Path(products_all[row_index])
+        if not candidate.is_absolute():
+            candidate = REPO_ROOT / candidate
+        if str(candidate) == target:
+            return float(labels_all[row_index, 0])
+    return None
+
+
 def _released_continuation(
     *,
     start_atmosphere,
@@ -230,16 +249,12 @@ def _solve_reference_walk(
         .read_text()
         )["anchor_temperature"]
     ) if False else None
-    with np.load(corpus, allow_pickle=False) as data:
-        roles = np.asarray(data["roles"]).astype(str)
-        labels_all = np.asarray(data["labels"], dtype=np.float64)
-        products_all = np.asarray(data["source_product_paths"]).astype(str)
-    match = None
-    for row_index in range(len(labels_all)):
-        if str(products_all[row_index]) == str(anchor_product):
-            match = float(labels_all[row_index, 0])
-            break
-    anchor_temperature = float(match)
+    labels_all = None
+    anchor_temperature = _anchor_temperature(
+        teff, logg, metallicity, corpus
+    )
+    if anchor_temperature is None:
+        return {"status": "no_anchor_temperature"}
 
     leg_mass, leg_temperature_profile = _load_mt(anchor_product)
     leg_temperature = anchor_temperature
