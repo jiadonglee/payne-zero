@@ -462,6 +462,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--flux-gate", type=Path, default=DEFAULT_FLUX_GATE)
     parser.add_argument("--marcs-grid", type=Path, default=DEFAULT_MARCS_GRID)
+    parser.add_argument(
+        "--stop-rule-root", type=Path, default=DEFAULT_STOP_RULE_ROOT
+    )
+    parser.add_argument(
+        "--resolve-root", type=Path, default=DEFAULT_RESOLVE_ROOT
+    )
     parser.add_argument("--workers", type=int, default=6)
     args = parser.parse_args(argv)
     gate = json.loads(args.flux_gate.read_text())
