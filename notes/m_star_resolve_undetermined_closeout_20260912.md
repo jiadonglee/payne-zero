@@ -35,14 +35,7 @@ all four pass; the fifth is terminal.
 
 ## Final twelve-point tally
 
-9/12 pass (7 original + 4 resolved), 1 emulator-side stable with no
-reference (t3250, terminal), 1 unresolved from the original run never
-re-judged here because its reference diverged and no walk exists - `t3850
-g0.5 m-0.5` is resolved above, so the remaining open item is exactly one
-point (t3250) plus the two original reference-diverged points that this
-campaign did convert (t3050) or closed as terminal (t3250).
-
-The emulator-with-budget-60 plus walk-seeded references covers every M-giant
-validation point attempted except t3250, where the solver itself cannot
-produce a reference.  Scope limit unchanged: twelve points do not estimate a
-whole-grid success rate.
+Superseded by `notes/m_star_sixty_budget_v1_closeout_20260913.md`: the
+`t3250` reference was subsequently built by a gravity walk and the point
+passes, so the original twelve stand at **12/12 under the 60-iteration
+configuration** (7/12 under the 30-iteration standard).
