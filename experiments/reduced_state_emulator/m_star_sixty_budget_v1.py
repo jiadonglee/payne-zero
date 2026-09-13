@@ -21,6 +21,7 @@ from __future__ import annotations
 from bench import environment as _environment  # noqa: F401,E402
 
 import argparse
+import dataclasses
 import json
 from pathlib import Path
 from typing import Any
@@ -453,8 +454,13 @@ def _flux_at(arm_dir: Path, iteration: int) -> float | None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "stage", choices=("t3250-reference", "six", "evaluate", "run-all")
+        "stage",
+        choices=("t3250-reference", "six", "evaluate", "run-all", "extend-relax"),
     )
+    parser.add_argument("--arm-dir", type=Path, default=None)
+    parser.add_argument("--from-iteration", type=int, default=120)
+    parser.add_argument("--to-iteration", type=int, default=240)
+    parser.add_argument("--extend-labels", default=None)
     parser.add_argument("--result-root", type=Path, default=DEFAULT_RESULT_ROOT)
     parser.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     parser.add_argument(
@@ -500,9 +506,82 @@ def main(argv: list[str] | None = None) -> int:
         with ProcessPoolExecutor(max_workers=args.workers) as pool:
             for summary in pool.map(_run_point, payloads):
                 print(json.dumps(summary, sort_keys=True), flush=True)
+    if args.stage == "extend-relax":
+        _extend_relax(args, gate)
+        return 0
     if args.stage in ("evaluate", "run-all"):
         _evaluate(args, gate)
     return 0
+
+
+def _extend_relax(args: argparse.Namespace, gate: dict) -> None:
+    """Continue a released relaxation from its last checkpoint, appending."""
+
+    _set_single_thread_environment()
+    arm_dir = Path(args.arm_dir)
+    teff, logg, metallicity = (
+        float(value) for value in args.extend_labels.split(",")
+    )
+    labels = _labels_for(teff, logg, metallicity)
+    start_product = arm_dir / f"iter_{args.from_iteration:04d}.npz"
+    mass, temperature = _load_mt(start_product)
+    start = _reconstruct_from_mt(labels, mass, temperature)
+    residual_path = arm_dir / "iterations.jsonl"
+    residual_handle = residual_path.open("a")
+
+    def hook(iteration_index, setup, step):
+        absolute = int(args.from_iteration) + int(iteration_index)
+        flux_error = np.asarray(
+            step.remapped.finalization.temperature_correction_result.flux_error_percent,
+            dtype=np.float64,
+        )
+        residual_handle.write(
+            json.dumps(
+                {
+                    "iteration": absolute,
+                    "flux_error_p95_percent": float(
+                        np.percentile(np.abs(flux_error), 95.0)
+                    ),
+                    "flux_error_median_percent": float(
+                        np.percentile(np.abs(flux_error), 50.0)
+                    ),
+                    "flux_error_max_percent": float(np.max(np.abs(flux_error))),
+                },
+                sort_keys=True,
+            )
+            + "\n"
+        )
+        residual_handle.flush()
+        if absolute % 5 == 0:
+            save_product_structured_atmosphere(
+                _clone_atmosphere(step.remapped.atmosphere),
+                arm_dir / f"iter_{absolute:04d}.npz",
+                device="cpu",
+                dtype="float64",
+            )
+        return {"iteration": absolute}
+
+    config = dataclasses.replace(
+        _solver_config(
+            _clone_atmosphere(start),
+            iterations_per_trial=int(args.to_iteration - args.from_iteration),
+            structured_atmosphere_path=None,
+            debug_state_path=None,
+        ),
+        enable_convergence_stop=False,
+    )
+    run_atmosphere_model(config, after_iteration_hook=hook)
+    residual_handle.close()
+    print(
+        json.dumps(
+            {
+                "extended": str(arm_dir),
+                "from": args.from_iteration,
+                "to": args.to_iteration,
+                "reference_frozen": _frozen_iteration(arm_dir, gate),
+            }
+        )
+    )
 
 
 def _evaluate(args: argparse.Namespace, gate: dict) -> None:
@@ -516,7 +595,12 @@ def _evaluate(args: argparse.Namespace, gate: dict) -> None:
     for teff, logg, metallicity, group in entries:
         node = _node_id(teff, logg, metallicity)
         point_dir = args.result_root / "points" / node
-        emulator_frozen = _frozen_iteration(point_dir / "emulator", gate)
+        emulator_arm = point_dir / "emulator"
+        if group == "t3250_resolution":
+            emulator_arm = (
+                args.resolve_root / "points" / node / "emulator60"
+            )
+        emulator_frozen = _frozen_iteration(emulator_arm, gate)
         reference_arm = point_dir / "reference"
         if (reference_arm / "diverged.json").is_file():
             reference_arm = point_dir / "reference_walk"
@@ -530,7 +614,7 @@ def _evaluate(args: argparse.Namespace, gate: dict) -> None:
             "emulator_frozen": emulator_frozen,
             "reference_frozen": reference_frozen,
             "emulator_flux_p95": _flux_at(
-                point_dir / "emulator", emulator_frozen or EMULATOR_CAP
+                emulator_arm, emulator_frozen or EMULATOR_CAP
             ),
             "reference_flux_p95": _flux_at(
                 reference_arm, reference_frozen or REFERENCE_RELAX_CAP
@@ -538,7 +622,7 @@ def _evaluate(args: argparse.Namespace, gate: dict) -> None:
         }
         if emulator_frozen is not None and reference_frozen is not None:
             metrics = _cross_metrics(
-                point_dir / "emulator" / f"iter_{emulator_frozen:04d}.npz",
+                emulator_arm / f"iter_{emulator_frozen:04d}.npz",
                 reference_arm / f"iter_{reference_frozen:04d}.npz",
                 spectra_dir,
                 node,
