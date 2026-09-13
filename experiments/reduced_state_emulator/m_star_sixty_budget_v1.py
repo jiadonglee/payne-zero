@@ -602,8 +602,11 @@ def _evaluate(args: argparse.Namespace, gate: dict) -> None:
             )
         emulator_frozen = _frozen_iteration(emulator_arm, gate)
         reference_arm = point_dir / "reference"
-        if (reference_arm / "diverged.json").is_file():
-            reference_arm = point_dir / "reference_walk"
+        if (reference_arm / "diverged.json").is_file() or not (
+            (reference_arm / "iterations.jsonl").is_file()
+        ):
+            if (point_dir / "reference_walk" / "iterations.jsonl").is_file():
+                reference_arm = point_dir / "reference_walk"
         reference_frozen = _frozen_iteration(reference_arm, gate)
         row = {
             "node_id": node,
@@ -650,8 +653,11 @@ def _evaluate(args: argparse.Namespace, gate: dict) -> None:
             (args.resolve_root / "resolution.json").read_text()
         )["rows"]
     }
+    t3250_node = _node_id(*T3250)
     for row in stop_table:
         node = row["node_id"]
+        if node == t3250_node:
+            continue
         if node in resolve_rows and row["verdict"] != "pass":
             resolved = resolve_rows[node]
             rows.append(
