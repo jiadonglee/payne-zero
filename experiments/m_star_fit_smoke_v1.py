@@ -28,7 +28,7 @@ import numpy as np
 
 from payne_zero_synthesis.api import synthesize, synthesize_from_labels
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PRODUCT = (
     REPO_ROOT
     / "results"
