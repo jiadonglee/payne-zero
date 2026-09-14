@@ -38,10 +38,10 @@ SNR = 100.0
 # (`synthesize_from_labels`) cannot serve M giants: its neural atmosphere
 # initializer supports 5040/T <= 1.26, i.e. Teff >= ~4000 K only.
 LIBRARY = (
-    (3750.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3750"),
-    (3800.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3800"),
-    (3850.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3850"),
-    (3900.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3900"),
+    (3750.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3750/truth"),
+    (3800.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3800/truth"),
+    (3850.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3850/truth"),
+    (3900.0, "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3900/truth"),
 )
 MOCK_FROM = 3750.0
 TRUE_LABELS = {"teff": MOCK_FROM, "logg": 2.0, "metallicity": 0.0}
