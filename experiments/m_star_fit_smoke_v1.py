@@ -66,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     args.out.mkdir(parents=True, exist_ok=True)
 
-    library_dir = args.checkpoint_dir
+    library_dir = args.library_dir
     library = {}
     for teff, node in LIBRARY:
         product = library_dir / node / "iter_0030.npz"
