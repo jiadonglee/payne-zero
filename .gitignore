@@ -58,6 +58,16 @@ refcheck/
 # are private working-tree material and are not published from this branch.
 paper/
 payne_zero_figures/paper/
+# Manuscript-specific campaign drivers, notes, and tests stay local as well.
+experiments/analytic_initializer/build_paper_dev60_comparison.py
+experiments/analytic_initializer/recover_paper_grey_convective_replay.py
+experiments/analytic_initializer/run_paper_grey_convective_campaign.py
+experiments/analytic_initializer/write_paper_grey_convective_output_manifest.py
+experiments/reduced_state_emulator/run_paper_physical_seed_refresh.py
+notes/paper_physical_seed_refresh_20260820.md
+sources/papers_20260831_stellar_atmosphere_initialization.md
+tests/test_analytic_initializer_paper_comparison.py
+tests/test_paper_grey_convective_campaign.py
 
 # LaTeX build cache (final named PDFs may still be versioned explicitly)
 *.aux
