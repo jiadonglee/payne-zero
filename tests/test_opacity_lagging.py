@@ -407,6 +407,7 @@ def stubbed_iteration(monkeypatch):
                     logarithmic_temperature_pressure_gradient=np.zeros(LAYERS),
                     adiabatic_gradient=np.zeros(LAYERS),
                 ),
+                convection_inner_loop_diagnostics=None,
             ),
             atmosphere=_atmosphere(),
             standard_rosseland_optical_depth=np.ones(LAYERS),
