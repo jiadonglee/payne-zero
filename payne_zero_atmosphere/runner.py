@@ -31,11 +31,17 @@ from .convergence import (
     max_normalized_column_delta,
     temperature_changes_within_limits,
 )
+from .convection_numerics import CONVECTION_FINITE_DIFFERENCE_RELATIVE_STEP
 from .convection import (
     ConvectionFiniteDifferenceSamples,
     ConvectionResult,
     compute_convection,
     compute_disabled_convection_diagnostics,
+)
+from .convection_inner_loop import (
+    ConvectiveInnerLoopConfig,
+    ConvectivePhysicsSnapshot,
+    run_convection_zone_inner_loop,
 )
 from .continuum_opacity import (
     ContinuumAtmosphereState,
@@ -191,6 +197,7 @@ class IterationFinalization:
     convection_finite_difference_samples: ConvectionFiniteDifferenceSamples | None = (
         None
     )
+    convection_inner_loop_diagnostics: dict[str, float | int | bool] | None = None
 
 
 @dataclass
@@ -654,6 +661,9 @@ def run_single_iteration(
             ),
         }
     )
+    inner_loop_diagnostics = remapped.finalization.convection_inner_loop_diagnostics
+    if inner_loop_diagnostics:
+        iteration_timing.update(inner_loop_diagnostics)
     if setup.flux_residual_guided_damping:
         current_p95_flux_error = float(
             iteration_timing["p95_absolute_flux_error_percent"]
@@ -887,6 +897,7 @@ def compute_convection_finite_difference_samples(
     molecules_enabled: bool = False,
     molecular_state: MolecularEquilibriumState | None = None,
     molecular_thermal_energy_tracks_perturbation: bool = False,
+    relative_step: float | None = None,
 ) -> ConvectionFiniteDifferenceSamples:
     """Compute finite-difference energy and density samples for convection."""
 
@@ -963,30 +974,37 @@ def compute_convection_finite_difference_samples(
         )
 
     try:
-        atmosphere.temperature[:] = original_temperature * 1.001
+        fd_step = (
+            CONVECTION_FINITE_DIFFERENCE_RELATIVE_STEP
+            if relative_step is None
+            else float(relative_step)
+        )
+        if not np.isfinite(fd_step) or fd_step <= 0.0:
+            raise ValueError("relative_step must be finite and positive")
+        atmosphere.temperature[:] = original_temperature * (1.0 + fd_step)
         recompute_pressure_iteration_state(int(temperature_iteration_seed) + 1)
         specific_internal_energy_plus_temperature = (
             runtime_state.specific_internal_energy
             + 3.0
             * absolute_radiation_pressure_array
             / np.maximum(runtime_state.mass_density, 1.0e-300)
-            * (1.0 + dilution * (1.001**4 - 1.0))
+            * (1.0 + dilution * ((1.0 + fd_step) ** 4 - 1.0))
         ).copy()
         density_plus_temperature = runtime_state.mass_density.copy()
 
-        atmosphere.temperature[:] = original_temperature * 0.999
+        atmosphere.temperature[:] = original_temperature * (1.0 - fd_step)
         recompute_pressure_iteration_state(int(temperature_iteration_seed) + 2)
         specific_internal_energy_minus_temperature = (
             runtime_state.specific_internal_energy
             + 3.0
             * absolute_radiation_pressure_array
             / np.maximum(runtime_state.mass_density, 1.0e-300)
-            * (1.0 + dilution * (0.999**4 - 1.0))
+            * (1.0 + dilution * ((1.0 - fd_step) ** 4 - 1.0))
         ).copy()
         density_minus_temperature = runtime_state.mass_density.copy()
 
         atmosphere.temperature[:] = original_temperature
-        runtime_state.gas_pressure[:] = original_pressure * 1.001
+        runtime_state.gas_pressure[:] = original_pressure * (1.0 + fd_step)
         recompute_pressure_iteration_state(int(temperature_iteration_seed) + 3)
         specific_internal_energy_plus_pressure = (
             runtime_state.specific_internal_energy
@@ -996,7 +1014,7 @@ def compute_convection_finite_difference_samples(
         ).copy()
         density_plus_pressure = runtime_state.mass_density.copy()
 
-        runtime_state.gas_pressure[:] = original_pressure * 0.999
+        runtime_state.gas_pressure[:] = original_pressure * (1.0 - fd_step)
         recompute_pressure_iteration_state(int(temperature_iteration_seed) + 4)
         specific_internal_energy_minus_pressure = (
             runtime_state.specific_internal_energy
@@ -1547,6 +1565,8 @@ def finalize_transfer_state(
     )
     convection_result: ConvectionResult | None = None
     finite_difference_samples: ConvectionFiniteDifferenceSamples | None = None
+    convection_inner_loop_diagnostics: dict[str, float | int | bool] | None = None
+    correction_hold_layers: np.ndarray | None = None
     if int(convection_enabled) == 1 and convective_flux is None:
         finite_difference_samples = compute_convection_finite_difference_samples(
             atmosphere=atmosphere,
@@ -1637,6 +1657,294 @@ def finalize_transfer_state(
         heat_capacity = convection_result.heat_capacity
         mixing_length = setup.convection.mixing_length
 
+        inner_passes = int(setup.convection_zone_inner_loop_passes)
+        if inner_passes > 0:
+            radiative_eddington_flux = np.asarray(
+                temperature_correction.integrated_eddington_flux,
+                dtype=np.float64,
+            )
+            inner_seed_base = (
+                int(iteration_index) * 10
+                if temperature_iteration_seed is None
+                else int(temperature_iteration_seed)
+            )
+            physics_calls = {"count": 0}
+
+            def _refresh_state_at_current_temperature(iteration_index: int) -> None:
+                # Re-solve the pressure-iteration state (electron density,
+                # molecular equilibrium, mass density) at the current
+                # temperature, as the sampler does at each perturbed
+                # temperature; opacity stays at the round input.
+                population_state = opacity_state.population_state
+                if (
+                    setup.molecules_enabled
+                    and population_state.molecular_state is not None
+                    and molecular_convection_thermal_tracks_perturbation
+                ):
+                    population_state.molecular_state.thermal_energy_erg[:] = (
+                        atmosphere.thermal_energy_erg
+                    )
+                populate_species(
+                    code=0.0,
+                    population_mode=1,
+                    output=np.zeros((atmosphere.layers, 1), dtype=np.float64),
+                    molecules_enabled=bool(setup.molecules_enabled),
+                    molecular_state=population_state.molecular_state,
+                    pressure_iteration_enabled=True,
+                    temperature_k=atmosphere.temperature,
+                    thermal_energy_erg=atmosphere.thermal_energy_erg,
+                    state=runtime_state,
+                    temperature_iteration_index=int(iteration_index),
+                    temperature_iteration_cache=(
+                        population_state.temperature_iteration_cache
+                    ),
+                )
+
+            def _physics_at_temperature(trial_temperature: np.ndarray) -> ConvectivePhysicsSnapshot:
+                atmosphere.temperature[:] = np.asarray(
+                    trial_temperature, dtype=np.float64
+                )
+                physics_calls["count"] += 1
+                if setup.convection_zone_inner_loop_refresh_state:
+                    _refresh_state_at_current_temperature(
+                        inner_seed_base + 1000 + 10 * physics_calls["count"] + 5
+                    )
+                samples = compute_convection_finite_difference_samples(
+                    atmosphere=atmosphere,
+                    runtime_state=runtime_state,
+                    absolute_radiation_pressure=(
+                        radiative_pressure.absolute_radiation_pressure
+                    ),
+                    rosseland_optical_depth=rosseland_optical_depth,
+                    temperature_iteration_seed=(
+                        inner_seed_base + 1000 + 10 * physics_calls["count"]
+                    ),
+                    temperature_iteration_cache=(
+                        opacity_state.population_state.temperature_iteration_cache
+                    ),
+                    molecules_enabled=setup.molecules_enabled,
+                    molecular_state=opacity_state.population_state.molecular_state,
+                    molecular_thermal_energy_tracks_perturbation=(
+                        molecular_convection_thermal_tracks_perturbation
+                    ),
+                )
+                result = compute_convection(
+                    rosseland_table=temperature_correction.rosseland_opacity_table,
+                    column_mass=column_mass,
+                    rosseland_optical_depth=rosseland_optical_depth,
+                    temperature_k=atmosphere.temperature,
+                    gas_pressure=runtime_state.gas_pressure,
+                    mass_density=runtime_state.mass_density,
+                    rosseland_opacity=rosseland_opacity,
+                    microturbulence=atmosphere.microturbulence,
+                    absolute_radiation_pressure=(
+                        radiative_pressure.absolute_radiation_pressure
+                    ),
+                    total_pressure=total_pressure_for_convection,
+                    surface_gravity_cgs=setup.surface_gravity_cgs,
+                    target_integrated_eddington_flux=target_integrated_eddington_flux,
+                    mixing_length=setup.convection.mixing_length,
+                    overshoot_weight=setup.convection.overshoot_weight,
+                    convection_enabled=True,
+                    zero_top_layer_count=convection_zero_top_layer_count,
+                    specific_internal_energy_plus_temperature=(
+                        samples.specific_internal_energy_plus_temperature
+                    ),
+                    specific_internal_energy_minus_temperature=(
+                        samples.specific_internal_energy_minus_temperature
+                    ),
+                    specific_internal_energy_plus_pressure=(
+                        samples.specific_internal_energy_plus_pressure
+                    ),
+                    specific_internal_energy_minus_pressure=(
+                        samples.specific_internal_energy_minus_pressure
+                    ),
+                    density_plus_temperature=samples.density_plus_temperature,
+                    density_minus_temperature=samples.density_minus_temperature,
+                    density_plus_pressure=samples.density_plus_pressure,
+                    density_minus_pressure=samples.density_minus_pressure,
+                )
+                return ConvectivePhysicsSnapshot(
+                    convective_flux=result.convective_flux,
+                    logarithmic_gradient=(
+                        result.logarithmic_temperature_pressure_gradient
+                    ),
+                    adiabatic_gradient=result.adiabatic_gradient,
+                    total_pressure=total_pressure_for_convection,
+                    extras={
+                        "heat_capacity": result.heat_capacity,
+                        "pressure_scale_height": result.pressure_scale_height,
+                        "raw_convective_flux": result.raw_convective_flux,
+                        "log_density_temperature_derivative_at_constant_total_pressure": (
+                            result.log_density_temperature_derivative_at_constant_total_pressure
+                        ),
+                    },
+                )
+
+            temperature_before_inner = np.asarray(temperature, dtype=np.float64).copy()
+            inner = run_convection_zone_inner_loop(
+                temperature=temperature,
+                radiative_eddington_flux=radiative_eddington_flux,
+                target_eddington_flux=target_integrated_eddington_flux,
+                physics=_physics_at_temperature,
+                config=ConvectiveInnerLoopConfig(
+                    passes=inner_passes,
+                    freeze_mask_during_passes=bool(
+                        setup.convection_zone_inner_loop_freeze_mask
+                    ),
+                    release_mask_after=True,
+                    correct_written_gradient=bool(
+                        setup.convection_zone_inner_loop_correct_written_gradient
+                    ),
+                    fill_interior_holes=bool(setup.convection_zone_inner_loop_fill_holes),
+                ),
+            )
+            relaxation = float(setup.convection_zone_inner_loop_relaxation)
+            if relaxation == 1.0:
+                atmosphere.temperature[:] = inner.temperature
+            else:
+                atmosphere.temperature[:] = temperature_before_inner + relaxation * (
+                    inner.temperature - temperature_before_inner
+                )
+                if setup.convection_zone_inner_loop_refresh_state:
+                    _refresh_state_at_current_temperature(inner_seed_base + 9005)
+            temperature = atmosphere.temperature
+            finite_difference_samples = compute_convection_finite_difference_samples(
+                atmosphere=atmosphere,
+                runtime_state=runtime_state,
+                absolute_radiation_pressure=(
+                    radiative_pressure.absolute_radiation_pressure
+                ),
+                rosseland_optical_depth=rosseland_optical_depth,
+                temperature_iteration_seed=inner_seed_base + 9000,
+                temperature_iteration_cache=(
+                    opacity_state.population_state.temperature_iteration_cache
+                ),
+                molecules_enabled=setup.molecules_enabled,
+                molecular_state=opacity_state.population_state.molecular_state,
+                molecular_thermal_energy_tracks_perturbation=(
+                    molecular_convection_thermal_tracks_perturbation
+                ),
+            )
+            convection_result = compute_convection(
+                rosseland_table=temperature_correction.rosseland_opacity_table,
+                column_mass=column_mass,
+                rosseland_optical_depth=rosseland_optical_depth,
+                temperature_k=atmosphere.temperature,
+                gas_pressure=runtime_state.gas_pressure,
+                mass_density=runtime_state.mass_density,
+                rosseland_opacity=rosseland_opacity,
+                microturbulence=atmosphere.microturbulence,
+                absolute_radiation_pressure=(
+                    radiative_pressure.absolute_radiation_pressure
+                ),
+                total_pressure=total_pressure_for_convection,
+                surface_gravity_cgs=setup.surface_gravity_cgs,
+                target_integrated_eddington_flux=target_integrated_eddington_flux,
+                mixing_length=setup.convection.mixing_length,
+                overshoot_weight=setup.convection.overshoot_weight,
+                convection_enabled=True,
+                zero_top_layer_count=convection_zero_top_layer_count,
+                specific_internal_energy_plus_temperature=(
+                    finite_difference_samples.specific_internal_energy_plus_temperature
+                ),
+                specific_internal_energy_minus_temperature=(
+                    finite_difference_samples.specific_internal_energy_minus_temperature
+                ),
+                specific_internal_energy_plus_pressure=(
+                    finite_difference_samples.specific_internal_energy_plus_pressure
+                ),
+                specific_internal_energy_minus_pressure=(
+                    finite_difference_samples.specific_internal_energy_minus_pressure
+                ),
+                density_plus_temperature=(
+                    finite_difference_samples.density_plus_temperature
+                ),
+                density_minus_temperature=(
+                    finite_difference_samples.density_minus_temperature
+                ),
+                density_plus_pressure=finite_difference_samples.density_plus_pressure,
+                density_minus_pressure=finite_difference_samples.density_minus_pressure,
+            )
+            convective_flux = convection_result.convective_flux
+            previous_convective_flux = convection_result.raw_convective_flux
+            logarithmic_temperature_pressure_gradient = (
+                convection_result.logarithmic_temperature_pressure_gradient
+            )
+            adiabatic_gradient = convection_result.adiabatic_gradient
+            pressure_scale_height = convection_result.pressure_scale_height
+            total_pressure = total_pressure_for_convection
+            log_density_temperature_derivative_at_constant_total_pressure = (
+                convection_result.log_density_temperature_derivative_at_constant_total_pressure
+            )
+            heat_capacity = convection_result.heat_capacity
+            inner_delta = np.asarray(temperature, dtype=np.float64) - temperature_before_inner
+            if setup.convection_zone_inner_loop_hold_correction:
+                correction_hold_layers = (
+                    inner.convective_mask_initial | inner.filled_layers
+                ) & inner.convective_mask_final
+            last_mismatch = inner.local_energy_mismatch
+            last_record = inner.pass_records[-1] if inner.pass_records else {}
+            convection_inner_loop_diagnostics = {
+                "convection_inner_loop_passes": float(inner_passes),
+                "convection_inner_loop_physics_evaluations": float(
+                    inner.physics_evaluations
+                ),
+                "convection_inner_loop_assigned_required_flux": float(
+                    inner.assigned_required_flux
+                ),
+                "convection_inner_loop_mask_was_frozen": float(inner.mask_was_frozen),
+                "convection_inner_loop_mask_was_released": float(
+                    inner.mask_was_released
+                ),
+                "convection_inner_loop_n_masked_initial": float(
+                    np.count_nonzero(inner.convective_mask_initial)
+                ),
+                "convection_inner_loop_n_masked_final": float(
+                    np.count_nonzero(inner.convective_mask_final)
+                ),
+                "convection_inner_loop_max_abs_relative_temperature_change": float(
+                    np.max(
+                        np.abs(inner_delta)
+                        / np.maximum(temperature_before_inner, 1.0)
+                    )
+                ),
+                "convection_inner_loop_mean_temperature_change": float(
+                    np.mean(inner_delta[inner.convective_mask_initial])
+                    if np.any(inner.convective_mask_initial)
+                    else 0.0
+                ),
+                "convection_inner_loop_p95_abs_mismatch": float(
+                    last_record.get(
+                        "p95_abs_mismatch",
+                        np.percentile(np.abs(last_mismatch), 95.0),
+                    )
+                ),
+                "convection_inner_loop_max_abs_mismatch": float(
+                    np.max(np.abs(last_mismatch))
+                ),
+                "convection_inner_loop_correct_written_gradient": float(
+                    setup.convection_zone_inner_loop_correct_written_gradient
+                ),
+                "convection_inner_loop_refresh_state": float(
+                    setup.convection_zone_inner_loop_refresh_state
+                ),
+                "convection_inner_loop_relaxation": float(
+                    setup.convection_zone_inner_loop_relaxation
+                ),
+                "convection_inner_loop_n_filled": float(
+                    np.count_nonzero(inner.filled_layers)
+                ),
+                "convection_inner_loop_n_correction_held": float(
+                    0
+                    if correction_hold_layers is None
+                    else np.count_nonzero(correction_hold_layers)
+                ),
+                "convection_inner_loop_max_abs_read_minus_written_gradient": float(
+                    last_record.get("max_abs_read_minus_written_gradient", 0.0)
+                ),
+            }
+
     correction_result = apply_temperature_correction(
         temperature_correction,
         mode=3,
@@ -1684,6 +1992,7 @@ def finalize_transfer_state(
         surface_gravity_cgs=setup.surface_gravity_cgs,
         temperature_correction_damping=setup.temperature_correction_damping,
         flux_residual_step_scale=float(flux_residual_step_scale),
+        hold_layers=correction_hold_layers,
     )
     if correction_result is None:
         raise RuntimeError("the final temperature correction returned no result")
@@ -1696,6 +2005,7 @@ def finalize_transfer_state(
         temperature_correction_result=correction_result,
         convection_result=convection_result,
         convection_finite_difference_samples=finite_difference_samples,
+        convection_inner_loop_diagnostics=convection_inner_loop_diagnostics,
     )
 
 
@@ -2324,6 +2634,28 @@ def _run_atmosphere_model(
         diagnostics["flux_residual_guided_damping"] = True
     if setup.require_improving_flux_residual:
         diagnostics["require_improving_flux_residual"] = True
+    if int(setup.convection_zone_inner_loop_passes) > 0:
+        diagnostics["convection_zone_inner_loop_passes"] = int(
+            setup.convection_zone_inner_loop_passes
+        )
+        diagnostics["convection_zone_inner_loop_freeze_mask"] = bool(
+            setup.convection_zone_inner_loop_freeze_mask
+        )
+        diagnostics["convection_zone_inner_loop_correct_written_gradient"] = bool(
+            setup.convection_zone_inner_loop_correct_written_gradient
+        )
+        diagnostics["convection_zone_inner_loop_refresh_state"] = bool(
+            setup.convection_zone_inner_loop_refresh_state
+        )
+        diagnostics["convection_zone_inner_loop_hold_correction"] = bool(
+            setup.convection_zone_inner_loop_hold_correction
+        )
+        diagnostics["convection_zone_inner_loop_relaxation"] = float(
+            setup.convection_zone_inner_loop_relaxation
+        )
+        diagnostics["convection_zone_inner_loop_fill_holes"] = bool(
+            setup.convection_zone_inner_loop_fill_holes
+        )
     if setup.enable_convergence_stop and flux_residual_improving_at_stop is not None:
         # Certification-phase guard: records whether the p95 flux error was
         # not worsening in the iteration the stop fired on. Observation only;

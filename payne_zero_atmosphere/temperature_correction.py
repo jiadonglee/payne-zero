@@ -358,8 +358,14 @@ def apply_temperature_correction(
     standard_log_tau_start: float = -6.875,
     temperature_correction_damping: float = 1.0,
     flux_residual_step_scale: float = 1.0,
+    hold_layers: np.ndarray | None = None,
 ) -> TemperatureCorrectionResult | None:
-    """Apply one temperature-correction mode step in place."""
+    """Apply one temperature-correction mode step in place.
+
+    ``hold_layers`` marks layers whose temperature the convective inner loop
+    has set; the correction leaves them unchanged, so the column-mass update
+    in those layers comes only from the corrected layers above.
+    """
 
     if int(mode) == 1:
         state.mean_intensity_minus_source_integral[:] = 0.0
@@ -841,6 +847,10 @@ def apply_temperature_correction(
         state.previous_temperature_correction[layer_index] = temperature_correction[
             layer_index
         ]
+    if hold_layers is not None:
+        held = np.asarray(hold_layers, dtype=bool)
+        temperature_correction[held] = 0.0
+        state.previous_temperature_correction[held] = 0.0
 
     new_temperature = temperature + temperature_correction
     bad_temperature = ~np.isfinite(new_temperature)

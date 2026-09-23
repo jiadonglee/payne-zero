@@ -88,6 +88,33 @@ class AtmosphereConfig:
     # and MLT efficiency -- set by the mixing length -- is the standard
     # lever on that gradient.
     convection_mixing_length: float | None = None
+    # Experimental COOLTLUSTY-style convective inner loop (off by default;
+    # the default path is bit-identical to the historical solver).  When
+    # ``convection_zone_inner_loop_passes`` is positive, each global
+    # radiation iteration is followed by a bounded inner loop that adjusts
+    # the convective-zone temperature gradient, recomputes EOS and MLT
+    # flux, and checks the local energy mismatch *before* the global
+    # temperature correction.  Mixing length, opacity, and the EOS are
+    # unchanged.  The required convective flux is a target only.
+    convection_zone_inner_loop_passes: int = 0
+    convection_zone_inner_loop_freeze_mask: bool = True
+    # Inner-loop passes shift the written one-sided gradient by the change
+    # the MLT read-back (centred) gradient needs; see convection_inner_loop.
+    convection_zone_inner_loop_correct_written_gradient: bool = False
+    # Inner-loop physics re-solves the pressure-iteration state (electron
+    # density, molecular equilibrium, mass density) at each trial
+    # temperature; opacity and the radiation field stay at the round input.
+    convection_zone_inner_loop_refresh_state: bool = False
+    # The global temperature correction leaves the layers the inner loop set
+    # (convective before and after the loop) unchanged; their column-mass
+    # update then comes only from the corrected layers above.
+    convection_zone_inner_loop_hold_correction: bool = False
+    # Fraction of the inner-loop temperature change kept at loop exit
+    # (1.0 keeps all of it).
+    convection_zone_inner_loop_relaxation: float = 1.0
+    # Subadiabatic layers inside a convective run that radiation cannot carry
+    # (radiative gradient above adiabatic) join the inner loop's working mask.
+    convection_zone_inner_loop_fill_holes: bool = False
 
 
 DEFAULT_OPACITY_FLAGS = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0]

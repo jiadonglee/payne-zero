@@ -9,6 +9,7 @@ import numpy as np
 from .temperature_correction import _signed_floor
 
 from .continuum_opacity import RosselandOpacityTable, evaluate_rosseland_opacity
+from .convection_numerics import CONVECTION_FINITE_DIFFERENCE_CENTER_WEIGHT
 from .radiative_transfer import (
     differentiate_on_depth_grid,
     integrate_on_depth_grid,
@@ -103,6 +104,13 @@ def compute_convection(
     The finite-difference arrays are the EOS perturbation samples used by the
     validated reference branch. When omitted, the calculation uses the
     ideal-gas derivative path also used by the disabled-convection diagnostic.
+
+    Mixing length is applied only after ``logarithmic_gradient`` and
+    ``adiabatic_gradient`` are computed from the current structure and EOS
+    derivatives.  At a fixed atmospheric state ``x``,
+    ``∂(∇ − ∇ad)/∂α_MLT = 0``.  That identity does not imply that the next
+    temperature correction, the recomputed flux residual, or the iterated
+    map are independent of mixing length.
     """
 
     column_mass = np.asarray(column_mass, dtype=np.float64)
@@ -172,22 +180,22 @@ def compute_convection(
             energy_temperature_derivative = (
                 (edens_t_plus[layer_index] - edens_t_minus[layer_index])
                 / np.maximum(temperature[layer_index], 1.0e-300)
-                * 500.0
+                * CONVECTION_FINITE_DIFFERENCE_CENTER_WEIGHT
             )
             density_temperature_derivative = (
                 (rho_t_plus[layer_index] - rho_t_minus[layer_index])
                 / np.maximum(temperature[layer_index], 1.0e-300)
-                * 500.0
+                * CONVECTION_FINITE_DIFFERENCE_CENTER_WEIGHT
             )
             energy_pressure_derivative = (
                 (edens_p_plus[layer_index] - edens_p_minus[layer_index])
                 / np.maximum(pressure[layer_index], 1.0e-300)
-                * 500.0
+                * CONVECTION_FINITE_DIFFERENCE_CENTER_WEIGHT
             )
             density_pressure_derivative = (
                 (rho_p_plus[layer_index] - rho_p_minus[layer_index])
                 / np.maximum(pressure[layer_index], 1.0e-300)
-                * 500.0
+                * CONVECTION_FINITE_DIFFERENCE_CENTER_WEIGHT
             )
         else:
             gas_constant = pressure[layer_index] / np.maximum(

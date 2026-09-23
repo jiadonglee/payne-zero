@@ -57,6 +57,13 @@ class RunSetup:
     flux_residual_guided_damping: bool = False
     require_improving_flux_residual: bool = False
     convection_mixing_length: float | None = None
+    convection_zone_inner_loop_passes: int = 0
+    convection_zone_inner_loop_freeze_mask: bool = True
+    convection_zone_inner_loop_correct_written_gradient: bool = False
+    convection_zone_inner_loop_refresh_state: bool = False
+    convection_zone_inner_loop_hold_correction: bool = False
+    convection_zone_inner_loop_relaxation: float = 1.0
+    convection_zone_inner_loop_fill_holes: bool = False
 
 
 def surface_gravity_from_atmosphere(atmosphere: ModelAtmosphere) -> float:
@@ -201,6 +208,19 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
     ):
         raise ValueError("convection_mixing_length must be finite and positive")
 
+    convection_zone_inner_loop_passes = int(config.convection_zone_inner_loop_passes)
+    if convection_zone_inner_loop_passes < 0:
+        raise ValueError("convection_zone_inner_loop_passes must be non-negative")
+
+    convection_zone_inner_loop_relaxation = float(
+        config.convection_zone_inner_loop_relaxation
+    )
+    if not (
+        np.isfinite(convection_zone_inner_loop_relaxation)
+        and 0.0 < convection_zone_inner_loop_relaxation <= 1.0
+    ):
+        raise ValueError("convection_zone_inner_loop_relaxation must be in (0, 1]")
+
     surface_gravity_cgs = surface_gravity_from_atmosphere(atmosphere)
     opacity_flags = opacity_flags_from_atmosphere(atmosphere)
     molecules_enabled = bool(config.enable_molecules)
@@ -276,4 +296,21 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
         flux_residual_guided_damping=bool(config.flux_residual_guided_damping),
         require_improving_flux_residual=bool(config.require_improving_flux_residual),
         convection_mixing_length=convection_mixing_length,
+        convection_zone_inner_loop_passes=convection_zone_inner_loop_passes,
+        convection_zone_inner_loop_freeze_mask=bool(
+            config.convection_zone_inner_loop_freeze_mask
+        ),
+        convection_zone_inner_loop_correct_written_gradient=bool(
+            config.convection_zone_inner_loop_correct_written_gradient
+        ),
+        convection_zone_inner_loop_refresh_state=bool(
+            config.convection_zone_inner_loop_refresh_state
+        ),
+        convection_zone_inner_loop_hold_correction=bool(
+            config.convection_zone_inner_loop_hold_correction
+        ),
+        convection_zone_inner_loop_relaxation=convection_zone_inner_loop_relaxation,
+        convection_zone_inner_loop_fill_holes=bool(
+            config.convection_zone_inner_loop_fill_holes
+        ),
     )
