@@ -1,0 +1,379 @@
+{
+  "campaign": "m_star_dual_path_checkpoint_provenance_20260923",
+  "method": "coordinate-wise median of three seed predictions compared with the stored reconstructed start; no solver run",
+  "seed_count": 23,
+  "unique_targets": 18,
+  "matching_checkpoints": [
+    "v4"
+  ],
+  "records": [
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+2.00_m-0.50_a+0.00_c+0.00_x2.00_t3650",
+      "product": "results/m_star_stop_rule_v1/validate/g+2.00_m-0.50_a+0.00_c+0.00_x2.00_t3650/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.007868934049415086,
+          "max_log10_column_mass_dex": 0.012410976936795493
+        },
+        "v4": {
+          "max_relative_temperature": 2.276426932834746e-16,
+          "max_log10_column_mass_dex": 8.881784197001252e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+1.50_m+0.00_a+0.00_c+0.00_x2.00_t3825",
+      "product": "results/m_star_stop_rule_v1/validate/g+1.50_m+0.00_a+0.00_c+0.00_x2.00_t3825/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.0006425473560888716,
+          "max_log10_column_mass_dex": 0.0004672544126589351
+        },
+        "v4": {
+          "max_relative_temperature": 2.747092367863083e-16,
+          "max_log10_column_mass_dex": 8.881784197001252e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+2.50_m-1.00_a+0.00_c+0.00_x2.00_t3575",
+      "product": "results/m_star_stop_rule_v1/validate/g+2.50_m-1.00_a+0.00_c+0.00_x2.00_t3575/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.0010949088453242268,
+          "max_log10_column_mass_dex": 0.0010758217142966542
+        },
+        "v4": {
+          "max_relative_temperature": 3.8133602342239704e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+2.00_m+0.50_a+0.00_c+0.00_x2.00_t3925",
+      "product": "results/m_star_stop_rule_v1/validate/g+2.00_m+0.50_a+0.00_c+0.00_x2.00_t3925/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.010493942776383417,
+          "max_log10_column_mass_dex": 0.011857381053819172
+        },
+        "v4": {
+          "max_relative_temperature": 2.5647468626672587e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3250",
+      "product": "results/m_star_stop_rule_v1/validate/g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3250/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.014125278590187388,
+          "max_log10_column_mass_dex": 0.045365214100601126
+        },
+        "v4": {
+          "max_relative_temperature": 2.261653745376201e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+1.50_m-0.50_a+0.00_c+0.00_x2.00_t3150",
+      "product": "results/m_star_stop_rule_v1/validate/g+1.50_m-0.50_a+0.00_c+0.00_x2.00_t3150/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.027736230331224423,
+          "max_log10_column_mass_dex": 0.1119754237308257
+        },
+        "v4": {
+          "max_relative_temperature": 3.2322176022993573e-16,
+          "max_log10_column_mass_dex": 8.881784197001252e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+2.50_m-1.00_a+0.00_c+0.00_x2.00_t3350",
+      "product": "results/m_star_stop_rule_v1/validate/g+2.50_m-1.00_a+0.00_c+0.00_x2.00_t3350/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.0012073507974888777,
+          "max_log10_column_mass_dex": 0.005389476990326214
+        },
+        "v4": {
+          "max_relative_temperature": 2.579483156258243e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+2.00_m+0.50_a+0.00_c+0.00_x2.00_t3050",
+      "product": "results/m_star_stop_rule_v1/validate/g+2.00_m+0.50_a+0.00_c+0.00_x2.00_t3050/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.04286310645945126,
+          "max_log10_column_mass_dex": 0.039271604859274944
+        },
+        "v4": {
+          "max_relative_temperature": 3.0687995014935713e-16,
+          "max_log10_column_mass_dex": 8.881784197001252e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+0.75_m+0.00_a+0.00_c+0.00_x2.00_t3650",
+      "product": "results/m_star_stop_rule_v1/validate/g+0.75_m+0.00_a+0.00_c+0.00_x2.00_t3650/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.005465896615926988,
+          "max_log10_column_mass_dex": 0.010632927110514334
+        },
+        "v4": {
+          "max_relative_temperature": 2.414916026773736e-16,
+          "max_log10_column_mass_dex": 6.661338147750939e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+0.50_m-0.50_a+0.00_c+0.00_x2.00_t3850",
+      "product": "results/m_star_stop_rule_v1/validate/g+0.50_m-0.50_a+0.00_c+0.00_x2.00_t3850/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.006385497640802705,
+          "max_log10_column_mass_dex": 0.022334058628510844
+        },
+        "v4": {
+          "max_relative_temperature": 2.1847764475084896e-16,
+          "max_log10_column_mass_dex": 1.3322676295501878e-15
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+1.00_m-1.00_a+0.00_c+0.00_x2.00_t3450",
+      "product": "results/m_star_stop_rule_v1/validate/g+1.00_m-1.00_a+0.00_c+0.00_x2.00_t3450/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.006530551660201397,
+          "max_log10_column_mass_dex": 0.028324140140250087
+        },
+        "v4": {
+          "max_relative_temperature": 2.3726950167565815e-16,
+          "max_log10_column_mass_dex": 1.3322676295501878e-15
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "stop_rule_twelve",
+      "node_id": "g+0.75_m+0.50_a+0.00_c+0.00_x2.00_t3300",
+      "product": "results/m_star_stop_rule_v1/validate/g+0.75_m+0.50_a+0.00_c+0.00_x2.00_t3300/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.05027617158599207,
+          "max_log10_column_mass_dex": 0.10745521222085319
+        },
+        "v4": {
+          "max_relative_temperature": 4.281943181561828e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "resolve_undetermined",
+      "node_id": "g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3250",
+      "product": "results/m_star_resolve_undetermined_v1/points/g+2.00_m+0.00_a+0.00_c+0.00_x2.00_t3250/emulator60/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.014125278590187388,
+          "max_log10_column_mass_dex": 0.045365214100601126
+        },
+        "v4": {
+          "max_relative_temperature": 2.261653745376201e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "resolve_undetermined",
+      "node_id": "g+1.50_m-0.50_a+0.00_c+0.00_x2.00_t3150",
+      "product": "results/m_star_resolve_undetermined_v1/points/g+1.50_m-0.50_a+0.00_c+0.00_x2.00_t3150/emulator60/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.027736230331224423,
+          "max_log10_column_mass_dex": 0.1119754237308257
+        },
+        "v4": {
+          "max_relative_temperature": 3.2322176022993573e-16,
+          "max_log10_column_mass_dex": 8.881784197001252e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "resolve_undetermined",
+      "node_id": "g+2.00_m+0.50_a+0.00_c+0.00_x2.00_t3050",
+      "product": "results/m_star_resolve_undetermined_v1/points/g+2.00_m+0.50_a+0.00_c+0.00_x2.00_t3050/emulator60/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.04286310645945126,
+          "max_log10_column_mass_dex": 0.039271604859274944
+        },
+        "v4": {
+          "max_relative_temperature": 3.0687995014935713e-16,
+          "max_log10_column_mass_dex": 8.881784197001252e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "resolve_undetermined",
+      "node_id": "g+0.50_m-0.50_a+0.00_c+0.00_x2.00_t3850",
+      "product": "results/m_star_resolve_undetermined_v1/points/g+0.50_m-0.50_a+0.00_c+0.00_x2.00_t3850/emulator60/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.006385497640802705,
+          "max_log10_column_mass_dex": 0.022334058628510844
+        },
+        "v4": {
+          "max_relative_temperature": 2.1847764475084896e-16,
+          "max_log10_column_mass_dex": 1.3322676295501878e-15
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "resolve_undetermined",
+      "node_id": "g+0.75_m+0.50_a+0.00_c+0.00_x2.00_t3300",
+      "product": "results/m_star_resolve_undetermined_v1/points/g+0.75_m+0.50_a+0.00_c+0.00_x2.00_t3300/emulator60/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.05027617158599207,
+          "max_log10_column_mass_dex": 0.10745521222085319
+        },
+        "v4": {
+          "max_relative_temperature": 4.281943181561828e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "sixty_budget_six",
+      "node_id": "g+1.75_m+0.50_a+0.00_c+0.00_x2.00_t3675",
+      "product": "results/m_star_sixty_budget_v1/points/g+1.75_m+0.50_a+0.00_c+0.00_x2.00_t3675/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.003979772656934766,
+          "max_log10_column_mass_dex": 0.011242067089059837
+        },
+        "v4": {
+          "max_relative_temperature": 3.472372506579518e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "sixty_budget_six",
+      "node_id": "g+2.25_m-1.00_a+0.00_c+0.00_x2.00_t3525",
+      "product": "results/m_star_sixty_budget_v1/points/g+2.25_m-1.00_a+0.00_c+0.00_x2.00_t3525/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.0027210600811626347,
+          "max_log10_column_mass_dex": 0.007831644055939169
+        },
+        "v4": {
+          "max_relative_temperature": 2.7729769412065735e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "sixty_budget_six",
+      "node_id": "g+2.25_m+0.50_a+0.00_c+0.00_x2.00_t3175",
+      "product": "results/m_star_sixty_budget_v1/points/g+2.25_m+0.50_a+0.00_c+0.00_x2.00_t3175/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.052644915771944745,
+          "max_log10_column_mass_dex": 0.1288416941989654
+        },
+        "v4": {
+          "max_relative_temperature": 3.012396644918539e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "sixty_budget_six",
+      "node_id": "g+1.50_m-0.50_a+0.00_c+0.00_x2.00_t3325",
+      "product": "results/m_star_sixty_budget_v1/points/g+1.50_m-0.50_a+0.00_c+0.00_x2.00_t3325/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.021864000110016466,
+          "max_log10_column_mass_dex": 0.03470702226383565
+        },
+        "v4": {
+          "max_relative_temperature": 2.455908692816127e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "sixty_budget_six",
+      "node_id": "g+0.75_m-0.50_a+0.00_c+0.00_x2.00_t3750",
+      "product": "results/m_star_sixty_budget_v1/points/g+0.75_m-0.50_a+0.00_c+0.00_x2.00_t3750/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.005234610452931747,
+          "max_log10_column_mass_dex": 0.02190090528088262
+        },
+        "v4": {
+          "max_relative_temperature": 2.8139961223979124e-16,
+          "max_log10_column_mass_dex": 8.881784197001252e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    },
+    {
+      "sample": "sixty_budget_six",
+      "node_id": "g+0.50_m+0.50_a+0.00_c+0.00_x2.00_t3400",
+      "product": "results/m_star_sixty_budget_v1/points/g+0.50_m+0.50_a+0.00_c+0.00_x2.00_t3400/emulator/iter_0000.npz",
+      "differences": {
+        "v3": {
+          "max_relative_temperature": 0.042073700644233825,
+          "max_log10_column_mass_dex": 0.07473057844596642
+        },
+        "v4": {
+          "max_relative_temperature": 2.814702431607864e-16,
+          "max_log10_column_mass_dex": 4.440892098500626e-16
+        }
+      },
+      "matching_checkpoint": "v4"
+    }
+  ]
+}
