@@ -78,6 +78,22 @@ authorized.
 - v1r2 is currently a preregistered MARCS-seeded 100-row protocol. MARCS is
   used only as an initializer; admitted training truth must be a converged
   Payne Zero result. A preregistration is not a completed validation.
+- M-dwarf solver repairs (2026-09-23, opt-in, all off by default): the
+  convective inner loop wrote ∇ with a one-sided difference while MLT reads
+  it centred (flux overshoot 1.7–1.95× in the H₂ zone); its physics callback
+  kept round-input density and populations at trial temperatures; the global
+  correction re-ranked column mass in inner-loop layers (∇ perturbed by 13%
+  of δ); round-to-round steps needed under-relaxation (λ = 0.5); and the D
+  start carries a two-layer subadiabatic hole inside the deep convective zone
+  that radiation cannot carry, where the radiative correction took +110–137 K
+  steps. With all five repairs, both 10-round development trajectories descend
+  monotonically in input-state deep-window mean |R_raw|: A 0.1698 → 0.0045,
+  D 0.4349 → 0.0084 (D previously failed to converge in every arm: S0, S3w
+  and S3wr diverged, S3 stalled near 0.8).
+  Two development starts only; fixed-flux-gate certification, TiO, the other
+  development points, and independent validation are pending. Chain of
+  records: `notes/m_star_platform_decomposition_20260923.md` (correction
+  section) → `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md`.
 
 ## Scientific and production boundaries
 
