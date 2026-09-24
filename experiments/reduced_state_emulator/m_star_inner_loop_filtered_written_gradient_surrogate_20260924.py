@@ -103,7 +103,7 @@ class Surrogate:
         out[0] = temperature[0]
         return out
 
-    def one_pass(self, temperature, rule):
+    def one_pass(self, temperature, rule, written_filter=None):
         read = self.read(temperature)
         adiabatic = self.adiabatic(temperature)
         flux = self.flux(temperature)
@@ -128,14 +128,16 @@ class Surrogate:
             written = self.written(temperature)
             if rule == 'W121':
                 written = filter_121(written)
+            if written_filter is not None:
+                written = written_filter(written, self.mask)
             update = np.where(self.correctable, written + (target - read), target)
             nabla[self.mask] = update[self.mask]
         return self.integrate(temperature, nabla)
 
-    def run(self, rule, passes=PASSES):
+    def run(self, rule, passes=PASSES, written_filter=None):
         temperature = self.t_input.copy()
         for _ in range(passes):
-            temperature = self.one_pass(temperature, rule)
+            temperature = self.one_pass(temperature, rule, written_filter)
         return temperature
 
     def flux_ratio_error(self, temperature, layers):
