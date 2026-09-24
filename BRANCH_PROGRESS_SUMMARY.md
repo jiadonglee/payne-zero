@@ -122,8 +122,13 @@ authorized.
   (opt-in convection_zone_inner_loop_filter_written_gradient), the filter
   makes both continuations stationary and start-independent (gap T 4.6e-4,
   mass 9.4e-4 dex, TiO 1.2e-4) with no alternating mode; the grid-bottom
-  flux error persists at L76–79 (+5.9% at L79). Not used for library
-  products. Chain of records:
+  flux error persists at L76–79 (+5.9% at L79). The preregistered rerun of
+  the candidate with the filter on all development and validation points
+  removed the mode everywhere and fixed 3850 K, but regressed development
+  point D and validation 3900 K (both stopped before the deep zone settled)
+  and raised the grid-bottom flux error to +3.5–22.5% at L79; the filter
+  stays out of the candidate. Not used for library products. Chain of
+  records:
   `notes/m_star_platform_decomposition_20260923.md` (correction section) →
   `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
   `notes/m_star_inner_loop_dev_sweep_closeout_20260923.md` →
@@ -134,7 +139,8 @@ authorized.
   `notes/m_star_inner_loop_filtered_written_gradient_surrogate_closeout_20260924.md` →
   `notes/m_star_inner_loop_interior_filtered_written_gradient_surrogate_closeout_20260924.md` →
   `notes/m_star_inner_loop_edge_projected_filter_closeout_20260924.md` →
-  `notes/m_star_inner_loop_solver_filter_diagnostic_closeout_20260924.md`.
+  `notes/m_star_inner_loop_solver_filter_diagnostic_closeout_20260924.md` →
+  `notes/m_star_inner_loop_filter_rerun_closeout_20260924.md`.
 
 ## Scientific and production boundaries
 
