@@ -102,13 +102,18 @@ authorized.
   fails from both starts and moves away from S0's converged solution. A
   ten-iteration continuation with the stop disabled closes two of the three
   start-independence failures (m−1.0 3800 K, 4000 K); at 3850 K the warm-start
-  continuation keeps moving and the gap grows. Not used for library products.
-  Chain of records:
+  continuation keeps moving and the gap grows. Stage captures place both
+  non-stationary cases in the inner loop: at 3600 K a period-2 overshoot of
+  the whole deep convective zone, at 3850 K a layer-alternating mode inside
+  the inner-loop mask that the loop amplifies near the mask top (the mode is
+  present in every candidate validation product, 2e-4–2.6e-3 in ln T). Not
+  used for library products. Chain of records:
   `notes/m_star_platform_decomposition_20260923.md` (correction section) →
   `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
   `notes/m_star_inner_loop_dev_sweep_closeout_20260923.md` →
   `notes/m_star_inner_loop_validation_closeout_20260924.md` →
-  `notes/m_star_inner_loop_start_dependence_continuation_closeout_20260924.md`.
+  `notes/m_star_inner_loop_start_dependence_continuation_closeout_20260924.md` →
+  `notes/m_star_inner_loop_nonstationary_diagnosis_20260924.md`.
 
 ## Scientific and production boundaries
 
