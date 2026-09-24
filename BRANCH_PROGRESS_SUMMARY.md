@@ -115,7 +115,11 @@ authorized.
   the mask edges; the route stopped. Post-hoc, the interior filters make the
   inner loop stationary within 16 passes and leave only a single-layer flux
   spike at the last filtered layer above the grid bottom, while the current
-  rule never settles. Not used for library products. Chain of records:
+  rule never settles. A third, preregistered round with edge projection
+  (W5e) passed four of five criteria and failed the sixteen-pass flux limit
+  (0.122 against 0.10) at the grid-bottom layers and the mask top; the
+  written-gradient filter route is closed. Not used for library products.
+  Chain of records:
   `notes/m_star_platform_decomposition_20260923.md` (correction section) →
   `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
   `notes/m_star_inner_loop_dev_sweep_closeout_20260923.md` →
@@ -124,7 +128,8 @@ authorized.
   `notes/m_star_inner_loop_nonstationary_diagnosis_20260924.md` →
   `notes/m_star_inner_loop_alternating_mode_source_20260924.md` →
   `notes/m_star_inner_loop_filtered_written_gradient_surrogate_closeout_20260924.md` →
-  `notes/m_star_inner_loop_interior_filtered_written_gradient_surrogate_closeout_20260924.md`.
+  `notes/m_star_inner_loop_interior_filtered_written_gradient_surrogate_closeout_20260924.md` →
+  `notes/m_star_inner_loop_edge_projected_filter_closeout_20260924.md`.
 
 ## Scientific and production boundaries
 
