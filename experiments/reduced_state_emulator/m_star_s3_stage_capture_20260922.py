@@ -1543,8 +1543,14 @@ def run_capture_round(
     hold_correction: bool = False,
     relaxation: float = 1.0,
     fill_holes: bool = False,
+    labels=None,
+    effective_temperature: float | None = None,
 ) -> int:
-    """Run exactly one S3 round from an explicit start state, capturing stages."""
+    """Run exactly one S3 round from an explicit start state, capturing stages.
+
+    ``labels`` and ``effective_temperature`` replace the development case's
+    labels when given; ``case`` then only names the capture.
+    """
 
     for key, value in (
         ('NUMBA_THREADING_LAYER', 'workqueue'), ('NUMBA_NUM_THREADS', '1'),
@@ -1600,9 +1606,10 @@ def run_capture_round(
     from payne_zero_atmosphere.run_setup import surface_gravity_from_atmosphere
     from payne_zero_atmosphere.runner import run_atmosphere_model
 
-    loaded = _load_case(case)
-    labels = loaded['labels']
-    effective_temperature = loaded['target_temperature_K']
+    if labels is None:
+        loaded = _load_case(case)
+        labels = loaded['labels']
+        effective_temperature = loaded['target_temperature_K']
     with np.load(start_npz, allow_pickle=False) as data:
         state = _state_from_mt(labels, data['column_mass'], data['temperature'])
     recorder = _RoundRecorder(
