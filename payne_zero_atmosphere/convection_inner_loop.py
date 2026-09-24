@@ -31,6 +31,12 @@ settles on a state with ``F_conv > F_required``.  With
 the change the read-back gradient needs, so the loop settles where the
 recomputed MLT flux meets the target.
 
+The centred read-back is insensitive to a layer-alternating temperature
+perturbation, so the corrected update carries such a component from pass to
+pass, and where ``∇_ad`` follows the local temperature (the H₂ zone) the
+target feeds it.  With ``filter_written_gradient`` the alternating part of
+the written gradient inside the working mask is removed before the update.
+
 A subadiabatic layer inside a convective run can still be unable to carry
 its flux by radiation: its radiative gradient ``∇ H_target / H_rad`` exceeds
 ``∇_ad``, which is the Schwarzschild criterion stated with the gradient
@@ -80,6 +86,9 @@ class ConvectiveInnerLoopConfig:
     # Shift the written one-sided gradient by the change the read-back
     # gradient needs, instead of writing the read-back target directly.
     correct_written_gradient: bool = False
+    # With ``correct_written_gradient``, remove the layer-alternating part of
+    # the written gradient inside the working mask before the update.
+    filter_written_gradient: bool = False
     # Add subadiabatic layers inside a convective run whose radiative gradient
     # exceeds the adiabatic one to the working mask.
     fill_interior_holes: bool = False
@@ -286,6 +295,40 @@ def written_logarithmic_gradient(
     return gradient
 
 
+def remove_alternating_component(values: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Remove the ``(-1)^i`` component of ``values`` inside each run of ``mask``.
+
+    Where the stencil fits inside the run the 5-point filter
+    ``(-1, 4, 10, 4, -1) / 16`` is used; at the two layers next to each end of
+    a run, a least-squares fit of quadratic plus ``(-1)^j`` terms over the
+    five nearest layers of the run gives the component to subtract.  Both
+    leave quadratic profiles unchanged and use no value outside the run.
+    Runs shorter than five layers and layers outside ``mask`` are unchanged.
+    """
+
+    values = np.asarray(values, dtype=np.float64)
+    out = values.copy()
+    index = np.flatnonzero(np.asarray(mask, dtype=bool))
+    if index.size == 0:
+        return out
+    weights = np.array([-1.0, 4.0, 10.0, 4.0, -1.0]) / 16.0
+    for run in np.split(index, np.flatnonzero(np.diff(index) > 1) + 1):
+        if run.size < 5:
+            continue
+        for position, layer in enumerate(run):
+            if 2 <= position <= run.size - 3:
+                out[layer] = float(np.dot(weights, values[layer - 2:layer + 3]))
+                continue
+            window = run[:5] if position < 2 else run[-5:]
+            offset = (window - layer).astype(np.float64)
+            design = np.stack(
+                [np.ones(5), offset, offset * offset, (-1.0) ** window], axis=1
+            )
+            coefficients, *_ = np.linalg.lstsq(design, values[window], rcond=None)
+            out[layer] = float(values[layer] - coefficients[3] * (-1.0) ** layer)
+    return out
+
+
 def _pass_record(
     *,
     pass_index: int,
@@ -395,6 +438,8 @@ def run_convection_zone_inner_loop(
             written_nabla = written_logarithmic_gradient(
                 temperature, current.total_pressure
             )
+            if settings.filter_written_gradient:
+                written_nabla = remove_alternating_component(written_nabla, working_mask)
             # The centred read at the lower edge of a masked slab spans the
             # held layer below, so moving the edge layer does not change it;
             # the edge keeps the direct prescription.

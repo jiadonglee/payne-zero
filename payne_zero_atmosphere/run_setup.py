@@ -60,6 +60,7 @@ class RunSetup:
     convection_zone_inner_loop_passes: int = 0
     convection_zone_inner_loop_freeze_mask: bool = True
     convection_zone_inner_loop_correct_written_gradient: bool = False
+    convection_zone_inner_loop_filter_written_gradient: bool = False
     convection_zone_inner_loop_refresh_state: bool = False
     convection_zone_inner_loop_hold_correction: bool = False
     convection_zone_inner_loop_relaxation: float = 1.0
@@ -302,6 +303,9 @@ def resolve_run_setup(config: AtmosphereConfig) -> RunSetup:
         ),
         convection_zone_inner_loop_correct_written_gradient=bool(
             config.convection_zone_inner_loop_correct_written_gradient
+        ),
+        convection_zone_inner_loop_filter_written_gradient=bool(
+            config.convection_zone_inner_loop_filter_written_gradient
         ),
         convection_zone_inner_loop_refresh_state=bool(
             config.convection_zone_inner_loop_refresh_state

@@ -1796,6 +1796,9 @@ def finalize_transfer_state(
                     correct_written_gradient=bool(
                         setup.convection_zone_inner_loop_correct_written_gradient
                     ),
+                    filter_written_gradient=bool(
+                        setup.convection_zone_inner_loop_filter_written_gradient
+                    ),
                     fill_interior_holes=bool(setup.convection_zone_inner_loop_fill_holes),
                 ),
             )
@@ -1925,6 +1928,9 @@ def finalize_transfer_state(
                 ),
                 "convection_inner_loop_correct_written_gradient": float(
                     setup.convection_zone_inner_loop_correct_written_gradient
+                ),
+                "convection_inner_loop_filter_written_gradient": float(
+                    setup.convection_zone_inner_loop_filter_written_gradient
                 ),
                 "convection_inner_loop_refresh_state": float(
                     setup.convection_zone_inner_loop_refresh_state
@@ -2643,6 +2649,9 @@ def _run_atmosphere_model(
         )
         diagnostics["convection_zone_inner_loop_correct_written_gradient"] = bool(
             setup.convection_zone_inner_loop_correct_written_gradient
+        )
+        diagnostics["convection_zone_inner_loop_filter_written_gradient"] = bool(
+            setup.convection_zone_inner_loop_filter_written_gradient
         )
         diagnostics["convection_zone_inner_loop_refresh_state"] = bool(
             setup.convection_zone_inner_loop_refresh_state

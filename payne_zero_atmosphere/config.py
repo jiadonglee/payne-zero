@@ -101,6 +101,10 @@ class AtmosphereConfig:
     # Inner-loop passes shift the written one-sided gradient by the change
     # the MLT read-back (centred) gradient needs; see convection_inner_loop.
     convection_zone_inner_loop_correct_written_gradient: bool = False
+    # With the written-gradient correction, remove the layer-alternating part
+    # of the written gradient inside the working mask before each pass's
+    # update (the centred read-back cannot see it).
+    convection_zone_inner_loop_filter_written_gradient: bool = False
     # Inner-loop physics re-solves the pressure-iteration state (electron
     # density, molecular equilibrium, mass density) at each trial
     # temperature; opacity and the radiation field stay at the round input.
