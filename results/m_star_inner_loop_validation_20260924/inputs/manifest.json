@@ -1,0 +1,48 @@
+{
+  "preregistration": "notes/m_star_inner_loop_validation_preregistration_20260924.md",
+  "corpus": "results/m_star_cool_corpus_safezone_v1/cool_truth_corpus.npz",
+  "corpus_sha256": "5d0a06f67832c95b2a62b34acdd46770dc491d673348049bf1e4df41e515cc92",
+  "checkpoints": [
+    {
+      "seed": 20260831,
+      "sha256": "67cae4c731885048f283c45cb0c9b068c8538b1605113c389fe6a8d78746b723"
+    },
+    {
+      "seed": 20260901,
+      "sha256": "62370176bde3158a5d2843133327a714c818d76962eb73d5f0cb83ce47e558e7"
+    },
+    {
+      "seed": 20260902,
+      "sha256": "88c0d6f64f427078f13d8345d9541bab44666cb86d23a25d6b40d2c0ff467265"
+    }
+  ],
+  "ensemble_policy": "coordinate-wise median of three physical-state predictions",
+  "reproduced_profile_metrics_all_validation_rows": {
+    "temperature_relative": {
+      "median": 0.000998818501833287,
+      "p95": 0.006162462802169077,
+      "max": 0.04119393502668626
+    },
+    "column_mass_dex": {
+      "median": 0.006223293663476959,
+      "p95": 0.018527231027474878,
+      "max": 0.04006738537856869
+    },
+    "monotonicity_violations": 0
+  },
+  "development_overlap": [
+    "g+4.50_m+0.00_a+0.00_c+0.00_x1.00_t3400"
+  ],
+  "warm_starts_sha256": "2b59c7100ff3e838aea3968ae59158143a137cc602f64972b1f1ae545f894be7",
+  "nodes": [
+    "g+4.50_m-1.00_a+0.00_c+0.00_x1.00_t3800",
+    "g+4.50_m+0.00_a+0.00_c+0.00_x1.00_t3400",
+    "g+4.50_m+0.50_a+0.00_c+0.00_x1.00_t3600",
+    "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t4000",
+    "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t3950",
+    "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t3900",
+    "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t3850",
+    "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t3800",
+    "g+4.75_m+0.00_a+0.00_c+0.00_x1.00_t3750"
+  ]
+}
