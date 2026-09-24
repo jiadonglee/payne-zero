@@ -68,6 +68,8 @@ notes/paper_physical_seed_refresh_20260820.md
 sources/papers_20260831_stellar_atmosphere_initialization.md
 tests/test_analytic_initializer_paper_comparison.py
 tests/test_paper_grey_convective_campaign.py
+notes/interpolation_baseline_dev60_preregistration_20260923.md
+notes/interpolation_baseline_dev60_closeout_20260923.md
 
 # LaTeX build cache (final named PDFs may still be versioned explicitly)
 *.aux
