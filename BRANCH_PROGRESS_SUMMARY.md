@@ -109,15 +109,22 @@ authorized.
   present in every candidate validation product, 2e-4–2.6e-3 in ln T). The
   written-gradient correction carries the mode through every pass, the
   centred read does not see it, and the H₂-zone ∇_ad feeds it in phase; the
-  direct write removes 81–105% of it per pass. Not used for library
-  products. Chain of records:
+  direct write removes 81–105% of it per pass. Two preregistered surrogate
+  tests of a written-gradient filter (1-2-1, then mask-interior 5-point and
+  1-2-1) removed the mode but failed the flux and deep-settling criteria at
+  the mask edges; the route stopped. Post-hoc, the interior filters make the
+  inner loop stationary within 16 passes and leave only a single-layer flux
+  spike at the last filtered layer above the grid bottom, while the current
+  rule never settles. Not used for library products. Chain of records:
   `notes/m_star_platform_decomposition_20260923.md` (correction section) →
   `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
   `notes/m_star_inner_loop_dev_sweep_closeout_20260923.md` →
   `notes/m_star_inner_loop_validation_closeout_20260924.md` →
   `notes/m_star_inner_loop_start_dependence_continuation_closeout_20260924.md` →
   `notes/m_star_inner_loop_nonstationary_diagnosis_20260924.md` →
-  `notes/m_star_inner_loop_alternating_mode_source_20260924.md`.
+  `notes/m_star_inner_loop_alternating_mode_source_20260924.md` →
+  `notes/m_star_inner_loop_filtered_written_gradient_surrogate_closeout_20260924.md` →
+  `notes/m_star_inner_loop_interior_filtered_written_gradient_surrogate_closeout_20260924.md`.
 
 ## Scientific and production boundaries
 
