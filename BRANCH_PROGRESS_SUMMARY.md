@@ -118,8 +118,12 @@ authorized.
   rule never settles. A third, preregistered round with edge projection
   (W5e) passed four of five criteria and failed the sixteen-pass flux limit
   (0.122 against 0.10) at the grid-bottom layers and the mask top; the
-  written-gradient filter route is closed. Not used for library products.
-  Chain of records:
+  written-gradient filter route is closed. As a solver diagnostic at 3850 K
+  (opt-in convection_zone_inner_loop_filter_written_gradient), the filter
+  makes both continuations stationary and start-independent (gap T 4.6e-4,
+  mass 9.4e-4 dex, TiO 1.2e-4) with no alternating mode; the grid-bottom
+  flux error persists at L76–79 (+5.9% at L79). Not used for library
+  products. Chain of records:
   `notes/m_star_platform_decomposition_20260923.md` (correction section) →
   `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
   `notes/m_star_inner_loop_dev_sweep_closeout_20260923.md` →
@@ -129,7 +133,8 @@ authorized.
   `notes/m_star_inner_loop_alternating_mode_source_20260924.md` →
   `notes/m_star_inner_loop_filtered_written_gradient_surrogate_closeout_20260924.md` →
   `notes/m_star_inner_loop_interior_filtered_written_gradient_surrogate_closeout_20260924.md` →
-  `notes/m_star_inner_loop_edge_projected_filter_closeout_20260924.md`.
+  `notes/m_star_inner_loop_edge_projected_filter_closeout_20260924.md` →
+  `notes/m_star_inner_loop_solver_filter_diagnostic_closeout_20260924.md`.
 
 ## Scientific and production boundaries
 
