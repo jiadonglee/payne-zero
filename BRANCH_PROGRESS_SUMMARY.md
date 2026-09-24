@@ -99,12 +99,16 @@ authorized.
   (warm start against the certified reference product as a second start)
   holds at 4/7; the three failures are marginal, in upper-atmosphere column
   mass and in temperature where TiO forms. At g4.50 m+0.5 3600 K the candidate
-  fails from both starts and moves away from S0's converged solution. Not
-  used for library products. Chain of records:
+  fails from both starts and moves away from S0's converged solution. A
+  ten-iteration continuation with the stop disabled closes two of the three
+  start-independence failures (m−1.0 3800 K, 4000 K); at 3850 K the warm-start
+  continuation keeps moving and the gap grows. Not used for library products.
+  Chain of records:
   `notes/m_star_platform_decomposition_20260923.md` (correction section) →
   `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
   `notes/m_star_inner_loop_dev_sweep_closeout_20260923.md` →
-  `notes/m_star_inner_loop_validation_closeout_20260924.md`.
+  `notes/m_star_inner_loop_validation_closeout_20260924.md` →
+  `notes/m_star_inner_loop_start_dependence_continuation_closeout_20260924.md`.
 
 ## Scientific and production boundaries
 
