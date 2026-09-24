@@ -70,6 +70,7 @@ tests/test_analytic_initializer_paper_comparison.py
 tests/test_paper_grey_convective_campaign.py
 notes/interpolation_baseline_dev60_preregistration_20260923.md
 notes/interpolation_baseline_dev60_closeout_20260923.md
+experiments/reduced_state_emulator/run_interpolation_baseline_dev60_garching_20260923.sh
 
 # LaTeX build cache (final named PDFs may still be versioned explicitly)
 *.aux
