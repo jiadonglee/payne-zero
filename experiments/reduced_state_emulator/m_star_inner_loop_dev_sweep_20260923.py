@@ -44,6 +44,9 @@ ARMS: dict[str, dict[str, Any]] = {
     },
     's0': {},
 }
+ARMS['candidate_filter'] = {
+    **ARMS['candidate'], 'convection_zone_inner_loop_filter_written_gradient': True,
+}
 
 
 def _write_json(path: Path, payload: Any) -> None:
@@ -210,6 +213,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--flux-gate', type=Path, required=True)
     parser.add_argument('--synthesis-root', type=Path, required=True,
                         help='directory containing the emulator_v1_2 package')
+    parser.add_argument('--preregistration', type=Path, default=PREREGISTRATION)
     args = parser.parse_args(argv)
 
     for key, value in (
@@ -243,8 +247,10 @@ def main(argv: list[str] | None = None) -> int:
     if not selected:
         raise ValueError(f'no development point matched --only {args.only}')
     identity = {
-        'preregistration': str(PREREGISTRATION),
-        'preregistration_sha256': _file_sha256(PREREGISTRATION) if PREREGISTRATION.is_file() else None,
+        'preregistration': str(args.preregistration),
+        'preregistration_sha256': (
+            _file_sha256(args.preregistration) if args.preregistration.is_file() else None
+        ),
         'driver_sha256': _file_sha256(Path(__file__)),
         'flux_gate': str(args.flux_gate),
         'modules': modules,

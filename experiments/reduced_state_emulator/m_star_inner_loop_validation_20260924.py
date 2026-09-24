@@ -317,6 +317,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--flux-gate', type=Path, required=True)
     parser.add_argument('--synthesis-root', type=Path, required=True,
                         help='directory containing the emulator_v1_2 package')
+    parser.add_argument('--preregistration', type=Path, default=PREREGISTRATION)
     args = parser.parse_args(argv)
     if args.pair == bool(args.start):
         parser.error('give exactly one of --start or --pair')
@@ -356,8 +357,8 @@ def main(argv: list[str] | None = None) -> int:
         run_pair(args, {node['node_id']: node for node in selected}, compare_spectra)
         return 0
     identity = {
-        'preregistration': str(PREREGISTRATION),
-        'preregistration_sha256': _file_sha256(PREREGISTRATION),
+        'preregistration': str(args.preregistration),
+        'preregistration_sha256': _file_sha256(args.preregistration),
         'driver_sha256': _file_sha256(Path(__file__)),
         'inputs': str(args.inputs),
         'inputs_sha256': _file_sha256(args.inputs),
