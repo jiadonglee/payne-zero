@@ -90,10 +90,21 @@ authorized.
   monotonically in input-state deep-window mean |R_raw|: A 0.1698 → 0.0045,
   D 0.4349 → 0.0084 (D previously failed to converge in every arm: S0, S3w
   and S3wr diverged, S3 stalled near 0.8).
-  Two development starts only; fixed-flux-gate certification, TiO, the other
-  development points, and independent validation are pending. Chain of
-  records: `notes/m_star_platform_decomposition_20260923.md` (correction
-  section) → `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md`.
+  Development sweep (five points, candidate against a paired S0 on the pchip
+  overlay, strict 60-iteration solves, frozen flux gate and dual-path TiO):
+  candidate eligible at 4/5 (flux-error p95 0.30–0.67%), S0 at 2/5; the 3200 K
+  point fails restart column-mass consistency in both arms. Validation on the
+  eight held-out safezone v2 dwarf points from the frozen emulator warm starts:
+  candidate eligible at 7/8 (p95 0.24–1.17%), S0 at 2/8. Start independence
+  (warm start against the certified reference product as a second start)
+  holds at 4/7; the three failures are marginal, in upper-atmosphere column
+  mass and in temperature where TiO forms. At g4.50 m+0.5 3600 K the candidate
+  fails from both starts and moves away from S0's converged solution. Not
+  used for library products. Chain of records:
+  `notes/m_star_platform_decomposition_20260923.md` (correction section) →
+  `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
+  `notes/m_star_inner_loop_dev_sweep_closeout_20260923.md` →
+  `notes/m_star_inner_loop_validation_closeout_20260924.md`.
 
 ## Scientific and production boundaries
 

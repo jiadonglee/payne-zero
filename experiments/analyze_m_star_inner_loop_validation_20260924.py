@@ -126,13 +126,19 @@ def main() -> int:
     nodes = _nodes()
     table = {node['node_id']: {arm: _row(arm, node['node_id']) for arm in ARMS} for node in nodes}
     held_out = [node['node_id'] for node in nodes if node['held_out']]
-    complete = all(table[n][arm]['available'] and table[n][arm]['start_independence'] is not None
-                   for n in table for arm in ARMS)
     s0_eligible = {n for n in held_out if table[n]['s0'].get('eligible')}
     candidate_eligible = {n for n in held_out if table[n]['candidate'].get('eligible')}
     s0_ineligible = set(held_out) - s0_eligible
+    missing_start_independence = sorted(
+        f'{arm}:{n}' for n in table for arm in ARMS
+        if table[n][arm]['available'] and table[n][arm]['start_independence'] is None
+    )
     criteria = {
-        'complete': complete,
+        'complete': bool(
+            all(table[n][arm]['available'] for n in table for arm in ARMS)
+            and all(table[n]['candidate']['start_independence'] is not None for n in candidate_eligible)
+        ),
+        'missing_start_independence': missing_start_independence,
         'held_out': held_out,
         's0_pchip_eligible': sorted(s0_eligible),
         'candidate_eligible': sorted(candidate_eligible),
