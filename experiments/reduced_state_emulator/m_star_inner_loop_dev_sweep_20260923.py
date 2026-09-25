@@ -47,6 +47,9 @@ ARMS: dict[str, dict[str, Any]] = {
 ARMS['candidate_filter'] = {
     **ARMS['candidate'], 'convection_zone_inner_loop_filter_written_gradient': True,
 }
+ARMS['candidate_strict_stop'] = {
+    **ARMS['candidate'], 'required_consecutive_converged_iterations': 3,
+}
 
 
 def _write_json(path: Path, payload: Any) -> None:
