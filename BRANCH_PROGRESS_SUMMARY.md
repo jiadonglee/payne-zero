@@ -127,7 +127,12 @@ authorized.
   removed the mode everywhere and fixed 3850 K, but regressed development
   point D and validation 3900 K (both stopped before the deep zone settled)
   and raised the grid-bottom flux error to +3.5–22.5% at L79; the filter
-  stays out of the candidate. Not used for library products. Chain of
+  stays out of the candidate. Rerunning the original candidate with a
+  three-iteration stop removed the start dependence at m−1.0 3800 K and
+  4000 K (gap T 1.7e-4, 1.5e-4) but cost development point D and validation
+  3900 K, whose self-restart consistency had rested on restarts that stopped
+  after three iterations: run longer, 3900 K's alternating mode grows and D's
+  upper convective zone drifts. Not used for library products. Chain of
   records:
   `notes/m_star_platform_decomposition_20260923.md` (correction section) →
   `notes/m_star_inner_loop_fill_holes_trajectories_closeout_20260923.md` →
@@ -140,7 +145,8 @@ authorized.
   `notes/m_star_inner_loop_interior_filtered_written_gradient_surrogate_closeout_20260924.md` →
   `notes/m_star_inner_loop_edge_projected_filter_closeout_20260924.md` →
   `notes/m_star_inner_loop_solver_filter_diagnostic_closeout_20260924.md` →
-  `notes/m_star_inner_loop_filter_rerun_closeout_20260924.md`.
+  `notes/m_star_inner_loop_filter_rerun_closeout_20260924.md` →
+  `notes/m_star_inner_loop_strict_stop_closeout_20260925.md`.
 
 ## Scientific and production boundaries
 
