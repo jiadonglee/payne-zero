@@ -25,7 +25,7 @@ APOGEE-specific pieces:
 Stages::
 
     fast     --star SDSS_ID   continuous fast fit (``--physical`` adds refinement)
-    collect                   per-star table in ``summary.json``
+    collect  [--stars-dir D]  per-star table in ``summary.json`` and a label figure
 """
 
 from __future__ import annotations
@@ -260,7 +260,7 @@ def stage_fast(args) -> None:
 
 def stage_collect(args) -> None:
     rows = []
-    for path in sorted((RESULT_ROOT / "stars").glob("*/summary.json")):
+    for path in sorted((RESULT_ROOT / args.stars_dir).glob("*/summary.json")):
         s = json.loads(path.read_text())
         fast = s["fast"]["parameters"]
         rows.append({
@@ -275,11 +275,39 @@ def stage_collect(args) -> None:
             "seconds": s["fast"]["seconds"],
             "physical": s.get("physical"),
         })
+    rows.sort(key=lambda r: r["aspcap"][0])
     (RESULT_ROOT / "summary.json").write_text(json.dumps(rows, indent=2, default=str))
     for r in rows:
         print(f"{r['sdss_id']:>10}  ASPCAP {r['aspcap'][0]:6.0f}/{r['aspcap'][1]:5.2f}/{r['aspcap'][2]:+5.2f}  "
               f"PZ {r['fast'][0]:6.0f}/{r['fast'][1]:5.2f}/{r['fast'][2]:+5.2f}  chi2/px {r['chi2_per_pixel']:8.1f}  "
               f"{r['stop_reason']:>18}  faces {','.join(r['faces']) or '-'}")
+    label_figure(rows, RESULT_ROOT / "labels_vs_aspcap.png")
+
+
+def label_figure(rows: list[dict], path: Path) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 3, figsize=(12.0, 4.2), layout="constrained")
+    for column, (ax, label) in enumerate(zip(axes, ("Teff (K)", "log g", "[M/H]"))):
+        reference = np.array([r["aspcap"][column] for r in rows])
+        fitted = np.array([r["fast"][column] for r in rows])
+        railed = np.array([any(f.startswith(NAMES[column]) for f in r["faces"]) for r in rows])
+        ax.scatter(reference[~railed], fitted[~railed], color="C0", label="interior")
+        ax.scatter(reference[railed], fitted[railed], facecolor="none", edgecolor="C3", label="box face")
+        lims = (min(reference.min(), fitted.min()), max(reference.max(), fitted.max()))
+        pad = 0.05 * (lims[1] - lims[0])
+        lims = (lims[0] - pad, lims[1] + pad)
+        ax.plot(lims, lims, "k--", lw=0.8)
+        ax.set(xlim=lims, ylim=lims, xlabel=f"ASPCAP {label}", ylabel=f"Payne Zero {label}")
+        delta = fitted - reference
+        ax.set_title(f"mean {delta.mean():+.3g}, rms {np.sqrt(np.mean(delta**2)):.3g}", fontsize=9)
+    axes[0].legend(fontsize=8)
+    fig.suptitle("DR20 APOGEE M giants: Payne Zero M-giant fitter vs ASPCAP", fontsize=11)
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
 
 
 def main() -> None:
@@ -292,7 +320,8 @@ def main() -> None:
     fast.add_argument("--max-iterations", type=int, default=8)
     fast.add_argument("--physical", action="store_true")
     fast.add_argument("--max-physical", type=int, default=4)
-    sub.add_parser("collect")
+    collect = sub.add_parser("collect")
+    collect.add_argument("--stars-dir", default="stars")
     args = parser.parse_args()
     {"fast": stage_fast, "collect": stage_collect}[args.stage](args)
 
