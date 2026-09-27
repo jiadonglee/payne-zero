@@ -22,6 +22,13 @@ APOGEE H 波段运行：`mgiant_aspcap_fit_v1` 的 8 颗 DR20 M 巨星全部完�
 从 585 升到 3971（96257659），与 v1 报告的约化 χ² 6262、3785 相当。v1 closeout
 中"线强系统不符、拟合被推到网格角"的判断需以静止系重拟合为准（见下）。
 
+Sun+Arcturus 共享原子线校准（`sun_arcturus_fts_hband_shared`）作为第二组，其余输入不变：
+χ²/像素再降 30–56%，Teff 几乎不变（+2 至 +30 K），[M/H] 升 0.02–0.18，logg 在 3 颗上升
+0.17–0.26（96257659 离开下界），5/8 仍在 logg=0.5 下界。
+与 Astra 公开的 ASPCAP 最佳拟合模型谱在同一观测、同一像素、同一归一化下比较，
+Astra 模型在 7 颗有模型的星上 χ² 都最低：χ²_Astra/χ²_PZ校准 = 0.49–0.73，
+χ²_PZ校准/χ²_PZ原生 = 0.39–0.67。PZ 与 Astra 差距最大的是中间芯片（1589–1635 nm）。
+
 ## 方法
 
 - 管线：`experiments/mgiant_apogee_pzfit_v1.py`，复用
@@ -81,12 +88,74 @@ APOGEE H 波段运行：`mgiant_aspcap_fit_v1` 的 8 颗 DR20 M 巨星全部完�
 静止系下约化 χ² 降 1.4–4.7 倍，[M/H] 不再全在 −1。节点拟合仍大多落在
 logg=0.5 与盒面上，χ² 比连续拟合高 2–5 倍（节点稀疏、展宽固定 3.5 km/s）。
 
+## Sun+Arcturus 原子线校准组
+
+`--atomic-calibration linelist_calibration/data/sun_arcturus_fts_hband_shared.npz`：
+schema-4 叠加（25,281 组、42,886 个组分，loggf 与三类阻尼的 dex 修正），经
+`fitter.apogee.atomic_calibration.calibrated_window_invariants` 只改 H 波段窗口的金属线张量，
+源星表身份校验通过；分子线、EOS、连续谱不变。合成路径与 `synthesize()` 相同，只替换窗口
+不变量；未校准不变量下与 `synthesize()` 的通量最大相对差 3×10⁻⁶（MPS float32）。
+起点、归一化、盒、门槛与原生组相同。
+
+| sdss_id | ASPCAP | 原生 PZ | 校准 PZ | χ²/像素 原生 → 校准 | 精修 |
+|---|---|---|---|---:|---|
+| 86810089 | 3200/0.45/−0.10 | 3483/0.50/−0.29 | 3497/0.50/−0.23 | 897 → 616 | 驻定 |
+| 65420634 | 3300/0.59/−0.03 | 3608/0.50/−0.23 | 3620/0.50/−0.21 | 583 → 356 | 驻定 |
+| 66450191 | 3400/0.80/+0.05 | 3686/0.50/−0.21 | 3688/0.50/−0.18 | 953 → 576 | 驻定 |
+| 114992838 | 3500/0.45/−0.44 | 3638/0.50/−0.53 | 3646/0.50/−0.49 | 618 → 369 | 驻定 |
+| 54948768 | 3600/1.10/+0.11 | 3815/0.51/−0.25 | 3827/0.68/−0.15 | 638 → 370 | 驻定 |
+| 96257659 | 3700/0.83/−0.22 | 3776/0.50/−0.54 | 3802/0.74/−0.37 | 456 → 228 | 驻定 |
+| 74858601 | 3800/0.65/−0.55 | 3812/0.50/−0.71 | 3821/0.50/−0.64 | 225 → 122 | 门槛一致 |
+| 77720555 | 3900/1.08/−0.36 | 3906/0.85/−0.65 | 3936/1.11/−0.47 | 1302 → 579 | 驻定 |
+
+- 8 个收敛大气都通过独立检查；精修 8/8 成功，7 颗驻定（收敛大气上 χ²/像素增加
+  0.4–3.0，超过 0.1 门槛），快慢谱差 2×10⁻⁴–9.5×10⁻⁴ RMS。
+- 相对校准 ASPCAP：Teff +180 K（rms 212），logg −0.12（rms 0.20），[M/H] −0.15（rms 0.17）；
+  原生组为 +165 K / −0.20 / −0.24。校准主要改善 [M/H] 与 logg，冷端 Teff 偏高不变。
+
+## 与 Astra ASPCAP 最佳拟合模型的比较
+
+Astra 0.6.0 每星结果文件 `results/star/<g1>/<g2>/astraStarASPCAP-0.6.0-<sdss_id>.fits`
+（DR20 SAS，下载到 `data/dr20/results/star/`）带 FERRE 最佳拟合 `model_flux`，定义在 apStar
+7514 个保留像素上。66450191 在 SAS 上没有此文件。文件里的标签是 ASPCAP 原始 FERRE 值
+（`raw_*` 与主列相同），比汇总表的校准值 Teff 高 −1 至 +183 K、logg 高 0.17–0.29；Mg 网格同时拟合
+[α/M]、[C/M]、[N/M]（+0.16 至 +0.32）与 vmic（1.42–2.02 km/s），PZ 这些量固定。各文件的
+`spectrum_pk_id` 都不是本地 mwmStar 的 coadd，即 Astra 模型拟合的是同一颗星更早的 coadd
+（SNR 相近）。
+
+比较方法：Astra 模型、原生 PZ 与校准 PZ 的收敛大气预测，都用同一 339 像素滑动中值与逐芯片
+线性连续谱对同一 mwmStar coadd 重新轮廓化。计分像素为 PZ 拟合像素中位于 Astra 模型定义段
+内、距段端至少半个中值窗口的部分（所有星共用，6342 个），使滑动中值不触及模型未定义像素；
+芯片端点处数据自身的滚降（例如 1513–1515 nm）也因此排除。
+
+| sdss_id | Astra（原始 FERRE） | χ²/像素 Astra / PZ校准 / PZ原生 | 残差 RMS Astra / PZ校准 / PZ原生 |
+|---|---|---|---|
+| 86810089 | 3383/0.73/−0.10 | 312 / 564 / 846 | 0.028 / 0.038 / 0.047 |
+| 65420634 | 3459/0.88/−0.02 | 173 / 346 / 576 | 0.024 / 0.033 / 0.043 |
+| 66450191 | — | — / 518 / 893 | — / 0.030 / 0.041 |
+| 114992838 | 3579/0.66/−0.45 | 168 / 346 / 603 | 0.018 / 0.026 / 0.034 |
+| 54948768 | 3692/1.38/+0.12 | 188 / 310 / 579 | 0.023 / 0.029 / 0.040 |
+| 96257659 | 3747/1.05/−0.23 | 111 / 196 / 431 | 0.017 / 0.022 / 0.032 |
+| 74858601 | 3804/0.82/−0.56 | 71 / 97 / 200 | 0.017 / 0.019 / 0.027 |
+| 77720555 | 3899/1.26/−0.36 | 300 / 472 / 1202 | 0.013 / 0.016 / 0.026 |
+
+- 逐芯片看，三组的中间芯片（1589–1635 nm）χ² 都最高；校准对 PZ 在该芯片的改善最大
+  （例如 96257659：615 → 286，Astra 179）。
+- 相对 Astra 原始标签：校准 PZ 的 Teff +84 K（rms 97），logg −0.32（rms 0.37），
+  [M/H] −0.14（rms 0.16）；原生 PZ 为 +68 K / −0.42 / −0.23。
+- 模型之间的差：Astra 与校准 PZ 为 0.015–0.032 RMS，小于 Astra 与原生 PZ 的 0.023–0.041。
+- 结果：`astra_comparison.json`（逐星、逐芯片 χ² 与残差、模型间差）、`astra_vs_pz_96257659.png`。
+
 ## 局限
 
 - logg=0.5 是 v4 训练盒下界，6/8 颗停在这里；真实最优可能在盒外，Teff 与
   [M/H] 随之相关偏移。
-- 只用原生 PZ 线表；`linelist_calibration/data/sun_arcturus_fts_hband_shared.npz`
-  原子线校准与 H 波段分子线（OH、CO、CN、H₂O）的差分检验未做。
+- 原子线校准来自 Sun 与 Arcturus，不覆盖 H 波段分子线（OH、CO、CN、H₂O）；分子线
+  对 M 巨星的差分检验未做。
+- PZ 拟合像素包括芯片端点处的数据滚降段（例如 1513–1515 nm），与 Astra 的比较只在内部像素
+  计分，PZ 的拟合目标本身仍含这些像素。
+- Astra 模型多拟合了 [α/M]、[C/M]、[N/M]、vmic、vsini，且用的是更早的 coadd；它的 χ²
+  优势中有多少来自这些自由度（尤其 [N/M] 对 CN 线）本轮没有分离。
 - α=C=0、[C/M]=0、vmic=2 km/s 固定；M 巨星第一次挖掘后的 C/N 与 ¹²C/¹³C
   直接影响 CO/CN 带。LSF 为常数 R=22,500 高斯，不是逐 visit/fiber LSF；
   未做 telluric 与 airglow 掩码。
@@ -96,14 +165,17 @@ logg=0.5 与盒面上，χ² 比连续拟合高 2–5 倍（节点稀疏、展�
 
 ## 文件
 
-- 脚本：`experiments/mgiant_apogee_pzfit_v1.py`（`fast --star ID [--physical]`、
-  `collect --stars-dir D`）
+- 脚本：`experiments/mgiant_apogee_pzfit_v1.py`（`fast --star ID [--physical]
+  [--atomic-calibration PATH]`、`collect --stars-dir D`、`astra`）
 - 启动：`experiments/reduced_state_emulator/run_mgiant_apogee_pzfit_garching_20260927.sh`
 - 结果：`results/mgiant_apogee_pzfit_v1/`
   - `summary.json`、`labels_vs_aspcap.png`
   - `garching/stars/<sdss_id>/`（`summary.json`、`fast/`、`physical/`、模型通量）
   - `garching/logs/`、`logs/`（本机交叉核对）、`launch_status.json`
   - `v1_grid_rest_frame_control.json`、`local_cross_check.json`
+  - `garching/stars_sun_arcturus_fts_hband_shared/<sdss_id>/`、`summary_sun_arcturus.json`、
+    `labels_vs_aspcap_sun_arcturus.png`
+  - `astra_comparison.json`、`astra_vs_pz_96257659.png`
   - 来源记录以 `launch_status.json`（提交 6a9edb2、脚本 md5）为准；Garching 运行目录不是
     本仓库的 git 检出，各星 `summary.json` 的 `code_state` 字段不代表实际代码状态
 - Garching 运行目录：`/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mgiant-eso-pzfit-20260924`

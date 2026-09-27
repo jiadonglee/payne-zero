@@ -31,6 +31,7 @@ Stages::
 
     fast     --star SDSS_ID   continuous fast fit (``--physical`` adds refinement)
     collect  [--stars-dir D]  per-star table in ``summary.json`` and a label figure
+    astra    [--arms A ...]   Astra ASPCAP best-fit model vs the Payne Zero fits
 """
 
 from __future__ import annotations
@@ -53,6 +54,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from experiments import mgiant_eso_bestfit_v1 as eso  # noqa: E402
 
 RESULT_ROOT = PROJECT_ROOT / "results" / "mgiant_apogee_pzfit_v1"
+ASTRA_DIR = PROJECT_ROOT / "data" / "dr20" / "results" / "star"
 V1_REPORT = PROJECT_ROOT / "results" / "mgiant_aspcap_fit_v1" / "fit_report.json"
 SPECTRA_DIR = PROJECT_ROOT / "data" / "dr20" / "spectra" / "star"
 
@@ -353,6 +355,139 @@ def label_figure(rows: list[dict], path: Path) -> None:
     plt.close(fig)
 
 
+def _profiled_fit(obs: ApogeeObservation, model: np.ndarray, pixels: np.ndarray) -> np.ndarray:
+    """Model times the per-chip linear continuum fitted on ``pixels``."""
+
+    design = model[:, None] * obs.basis
+    w = np.sqrt(obs.weight[pixels])
+    coef = np.linalg.lstsq(design[pixels] * w[:, None], obs.flux[pixels] * w, rcond=None)[0]
+    return design @ coef
+
+
+def read_astra_aspcap(sdss_id: int) -> dict | None:
+    """First APOGEE row of the star's astraStarASPCAP-0.6.0 file (raw FERRE labels)."""
+
+    from astropy.io import fits
+
+    path = ASTRA_DIR / f"{(sdss_id // 100) % 100:02d}" / f"{sdss_id % 100:02d}" / f"astraStarASPCAP-0.6.0-{sdss_id}.fits"
+    if not path.is_file():
+        return None
+    with fits.open(path) as hdu_list:
+        hdu = hdu_list[3] if len(hdu_list[3].data) else hdu_list[4]
+        row = hdu.data[0]
+        record = {"path": str(path.relative_to(PROJECT_ROOT)), "hdu": hdu.name,
+                  "model_flux": np.asarray(row["model_flux"], np.float64),
+                  "spectrum_pk_id": int(row["spectrum_pk_id"]), "short_grid_name": str(row["short_grid_name"]),
+                  "rchi2": float(row["rchi2"])}
+        for key in ("teff", "logg", "m_h_atm", "alpha_m_atm", "c_m_atm", "n_m_atm", "v_micro", "v_sini"):
+            record[key] = float(row[key])
+    return record
+
+
+def stage_astra(args) -> None:
+    """Astra ASPCAP (FERRE) best-fit model and Payne Zero fits on one pixel set and normalization.
+
+    Both models go through the same 339-pixel running median and per-chip
+    linear continuum against the same mwmStar coadd. Scored pixels are Payne
+    Zero fit pixels at least half a median window inside the retained apStar
+    segments where the Astra model is defined (one mask for every star), so the
+    running median never reaches an undefined model pixel. The Astra model is at
+    ASPCAP's raw FERRE labels with its own [alpha/M], [C/M], [N/M], vmic and
+    vsini; it was fitted to an earlier coadd of the same star.
+    """
+
+    from scipy.ndimage import binary_erosion
+
+    windows = ((1518.0, 1528.0), (1553.0, 1563.0), (1600.0, 1610.0), (1670.0, 1680.0))
+    stars = _stars()
+    astras = {sdss_id: read_astra_aspcap(sdss_id) for sdss_id in stars}
+    reference = next(a["model_flux"] for a in astras.values() if a is not None)
+    defined = np.isfinite(reference) & (reference > 0)
+    interior = binary_erosion(defined, np.ones(PSEUDO_CONTINUUM_PIXELS, bool))
+    records = []
+    for sdss_id in sorted(stars, key=lambda i: stars[i]["teff"]):
+        astra = astras[sdss_id]
+        obs = ApogeeObservation(sdss_id)
+        row = {"sdss_id": sdss_id, "astra": None if astra is None else
+               {k: v for k, v in astra.items() if k != "model_flux"}}
+        models = {}
+        if astra is not None:
+            own = np.isfinite(astra["model_flux"]) & (astra["model_flux"] > 0)
+            if not np.array_equal(own, defined):
+                raise ValueError(f"{sdss_id}: Astra model defined on a different pixel set")
+            filled = np.interp(obs.wave_nm, obs.wave_nm[own], astra["model_flux"][own])
+            models["astra"] = pseudo_continuum_normalize(filled)
+        pixels = obs.mask & interior
+        for arm in args.arms:
+            summary = RESULT_ROOT / "garching" / arm / str(sdss_id) / "summary.json"
+            flux = summary.parent / "physical_model_flux.npy"
+            if not flux.is_file():
+                continue
+            fitted = json.loads(summary.read_text())
+            labels = (fitted.get("physical") or {}).get("parameters") or fitted["fast"]["parameters"]
+            # The saved flux already carries the fit's continuum; refit it on the common pixels.
+            models[arm] = np.load(flux)
+            row[arm] = {"labels": [labels["teff"], labels["logg"], labels["m_h"]],
+                        "sigma_extra_km_s": labels["sigma_extra_km_s"]}
+        predictions = {name: _profiled_fit(obs, model, pixels) for name, model in models.items()}
+        row["n_pixels"] = int(pixels.sum())
+        row["metrics"] = {}
+        for name, prediction in predictions.items():
+            residual = (obs.flux - prediction)[pixels]
+            chips = {}
+            for lo, hi in CHIPS_NM:
+                chip = pixels & (obs.wave_nm >= lo) & (obs.wave_nm <= hi)
+                r = (obs.flux - prediction)[chip]
+                chips[f"{lo:.0f}-{hi:.0f}"] = {"chi2_per_pixel": float(np.mean(obs.weight[chip] * r**2)),
+                                              "residual_rms": float(np.sqrt(np.mean(r**2)))}
+            row["metrics"][name] = {"chi2_per_pixel": float(np.mean(obs.weight[pixels] * residual**2)),
+                                    "residual_rms": float(np.sqrt(np.mean(residual**2))), "chips": chips}
+        names = list(predictions)
+        row["model_difference_rms"] = {f"{a}-{b}": float(np.sqrt(np.mean((predictions[a] - predictions[b])[pixels] ** 2)))
+                                       for i, a in enumerate(names) for b in names[i + 1:]}
+        records.append(row)
+        text = "  ".join(f"{n} chi2/px {m['chi2_per_pixel']:7.1f} rms {m['residual_rms']:.4f}"
+                         for n, m in row["metrics"].items())
+        print(f"{sdss_id:>10} npix {row['n_pixels']}  {text}", flush=True)
+        if astra is not None and args.figure_star == sdss_id:
+            _astra_figure(obs, predictions, pixels, windows, sdss_id, row)
+    (RESULT_ROOT / "astra_comparison.json").write_text(json.dumps(records, indent=2))
+
+
+ARM_LABELS = {"astra": "Astra ASPCAP", "stars": "PZ native", "stars_sun_arcturus_fts_hband_shared": "PZ Sun+Arcturus"}
+
+
+def _astra_figure(obs, predictions, pixels, windows, sdss_id, row) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    colors = {"astra": "C1", "stars": "C0"}
+    fig, axes = plt.subplots(2, len(windows), figsize=(15.0, 6.0), sharex="col", layout="constrained",
+                             gridspec_kw={"height_ratios": (3, 1)})
+    for column, (lo, hi) in enumerate(windows):
+        inside = (obs.wave_nm >= lo) & (obs.wave_nm <= hi)
+        top, bottom = axes[0, column], axes[1, column]
+        top.plot(obs.wave_nm[inside], np.where(pixels, obs.flux, np.nan)[inside], color="k", lw=0.8, label="APOGEE")
+        for name, prediction in predictions.items():
+            color = colors.get(name, "C2")
+            label = ARM_LABELS.get(name, name)
+            top.plot(obs.wave_nm[inside], prediction[inside], color=color, lw=0.8, label=label)
+            bottom.plot(obs.wave_nm[inside], np.where(pixels, obs.flux - prediction, np.nan)[inside], color=color, lw=0.7)
+        bottom.axhline(0.0, color="0.5", lw=0.5)
+        bottom.set_xlabel("vacuum wavelength (nm)")
+    axes[0, 0].set_ylabel("normalized flux")
+    axes[1, 0].set_ylabel("data - model")
+    axes[0, 0].legend(fontsize=7, loc="lower left")
+    astra = row["astra"]
+    fig.suptitle(f"sdss_id {sdss_id}: Astra ASPCAP {astra['teff']:.0f}/{astra['logg']:.2f}/{astra['m_h_atm']:+.2f} (raw)"
+                 + "".join(f"; {ARM_LABELS.get(name, name)} {v['labels'][0]:.0f}/{v['labels'][1]:.2f}/{v['labels'][2]:+.2f}"
+                           for name, v in row.items() if isinstance(v, dict) and "labels" in v), fontsize=10)
+    fig.savefig(RESULT_ROOT / f"astra_vs_pz_{sdss_id}.png", dpi=150)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="stage", required=True)
@@ -366,8 +501,11 @@ def main() -> None:
     fast.add_argument("--atomic-calibration", default=None)
     collect = sub.add_parser("collect")
     collect.add_argument("--stars-dir", default="stars")
+    astra = sub.add_parser("astra")
+    astra.add_argument("--arms", nargs="*", default=["stars", "stars_sun_arcturus_fts_hband_shared"])
+    astra.add_argument("--figure-star", type=int, default=96257659)
     args = parser.parse_args()
-    {"fast": stage_fast, "collect": stage_collect}[args.stage](args)
+    {"fast": stage_fast, "collect": stage_collect, "astra": stage_astra}[args.stage](args)
 
 
 if __name__ == "__main__":
