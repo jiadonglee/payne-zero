@@ -176,7 +176,8 @@ Astra 0.6.0 每星结果文件 `results/star/<g1>/<g2>/astraStarASPCAP-0.6.0-<sd
   - `garching/stars_sun_arcturus_fts_hband_shared/<sdss_id>/`、`summary_sun_arcturus.json`、
     `labels_vs_aspcap_sun_arcturus.png`
   - `astra_comparison.json`、`astra_vs_pz_96257659.png`
-  - 来源记录以 `launch_status.json`（提交 6a9edb2、脚本 md5）为准；Garching 运行目录不是
+  - 来源记录以 `launch_status.json` 为准（原生组提交 6a9edb2、校准组提交 782fd5c，各含脚本 md5、
+    进程号与日志路径）；Garching 运行目录不是
     本仓库的 git 检出，各星 `summary.json` 的 `code_state` 字段不代表实际代码状态
 - Garching 运行目录：`/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mgiant-eso-pzfit-20260924`
   （收敛大气在 `results/mgiant_apogee_pzfit_v1/stars/<sdss_id>/solves/`）
