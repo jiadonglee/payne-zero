@@ -22,6 +22,11 @@ APOGEE-specific pieces:
 - Start at the ASPCAP labels clipped into the v4 box; RV start from a coarse
   scan of the start spectrum, bounded to +-5 km/s around it.
 
+``--atomic-calibration PATH`` runs a second arm: the same fit with a schema-4
+atomic overlay (``fitter.apogee.calibrated_window_invariants``) applied to the
+metal-line tensors of the H-band window. Every other input is unchanged; its
+results go to ``stars_<calibration stem>/``.
+
 Stages::
 
     fast     --star SDSS_ID   continuous fast fit (``--physical`` adds refinement)
@@ -104,16 +109,48 @@ class ApogeeObservation:
         self.basis = np.stack(columns, axis=1)
 
 
+def calibrated_bundle(calibration: Path, *, device: str, dtype: str):
+    """H-band window invariants with an atomic overlay on the metal-line tensors."""
+
+    import torch
+
+    from fitter.apogee.atomic_calibration import calibrated_window_invariants
+    from payne_zero_synthesis.pipeline import window_invariants_for
+
+    base = window_invariants_for(wl_start_nm=SYNTH_VAC_NM[0], wl_end_nm=SYNTH_VAC_NM[1], resolution=R_GRID,
+                                 molecular_lines=True, runtime_device=torch.device(device),
+                                 work_dtype=torch.float64 if dtype == "float64" else torch.float32)
+    return calibrated_window_invariants(base, calibration)
+
+
 class ApogeeFastModel(eso.V4FastModel):
-    """``V4FastModel`` over the APOGEE H band, R=22,500, v1 normalization."""
+    """``V4FastModel`` over the APOGEE H band, R=22,500, v1 normalization.
+
+    With ``bundle``, synthesis follows ``payne_zero_synthesis.synthesize`` with
+    those window invariants in place of the default ones.
+    """
 
     def _synthesize_path(self, path):
-        from payne_zero_synthesis import synthesize
+        import torch
 
-        spectrum = synthesize(path, wavelength_start_nm=SYNTH_VAC_NM[0], wavelength_end_nm=SYNTH_VAC_NM[1],
-                              resolution=R_GRID, molecular_lines=True, device=self.device, dtype=self.dtype)
-        return (np.asarray(spectrum.wavelength_nm, np.float64), np.asarray(spectrum.flux_total, np.float64),
-                np.asarray(spectrum.flux_continuum, np.float64))
+        from payne_zero_synthesis import synthesize
+        from payne_zero_synthesis.api import _surface_flux_per_wavelength_nm
+        from payne_zero_synthesis.atmosphere import load_atmosphere_npz
+        from payne_zero_synthesis.synthesis import synthesize_structured_atmosphere
+
+        if self.bundle is None:
+            spectrum = synthesize(path, wavelength_start_nm=SYNTH_VAC_NM[0], wavelength_end_nm=SYNTH_VAC_NM[1],
+                                  resolution=R_GRID, molecular_lines=True, device=self.device, dtype=self.dtype)
+            return (np.asarray(spectrum.wavelength_nm, np.float64), np.asarray(spectrum.flux_total, np.float64),
+                    np.asarray(spectrum.flux_continuum, np.float64))
+        result, _ = synthesize_structured_atmosphere(
+            load_atmosphere_npz(path), wavelength_start_nm=SYNTH_VAC_NM[0], wavelength_end_nm=SYNTH_VAC_NM[1],
+            resolution=R_GRID, molecular_lines=True, device=torch.device(self.device),
+            dtype=torch.float64 if self.dtype == "float64" else torch.float32, window_invariants=self.bundle)
+        wavelength = np.asarray(result.wavelength_nm, np.float64)
+        return (wavelength,
+                _surface_flux_per_wavelength_nm(wavelength, result.eddington_flux_total_per_frequency),
+                _surface_flux_per_wavelength_nm(wavelength, result.eddington_flux_continuum_per_frequency))
 
     def project(self, native, rv_km_s, sigma_km_s) -> np.ndarray:
         import torch
@@ -177,10 +214,14 @@ def stage_fast(args) -> None:
                         fit_normalized_spectrum, refine_with_physical_atmosphere)
 
     star = _stars()[args.star]
-    out = RESULT_ROOT / "stars" / str(args.star)
+    calibration = None if args.atomic_calibration is None else Path(args.atomic_calibration).resolve()
+    arm = "stars" if calibration is None else f"stars_{calibration.stem}"
+    out = RESULT_ROOT / arm / str(args.star)
     out.mkdir(parents=True, exist_ok=True)
+    bundle, calibration_metadata = (None, None) if calibration is None else calibrated_bundle(
+        calibration, device=args.device, dtype=args.dtype)
     obs = ApogeeObservation(args.star)
-    fast = ApogeeFastModel(obs, device=args.device, dtype=args.dtype, cache_dir=out / "native_cache")
+    fast = ApogeeFastModel(obs, device=args.device, dtype=args.dtype, cache_dir=out / "native_cache", bundle=bundle)
     start = np.array([np.clip(star["teff"], *BOX["teff"]), np.clip(star["logg"], *BOX["logg"]),
                       np.clip(star["mh"], *BOX["m_h"])])
     started = time.time()
@@ -218,12 +259,14 @@ def stage_fast(args) -> None:
                  "seconds": time.time() - fit_started},
         "n_pixels": n_good,
         "config": {"device": args.device, "dtype": args.dtype, "max_iterations": args.max_iterations,
-                   "linelist": "native Payne Zero", "r_grid": R_GRID, "instrument_r": INSTRUMENT_R,
+                   "linelist": "native Payne Zero" if calibration is None else
+                   f"native Payne Zero + atomic overlay {calibration.relative_to(PROJECT_ROOT)}",
+                   "atomic_calibration": calibration_metadata, "r_grid": R_GRID, "instrument_r": INSTRUMENT_R,
                    "pseudo_continuum_pixels": PSEUDO_CONTINUUM_PIXELS, "continuum": "per-chip linear",
                    "initializer": "m_star_emulator_mgiant_v4 (three-seed median) + physical reconstruction",
                    "code_state": _code_state()},
     }
-    (out / "summary.json").write_text(json.dumps(summary, indent=2))
+    (out / "summary.json").write_text(json.dumps(summary, indent=2, default=str))
     print(f"{args.star} fast: {json.dumps(summary['fast'])}", flush=True)
     if not args.physical:
         return
@@ -320,6 +363,7 @@ def main() -> None:
     fast.add_argument("--max-iterations", type=int, default=8)
     fast.add_argument("--physical", action="store_true")
     fast.add_argument("--max-physical", type=int, default=4)
+    fast.add_argument("--atomic-calibration", default=None)
     collect = sub.add_parser("collect")
     collect.add_argument("--stars-dir", default="stars")
     args = parser.parse_args()
