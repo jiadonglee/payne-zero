@@ -14,8 +14,7 @@ APOGEE H 波段运行：`mgiant_aspcap_fit_v1` 的 8 颗 DR20 M 巨星全部完�
 （另 1 颗 0.51），Teff 平均高 165 K（rms 202 K），[M/H] 平均低 0.24 dex
 （rms 0.25），偏差随 ASPCAP Teff 降低而增大（3200–3500 K：+140 至 +310 K；
 3700–3900 K：+6 至 +76 K）。χ²/像素 227–1303，残差 RMS 2.7–4.9%，而噪声为
-0.08–0.18%，模型系统误差仍主导拟合。这与 ESO 光学窗口中 PZ 与 Korg + MARCS
-共同偏冷偏贫的方向不同，H 波段这里是偏热偏贫。
+0.08–0.18%，模型系统误差仍主导拟合。
 
 `mgiant_aspcap_fit_v1` 的角点结果（8 颗都在 4000 K / logg 0.5 / 低金属）主要来自
 视向速度处理：mwmStar coadd 已在静止系，而 v1 把模型按 ASPCAP `v_rad` 再次
@@ -35,12 +34,13 @@ APOGEE H 波段运行：`mgiant_aspcap_fit_v1` 的 8 颗 DR20 M 巨星全部完�
   连续谱。坏像素 ivar=0 掩掉，只用三芯片内像素（7151–7231 个）。
 - 参数：Teff、logg、[M/H]、RV、σ_extra；α=C=0、vmic=2 km/s 固定。起点为
   ASPCAP 标签（截到 v4 盒内），RV 起点由起点谱 ±30 km/s 扫描得到
-  （−0.10 至 +0.36 km/s，确认 coadd 已在静止系），拟合范围 ±5 km/s。
+  （−0.10 至 +0.50 km/s，确认 coadd 已在静止系），拟合范围 ±5 km/s。
   快速拟合最多 8 次迭代；精修门槛与 ESO 相同（轮廓化 RMS 差 < 2×10⁻³、
   χ²/像素增加 < 0.1、最多 4 个收敛大气）。
 - 运行：Garching Node-06，CPU float64，每星一进程（约 18 GB）。
   86810089 与 96257659 另在本机 MPS float32 上跑快速拟合作交叉核对，
-  参数路径与 Garching 在求解器 deck 精度上一致。
+  两星 RV 起点相同，前 2–3 步参数路径与 Garching 在 deck 精度（1 K、1e-4 dex 量级）上一致；
+  本机运行在 Garching 完成后停止（`local_cross_check.json`）。
 
 ## 结果
 
@@ -103,6 +103,8 @@ logg=0.5 与盒面上，χ² 比连续拟合高 2–5 倍（节点稀疏、展�
   - `summary.json`、`labels_vs_aspcap.png`
   - `garching/stars/<sdss_id>/`（`summary.json`、`fast/`、`physical/`、模型通量）
   - `garching/logs/`、`logs/`（本机交叉核对）、`launch_status.json`
-  - `v1_grid_rest_frame_control.json`
+  - `v1_grid_rest_frame_control.json`、`local_cross_check.json`
+  - 来源记录以 `launch_status.json`（提交 6a9edb2、脚本 md5）为准；Garching 运行目录不是
+    本仓库的 git 检出，各星 `summary.json` 的 `code_state` 字段不代表实际代码状态
 - Garching 运行目录：`/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mgiant-eso-pzfit-20260924`
   （收敛大气在 `results/mgiant_apogee_pzfit_v1/stars/<sdss_id>/solves/`）
