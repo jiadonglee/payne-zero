@@ -540,12 +540,14 @@ def stage_fast(args) -> None:
 
 
 def stage_collect(args) -> None:
+    out = RESULT_ROOT / (args.output or "summary.json")
     rows = []
     for path in sorted((RESULT_ROOT / args.stars_dir).glob("*/summary.json")):
         s = json.loads(path.read_text())
         fast = s["fast"]["parameters"]
         rows.append({
             "sdss_id": s["sdss_id"],
+            "file_snr": s["aspcap"]["file_snr"],
             "aspcap": [s["aspcap"]["teff"], s["aspcap"]["logg"], s["aspcap"]["mh"]],
             "fast": [fast["teff"], fast["logg"], fast["m_h"]],
             "rv_sigma": [fast["rv_km_s"], fast["sigma_extra_km_s"]],
@@ -557,12 +559,12 @@ def stage_collect(args) -> None:
             "physical": s.get("physical"),
         })
     rows.sort(key=lambda r: r["aspcap"][0])
-    (RESULT_ROOT / "summary.json").write_text(json.dumps(rows, indent=2, default=str))
+    out.write_text(json.dumps(rows, indent=2, default=str))
     for r in rows:
         print(f"{r['sdss_id']:>10}  ASPCAP {r['aspcap'][0]:6.0f}/{r['aspcap'][1]:5.2f}/{r['aspcap'][2]:+5.2f}  "
               f"PZ {r['fast'][0]:6.0f}/{r['fast'][1]:5.2f}/{r['fast'][2]:+5.2f}  chi2/px {r['chi2_per_pixel']:8.1f}  "
               f"{r['stop_reason']:>18}  faces {','.join(r['faces']) or '-'}")
-    label_figure(rows, RESULT_ROOT / "labels_vs_aspcap.png")
+    label_figure(rows, out.with_name(out.name.replace("summary", "labels_vs_aspcap")).with_suffix(".png"))
 
 
 def label_figure(rows: list[dict], path: Path) -> None:
@@ -737,6 +739,7 @@ def main() -> None:
     fast.add_argument("--atomic-calibration", default=None)
     collect = sub.add_parser("collect")
     collect.add_argument("--stars-dir", default="stars")
+    collect.add_argument("--output", default=None, help="file name under the result root (default summary.json)")
     free = sub.add_parser("free")
     free.add_argument("--star", type=int, required=True)
     free.add_argument("--device", default="mps")
