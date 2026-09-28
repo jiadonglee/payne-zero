@@ -12,6 +12,7 @@ set -euo pipefail
 ROOT=${ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 PYTHON=${PYTHON:-/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero/.venv-linux/bin/python}
 THREADS=${THREADS:-4}
+STAGE=${STAGE:-fast}   # fast (five parameters) or free (ten parameters, after the matching fast arm)
 CALIBRATION=${CALIBRATION:-}   # optional schema-4 atomic overlay, e.g. linelist_calibration/data/sun_arcturus_fts_hband_shared.npz
 STARS=${STARS:-"86810089 65420634 66450191 114992838 54948768 96257659 74858601 77720555"}
 
@@ -24,8 +25,9 @@ export PYTHONPATH="$ROOT"
 export OMP_NUM_THREADS=$THREADS MKL_NUM_THREADS=$THREADS OPENBLAS_NUM_THREADS=$THREADS
 
 for star in $STARS; do
-    setsid nohup "$PYTHON" experiments/mgiant_apogee_pzfit_v1.py fast --star "$star" \
-        --device cpu --dtype float64 --physical ${CALIBRATION:+--atomic-calibration "$CALIBRATION"} \
-        > "logs/apogee_pzfit${CALIBRATION:+_$(basename "$CALIBRATION" .npz)}_${star}.log" 2>&1 < /dev/null &
+    if [ "$STAGE" = free ]; then extra=""; tag="_free"; else extra="--physical"; tag=""; fi
+    setsid nohup "$PYTHON" experiments/mgiant_apogee_pzfit_v1.py "$STAGE" --star "$star" \
+        --device cpu --dtype float64 $extra ${CALIBRATION:+--atomic-calibration "$CALIBRATION"} \
+        > "logs/apogee_pzfit${tag}${CALIBRATION:+_$(basename "$CALIBRATION" .npz)}_${star}.log" 2>&1 < /dev/null &
     echo "$star $!"
 done

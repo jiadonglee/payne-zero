@@ -31,7 +31,17 @@ Stages::
 
     fast     --star SDSS_ID   continuous fast fit (``--physical`` adds refinement)
     collect  [--stars-dir D]  per-star table in ``summary.json`` and a label figure
+    free     --star SDSS_ID   ten-parameter fit (adds [alpha/M], [C/M], [N/M], vmic, vsini)
     astra    [--arms A ...]   Astra ASPCAP best-fit model vs the Payne Zero fits
+
+The ten-parameter fit keeps the atmosphere structure on the scaled-solar slice
+that the v4 initializer and the solver support (alpha=C=N=0, vmic=2 km/s): at
+fixed temperature and gas pressure, [alpha/M] (O, Ne, Mg, Si, S, Ca, Ti), [C/M]
+and [N/M] rescale the abundance vector, the EOS and molecular equilibrium are
+recomputed, and vmic sets the microturbulence of the synthesis. vsini is a
+linear-limb-darkened rotation kernel on the native grid; the extra Gaussian
+broadening stays free. It starts from the converged result of a five-parameter
+arm with alpha=C=N=0, vmic=2 km/s and vsini=3 km/s.
 """
 
 from __future__ import annotations
@@ -167,6 +177,232 @@ class ApogeeFastModel(eso.V4FastModel):
                                       broadening_sigma_km_s=float(abs(sigma_km_s)))
         _, _, normalized = self._operator.convolve_fluxes(torch.as_tensor(total), torch.as_tensor(continuum))
         return pseudo_continuum_normalize(normalized.detach().cpu().numpy())
+
+
+FREE_NAMES = ("teff", "logg", "m_h", "alpha_m", "c_m", "n_m", "vmic_km_s", "rv_km_s", "sigma_extra_km_s",
+              "vsini_km_s")
+FREE_BOUNDS = {"alpha_m": (-0.3, 0.5), "c_m": (-0.8, 0.5), "n_m": (-0.5, 1.2), "vmic_km_s": (0.5, 4.0),
+               "vsini_km_s": (0.0, 15.0)}
+ALPHA_Z = (8, 10, 12, 14, 16, 20, 22)
+HELIUM_FRACTION_INDEX = 1
+
+
+def perturbed_abundances(abundances: np.ndarray, alpha_m: float, c_m: float, n_m: float) -> np.ndarray:
+    """Scale alpha elements, C and N of a linear number-fraction vector (Z=1..99); H absorbs the change."""
+
+    out = np.asarray(abundances, np.float64).copy()
+    for z in ALPHA_Z:
+        out[z - 1] *= 10.0 ** alpha_m
+    out[5] *= 10.0 ** c_m
+    out[6] *= 10.0 ** n_m
+    out[0] = abundances[0] + float(np.sum(abundances[2:]) - np.sum(out[2:]))
+    return out
+
+
+class FreeAbundanceFastModel(ApogeeFastModel):
+    """Ten-parameter fast model: v4 structure at (Teff, logg, [M/H]), perturbed synthesis."""
+
+    def __init__(self, obs, **kwargs):
+        super().__init__(obs, **kwargs)
+        self.atmosphere_dir = self.cache_dir.parent / "atmosphere_cache"
+        self.atmosphere_dir.mkdir(parents=True, exist_ok=True)
+        self._rotation = None
+
+    @staticmethod
+    def free_key(teff, logg, m_h, alpha_m, c_m, n_m, vmic):
+        return (*eso.V4FastModel.deck_labels(teff, logg, m_h), round(float(alpha_m), 4), round(float(c_m), 4),
+                round(float(n_m), 4), round(float(vmic), 3))
+
+    def base_atmosphere(self, teff, logg, m_h) -> Path:
+        from experiments import mgiant_experimental_interface_v1 as interface
+        from payne_zero_atmosphere.synthesis_bridge import save_product_structured_atmosphere
+
+        key = self.deck_labels(teff, logg, m_h)
+        path = self.atmosphere_dir / f"t{key[0]:.0f}_g{key[1]:+.4f}_m{key[2]:+.4f}.npz"
+        if not path.is_file():
+            atmosphere, _ = interface.build_v4_initializer(self.labels(*key), interface.DEFAULT_CHECKPOINT_DIR)
+            save_product_structured_atmosphere(atmosphere, path, device="cpu", dtype="float64")
+        return path
+
+    def synthesize_perturbed(self, path, alpha_m, c_m, n_m, vmic):
+        """Synthesis of a saved atmosphere with rescaled abundances and microturbulence."""
+
+        import torch
+
+        from payne_zero_synthesis.api import _surface_flux_per_wavelength_nm
+        from payne_zero_synthesis.synthesis import (build_structured_atmosphere_from_columns,
+                                                    synthesize_structured_atmosphere)
+
+        dtype = torch.float64 if self.dtype == "float64" else torch.float32
+        with np.load(path, allow_pickle=False) as data:
+            columns = {key: np.asarray(data[key], np.float64) for key in
+                       ("temperature", "column_mass", "gas_pressure", "electron_density", "elemental_abundances")}
+        atmosphere = build_structured_atmosphere_from_columns(
+            temperature=columns["temperature"], column_mass=columns["column_mass"],
+            gas_pressure=columns["gas_pressure"], electron_density=columns["electron_density"],
+            elemental_abundances=perturbed_abundances(columns["elemental_abundances"], alpha_m, c_m, n_m),
+            microturbulence=np.full(columns["temperature"].size, float(vmic) * 1.0e5), mass_density=None,
+            device=self.device, dtype=dtype, molecular_lines=True)
+        result, _ = synthesize_structured_atmosphere(
+            atmosphere, wavelength_start_nm=SYNTH_VAC_NM[0], wavelength_end_nm=SYNTH_VAC_NM[1], resolution=R_GRID,
+            molecular_lines=True, device=torch.device(self.device), dtype=dtype, window_invariants=self.bundle)
+        wavelength = np.asarray(result.wavelength_nm, np.float64)
+        return (wavelength,
+                _surface_flux_per_wavelength_nm(wavelength, result.eddington_flux_total_per_frequency),
+                _surface_flux_per_wavelength_nm(wavelength, result.eddington_flux_continuum_per_frequency))
+
+    def native_free(self, teff, logg, m_h, alpha_m, c_m, n_m, vmic):
+        key = self.free_key(teff, logg, m_h, alpha_m, c_m, n_m, vmic)
+        if key in self._native:
+            return self._native[key]
+        cache = self.cache_dir / ("t{:.0f}_g{:+.4f}_m{:+.4f}_a{:+.4f}_c{:+.4f}_n{:+.4f}_v{:.3f}.npz".format(*key))
+        if cache.is_file():
+            with np.load(cache) as data:
+                self._native[key] = (data["wavelength_nm"], data["flux_total"], data["flux_continuum"])
+            return self._native[key]
+        native = self.synthesize_perturbed(self.base_atmosphere(*key[:3]), *key[3:])
+        np.savez(cache, wavelength_nm=native[0], flux_total=native[1], flux_continuum=native[2])
+        self._native[key] = native
+        self.syntheses += 1
+        return native
+
+    def project_free(self, native, rv_km_s, sigma_km_s, vsini_km_s) -> np.ndarray:
+        import torch
+
+        from fitter import RotationalBroadening
+
+        wavelength, total, continuum = native
+        if self._rotation is None or not np.array_equal(self._rotation.wavelength_nm, wavelength):
+            self._rotation = RotationalBroadening(wavelength, maximum_vsini_km_s=20.0, device="cpu",
+                                                  dtype=torch.float64)
+        vsini = max(float(vsini_km_s), 0.0)
+        total = self._rotation(torch.as_tensor(total), vsini_km_s=vsini).numpy()
+        continuum = self._rotation(torch.as_tensor(continuum), vsini_km_s=vsini).numpy()
+        return self.project((wavelength, total, continuum), rv_km_s, sigma_km_s)
+
+    def __call__(self, parameters) -> np.ndarray:
+        self.evaluations += 1
+        teff, logg, m_h, alpha_m, c_m, n_m, vmic, rv, sigma, vsini = parameters
+        return self.project_free(self.native_free(teff, logg, m_h, alpha_m, c_m, n_m, vmic), rv, sigma, vsini)
+
+
+class FreeConvergedModel:
+    """Converged atmosphere on the scaled-solar slice, synthesized with the perturbed abundances."""
+
+    def __init__(self, fast: FreeAbundanceFastModel, solve_dir: Path):
+        self.fast = fast
+        self.solve_dir = solve_dir
+        self.records: list[dict] = []
+
+    def __call__(self, parameters) -> np.ndarray:
+        from experiments import mgiant_experimental_interface_v1 as interface
+
+        teff, logg, m_h, alpha_m, c_m, n_m, vmic, rv, sigma, vsini = parameters
+        started = time.time()
+        summary = interface.solve_experimental_point(self.fast.labels(teff, logg, m_h), output_dir=self.solve_dir)
+        record = {"parameters": dict(zip(FREE_NAMES, map(float, parameters))),
+                  "solver": summary["solver"], "quality_flag": summary["quality_flag"],
+                  "final_product": summary["final_product"], "seconds": time.time() - started}
+        self.records.append(record)
+        if not summary["quality_flag"]["valid"] or summary["final_product"] is None:
+            raise RuntimeError(f"converged atmosphere failed its quality flag at {record['parameters']}")
+        key = self.fast.free_key(teff, logg, m_h, alpha_m, c_m, n_m, vmic)
+        native = self.fast.synthesize_perturbed(summary["final_product"], *key[3:])
+        return self.fast.project_free(native, rv, sigma, vsini)
+
+
+def stage_free(args) -> None:
+    from fitter import (FitConfiguration, NormalizedSpectrum, PhysicalAtmosphereConfiguration,
+                        fit_normalized_spectrum, refine_with_physical_atmosphere)
+
+    star = _stars()[args.star]
+    calibration = None if args.atomic_calibration is None else Path(args.atomic_calibration).resolve()
+    base_arm = "stars" if calibration is None else f"stars_{calibration.stem}"
+    out = RESULT_ROOT / f"free_{base_arm}" / str(args.star)
+    out.mkdir(parents=True, exist_ok=True)
+    base = json.loads((RESULT_ROOT / base_arm / str(args.star) / "summary.json").read_text())
+    start5 = (base.get("physical") or {}).get("parameters") or base["fast"]["parameters"]
+    bundle, calibration_metadata = (None, None) if calibration is None else calibrated_bundle(
+        calibration, device=args.device, dtype=args.dtype)
+    obs = ApogeeObservation(args.star)
+    fast = FreeAbundanceFastModel(obs, device=args.device, dtype=args.dtype, cache_dir=out / "native_cache",
+                                  bundle=bundle)
+    rv0 = start5["rv_km_s"]
+    initial = np.array([start5["teff"], start5["logg"], start5["m_h"], 0.0, 0.0, 0.0, 2.0, rv0,
+                        start5["sigma_extra_km_s"], 3.0])
+    lower = np.array([BOX["teff"][0], BOX["logg"][0], BOX["m_h"][0], FREE_BOUNDS["alpha_m"][0],
+                      FREE_BOUNDS["c_m"][0], FREE_BOUNDS["n_m"][0], FREE_BOUNDS["vmic_km_s"][0], rv0 - 5.0, 0.0,
+                      FREE_BOUNDS["vsini_km_s"][0]])
+    upper = np.array([BOX["teff"][1], BOX["logg"][1], BOX["m_h"][1], FREE_BOUNDS["alpha_m"][1],
+                      FREE_BOUNDS["c_m"][1], FREE_BOUNDS["n_m"][1], FREE_BOUNDS["vmic_km_s"][1], rv0 + 5.0, 10.0,
+                      FREE_BOUNDS["vsini_km_s"][1]])
+    initial = np.clip(initial, lower, upper)
+    spectrum = NormalizedSpectrum(wavelength=obs.wave_nm, flux=obs.flux, inverse_variance=obs.weight, mask=obs.mask)
+    configuration = FitConfiguration(
+        names=FREE_NAMES, initial=initial, lower=lower, upper=upper,
+        derivative_steps=np.array([20.0, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1, 0.1, 0.5]),
+        trust_half_width=np.array([150.0, 0.4, 0.3, 0.2, 0.2, 0.3, 0.5, 1.0, 1.5, 3.0]),
+        maximum_iterations=args.max_iterations,
+    )
+    started = time.time()
+    fast_result = fit_normalized_spectrum(spectrum, configuration, fast, continuum_basis=obs.basis)
+    fast_result.save(out / "fast")
+    np.save(out / "fast_model_flux.npy", fast_result.model_flux)
+    summary = {
+        "sdss_id": args.star,
+        "spectrum": str(obs.path.relative_to(PROJECT_ROOT)),
+        "aspcap": {k: star[k] for k in ("teff", "logg", "fe_h", "alpha_m", "mh", "v_rad", "file_snr")},
+        "start_arm": base_arm,
+        "start": dict(zip(FREE_NAMES, map(float, initial))),
+        "fast": {"parameters": dict(zip(FREE_NAMES, map(float, fast_result.parameters))),
+                 "faces": [f for f in _faces_free(fast_result.parameters, lower, upper)],
+                 "chi2_per_pixel": float(fast_result.mean_weighted_squared_residual),
+                 "start_chi2_per_pixel": float(fast_result.objective_path[0]),
+                 "converged": fast_result.converged, "stop_reason": fast_result.stop_reason,
+                 "evaluations": fast.evaluations, "syntheses": fast.syntheses, "seconds": time.time() - started},
+        "n_pixels": int(obs.mask.sum()),
+        "config": {"device": args.device, "dtype": args.dtype, "max_iterations": args.max_iterations,
+                   "linelist": "native Payne Zero" if calibration is None else
+                   f"native Payne Zero + atomic overlay {calibration.relative_to(PROJECT_ROOT)}",
+                   "atomic_calibration": calibration_metadata, "r_grid": R_GRID, "instrument_r": INSTRUMENT_R,
+                   "structure": "v4 / converged atmosphere at (Teff, logg, [M/H], alpha=0, vmic=2); alpha, C, N and "
+                                "vmic applied in the synthesis at fixed temperature and gas pressure",
+                   "rotation": "linear limb darkening 0.6 on the native grid",
+                   "code_state": _code_state()},
+    }
+    (out / "summary.json").write_text(json.dumps(summary, indent=2, default=str))
+    print(f"{args.star} free fast: {json.dumps(summary['fast'])}", flush=True)
+
+    converged = FreeConvergedModel(fast, out / "solves")
+    physical_configuration = PhysicalAtmosphereConfiguration(
+        maximum_discrepancy_rms=2.0e-3, maximum_objective_degradation=0.1,
+        minimum_predicted_objective_improvement=1.0e-3, maximum_physical_evaluations=args.max_physical)
+    started = time.time()
+    try:
+        physical = refine_with_physical_atmosphere(spectrum, configuration, fast_result, fast, converged,
+                                                   physical_configuration, continuum_basis=obs.basis)
+    except RuntimeError as error:
+        summary["physical"] = {"error": str(error), "solves": converged.records, "seconds": time.time() - started}
+    else:
+        physical.save(out / "physical")
+        np.save(out / "physical_model_flux.npy", physical.model_flux)
+        summary["physical"] = {
+            "parameters": dict(zip(FREE_NAMES, map(float, physical.parameters))),
+            "chi2_per_pixel": float(physical.mean_weighted_squared_residual),
+            "successful": physical.successful, "physical_fit_stationary": physical.physical_fit_stationary,
+            "fast_physical_gates_passed": physical.fast_physical_gates_passed, "stop_reason": physical.stop_reason,
+            "checks": [{"discrepancy_rms": c.discrepancy_rms, "objective_degradation": c.objective_degradation,
+                        "accepted": c.accepted} for c in physical.physical_checks],
+            "solves": converged.records, "seconds": time.time() - started,
+        }
+    (out / "summary.json").write_text(json.dumps(summary, indent=2, default=str))
+    print(f"{args.star} free physical: {json.dumps(summary['physical'], default=str)}", flush=True)
+
+
+def _faces_free(parameters, lower, upper) -> list[str]:
+    return [f"{name}_{'lower' if value <= lo + 1e-6 else 'upper'}"
+            for name, value, lo, hi in zip(FREE_NAMES, parameters, lower, upper)
+            if value <= lo + 1e-6 or value >= hi - 1e-6]
 
 
 def _profiled_chi2(obs: ApogeeObservation, model: np.ndarray) -> float:
@@ -501,11 +737,18 @@ def main() -> None:
     fast.add_argument("--atomic-calibration", default=None)
     collect = sub.add_parser("collect")
     collect.add_argument("--stars-dir", default="stars")
+    free = sub.add_parser("free")
+    free.add_argument("--star", type=int, required=True)
+    free.add_argument("--device", default="mps")
+    free.add_argument("--dtype", default="float32")
+    free.add_argument("--max-iterations", type=int, default=12)
+    free.add_argument("--max-physical", type=int, default=4)
+    free.add_argument("--atomic-calibration", default=None)
     astra = sub.add_parser("astra")
     astra.add_argument("--arms", nargs="*", default=["stars", "stars_sun_arcturus_fts_hband_shared"])
     astra.add_argument("--figure-star", type=int, default=96257659)
     args = parser.parse_args()
-    {"fast": stage_fast, "collect": stage_collect, "astra": stage_astra}[args.stage](args)
+    {"fast": stage_fast, "collect": stage_collect, "free": stage_free, "astra": stage_astra}[args.stage](args)
 
 
 if __name__ == "__main__":
