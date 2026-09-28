@@ -548,6 +548,7 @@ def stage_collect(args) -> None:
         rows.append({
             "sdss_id": s["sdss_id"],
             "file_snr": s["aspcap"]["file_snr"],
+            "rv_start_km_s": s["start"]["rv_km_s"],
             "aspcap": [s["aspcap"]["teff"], s["aspcap"]["logg"], s["aspcap"]["mh"]],
             "fast": [fast["teff"], fast["logg"], fast["m_h"]],
             "rv_sigma": [fast["rv_km_s"], fast["sigma_extra_km_s"]],

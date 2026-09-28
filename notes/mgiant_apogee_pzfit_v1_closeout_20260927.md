@@ -171,7 +171,9 @@ EOS 与分子平衡，vmic 只进合成，vsini 为网格上的线性临边昏�
   31 K；全部收敛大气通过独立检查，快慢谱差 1.7×10⁻⁴–4.3×10⁻³ RMS。
 - χ²/像素相对五参数校准组再降 3–16%；没有任何拟合停在盒面，logg 0.65–1.35。
 - 相对校准 ASPCAP：Teff +73 K（rms 81），logg +0.26，[M/H] −0.08（rms 0.09）；相对 Astra 原始
-  FERRE：Teff −8 K，logg +0.02，[M/H] −0.08。冷端 Teff 偏高基本消失（86810089：+297 → +45 K）。
+  FERRE（7 颗）：均值 −8 K / +0.02 / −0.08，rms 67 K / 0.12 / 0.09，最大 |ΔTeff| 138 K（86810089，
+  达到精修上限）。均值接近零部分来自正负抵消。冷端相对校准 ASPCAP 的 Teff 偏高明显缩小
+  （86810089：+297 → +45 K）。
 - [α/M] −0.03 至 +0.06、vmic 1.33–2.09 km/s 与 Astra 相近；[C/M] +0.07 至 +0.19、[N/M] −0.08 至
   −0.33，而 Astra 为 C ≈ 0、N +0.16 至 +0.32（第一次挖掘后预期的形态）。CO 只随 C、CN 随 C 与 N
   变化，两种组合可以互相替代并吸收线表差异。
@@ -213,7 +215,7 @@ EOS 与分子平衡，vmic 只进合成，vsini 为网格上的线性临边昏�
   - `garching/stars_sun_arcturus_fts_hband_shared/<sdss_id>/`、`summary_sun_arcturus.json`、
     `labels_vs_aspcap_sun_arcturus.png`
   - `astra_comparison.json`、`astra_vs_pz_96257659.png`
-  - 来源记录以 `launch_status.json` 为准（原生组提交 6a9edb2、校准组提交 782fd5c，各含脚本 md5、
+  - 来源记录以 `launch_status.json` 为准（原生组提交 6a9edb2、校准组提交 782fd5c、十参数组提交 603d3e8，各含脚本 md5、
     进程号与日志路径）；Garching 运行目录不是
     本仓库的 git 检出，各星 `summary.json` 的 `code_state` 字段不代表实际代码状态
 - Garching 运行目录：`/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mgiant-eso-pzfit-20260924`
