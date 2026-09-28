@@ -553,7 +553,7 @@ def stage_collect(args) -> None:
             "rv_sigma": [fast["rv_km_s"], fast["sigma_extra_km_s"]],
             "faces": s["fast"]["faces"],
             "chi2_per_pixel": s["fast"]["chi2_per_pixel"],
-            "v1_grid_best": s["v1_grid_best"], "v1_grid_chi2_reduced": s["v1_grid_chi2_reduced"],
+            "v1_grid_best": s.get("v1_grid_best"), "v1_grid_chi2_reduced": s.get("v1_grid_chi2_reduced"),
             "stop_reason": s["fast"]["stop_reason"], "syntheses": s["fast"]["syntheses"],
             "seconds": s["fast"]["seconds"],
             "physical": s.get("physical"),
@@ -643,6 +643,7 @@ def stage_astra(args) -> None:
     defined = np.isfinite(reference) & (reference > 0)
     interior = binary_erosion(defined, np.ones(PSEUDO_CONTINUUM_PIXELS, bool))
     records = []
+    arrays = {}
     for sdss_id in sorted(stars, key=lambda i: stars[i]["teff"]):
         astra = astras[sdss_id]
         obs = ApogeeObservation(sdss_id)
@@ -666,7 +667,9 @@ def stage_astra(args) -> None:
             # The saved flux already carries the fit's continuum; refit it on the common pixels.
             models[arm] = np.load(flux)
             row[arm] = {"labels": [labels["teff"], labels["logg"], labels["m_h"]],
-                        "sigma_extra_km_s": labels["sigma_extra_km_s"]}
+                        "sigma_extra_km_s": labels["sigma_extra_km_s"],
+                        "extra_labels": {k: labels[k] for k in ("alpha_m", "c_m", "n_m", "vmic_km_s", "vsini_km_s")
+                                         if k in labels}}
         predictions = {name: _profiled_fit(obs, model, pixels) for name, model in models.items()}
         row["n_pixels"] = int(pixels.sum())
         row["metrics"] = {}
@@ -684,15 +687,22 @@ def stage_astra(args) -> None:
         row["model_difference_rms"] = {f"{a}-{b}": float(np.sqrt(np.mean((predictions[a] - predictions[b])[pixels] ** 2)))
                                        for i, a in enumerate(names) for b in names[i + 1:]}
         records.append(row)
+        arrays[f"{sdss_id}_wave_nm"] = obs.wave_nm
+        arrays[f"{sdss_id}_flux"] = obs.flux.astype(np.float32)
+        arrays[f"{sdss_id}_pixels"] = pixels
+        for name, prediction in predictions.items():
+            arrays[f"{sdss_id}_model_{name}"] = prediction.astype(np.float32)
         text = "  ".join(f"{n} chi2/px {m['chi2_per_pixel']:7.1f} rms {m['residual_rms']:.4f}"
                          for n, m in row["metrics"].items())
         print(f"{sdss_id:>10} npix {row['n_pixels']}  {text}", flush=True)
         if astra is not None and args.figure_star == sdss_id:
             _astra_figure(obs, predictions, pixels, windows, sdss_id, row)
     (RESULT_ROOT / "astra_comparison.json").write_text(json.dumps(records, indent=2))
+    np.savez_compressed(RESULT_ROOT / "astra_predictions.npz", **arrays)
 
 
-ARM_LABELS = {"astra": "Astra ASPCAP", "stars": "PZ native", "stars_sun_arcturus_fts_hband_shared": "PZ Sun+Arcturus"}
+ARM_LABELS = {"astra": "Astra ASPCAP", "stars": "PZ native", "stars_sun_arcturus_fts_hband_shared": "PZ Sun+Arcturus",
+              "free_stars_sun_arcturus_fts_hband_shared": "PZ Sun+Arcturus, 10 par."}
 
 
 def _astra_figure(obs, predictions, pixels, windows, sdss_id, row) -> None:
@@ -701,7 +711,8 @@ def _astra_figure(obs, predictions, pixels, windows, sdss_id, row) -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    colors = {"astra": "C1", "stars": "C0"}
+    colors = {"astra": "C1", "stars": "C0", "stars_sun_arcturus_fts_hband_shared": "C2",
+              "free_stars_sun_arcturus_fts_hband_shared": "C3"}
     fig, axes = plt.subplots(2, len(windows), figsize=(15.0, 6.0), sharex="col", layout="constrained",
                              gridspec_kw={"height_ratios": (3, 1)})
     for column, (lo, hi) in enumerate(windows):
@@ -709,7 +720,7 @@ def _astra_figure(obs, predictions, pixels, windows, sdss_id, row) -> None:
         top, bottom = axes[0, column], axes[1, column]
         top.plot(obs.wave_nm[inside], np.where(pixels, obs.flux, np.nan)[inside], color="k", lw=0.8, label="APOGEE")
         for name, prediction in predictions.items():
-            color = colors.get(name, "C2")
+            color = colors.get(name, "C4")
             label = ARM_LABELS.get(name, name)
             top.plot(obs.wave_nm[inside], prediction[inside], color=color, lw=0.8, label=label)
             bottom.plot(obs.wave_nm[inside], np.where(pixels, obs.flux - prediction, np.nan)[inside], color=color, lw=0.7)
@@ -748,7 +759,8 @@ def main() -> None:
     free.add_argument("--max-physical", type=int, default=4)
     free.add_argument("--atomic-calibration", default=None)
     astra = sub.add_parser("astra")
-    astra.add_argument("--arms", nargs="*", default=["stars", "stars_sun_arcturus_fts_hband_shared"])
+    astra.add_argument("--arms", nargs="*", default=["stars", "stars_sun_arcturus_fts_hband_shared",
+                                                     "free_stars_sun_arcturus_fts_hband_shared"])
     astra.add_argument("--figure-star", type=int, default=96257659)
     args = parser.parse_args()
     {"fast": stage_fast, "collect": stage_collect, "free": stage_free, "astra": stage_astra}[args.stage](args)
