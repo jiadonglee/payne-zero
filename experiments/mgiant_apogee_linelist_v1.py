@@ -273,6 +273,51 @@ def stage_fixed(args) -> None:
     np.savez_compressed(RESULT_DIR / f"fixed_label_predictions{tag}.npz", **arrays)
 
 
+def stage_diagnose(args) -> None:
+    """Where the ten-parameter fit loses to the Astra model, and one feature without a Payne Zero line."""
+
+    from payne_zero_synthesis import synthesize
+
+    arm = "free_stars_sun_arcturus_fts_hband_shared"
+    rows = json.loads((fit.RESULT_ROOT / "astra_comparison.json").read_text())
+    predictions = np.load(fit.RESULT_ROOT / "astra_predictions.npz", allow_pickle=False)
+    stars = []
+    for row in rows:
+        sid = row["sdss_id"]
+        if row["astra"] is None:
+            continue
+        obs = fit.ApogeeObservation(sid)
+        pixels = predictions[f"{sid}_pixels"]
+        flux = predictions[f"{sid}_flux"].astype(np.float64)
+        excess = (obs.weight * (flux - predictions[f"{sid}_model_{arm}"]) ** 2
+                  - obs.weight * (flux - predictions[f"{sid}_model_astra"]) ** 2)[pixels]
+        ordered = np.cumsum(np.sort(excess)[::-1]) / excess.sum()
+        stars.append({"sdss_id": sid, "pixels": int(pixels.sum()),
+                      "pixel_fraction_for_half": float((np.searchsorted(ordered, 0.5) + 1) / excess.size),
+                      "pixel_fraction_for_80pc": float((np.searchsorted(ordered, 0.8) + 1) / excess.size)})
+    sid, feature_nm = args.star, args.feature_nm
+    q = json.loads((FREE_DIR / str(sid) / "summary.json").read_text())["physical"]["parameters"]
+    obs = fit.ApogeeObservation(sid)
+    model = fit.FreeAbundanceFastModel(obs, device=args.device, dtype=args.dtype,
+                                       cache_dir=Path(tempfile.mkdtemp()))
+    path = model.base_atmosphere(q["teff"], q["logg"], q["m_h"])
+    spectrum = synthesize(path, wavelength_start_nm=fit.SYNTH_VAC_NM[0], wavelength_end_nm=fit.SYNTH_VAC_NM[1],
+                          resolution=fit.R_GRID, molecular_lines=False, device=args.device, dtype=args.dtype)
+    atomic = model.project((np.asarray(spectrum.wavelength_nm, np.float64), np.asarray(spectrum.flux_total, np.float64),
+                            np.asarray(spectrum.flux_continuum, np.float64)), q["rv_km_s"], q["sigma_extra_km_s"])
+    flux = predictions[f"{sid}_flux"].astype(np.float64)
+    window = np.flatnonzero(np.abs(obs.wave_nm - feature_nm) < 0.03)
+    j = window[np.argmin(flux[window])]
+    feature = {"sdss_id": sid, "wavelength_nm": float(obs.wave_nm[j]), "data": float(flux[j]),
+               "astra": float(predictions[f"{sid}_model_astra"][j]),
+               "payne_zero_ten_parameter": float(predictions[f"{sid}_model_{arm}"][j]),
+               "payne_zero_atomic_only": float(atomic[j])}
+    RESULT_DIR.mkdir(parents=True, exist_ok=True)
+    (RESULT_DIR / "excess_diagnosis.json").write_text(json.dumps({"arm": arm, "stars": stars, "feature": feature},
+                                                                 indent=2))
+    print(json.dumps({"stars": stars, "feature": feature}, indent=2))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="stage", required=True)
@@ -281,8 +326,13 @@ def main() -> None:
     fixed.add_argument("--dtype", default="float32")
     fixed.add_argument("--arms", nargs="*", default=list(ARMS))
     fixed.add_argument("--labels", choices=("free", "astra"), default="free")
+    diagnose = sub.add_parser("diagnose")
+    diagnose.add_argument("--device", default="mps")
+    diagnose.add_argument("--dtype", default="float32")
+    diagnose.add_argument("--star", type=int, default=96257659)
+    diagnose.add_argument("--feature-nm", type=float, default=1672.746)
     args = parser.parse_args()
-    {"fixed": stage_fixed}[args.stage](args)
+    {"fixed": stage_fixed, "diagnose": stage_diagnose}[args.stage](args)
 
 
 if __name__ == "__main__":
