@@ -185,6 +185,49 @@ EOS 与分子平衡，vmic 只进合成，vsini 为网格上的线性临边昏�
 结果：`garching/free_stars_sun_arcturus_fts_hband_shared/<sdss_id>/`、`summary_free_sun_arcturus.json`、
 `astra_comparison.json`（含十参数组）、`astra_predictions.npz`。
 
+## APOGEE DR17 分子线表组
+
+诊断：十参数组相对 Astra 的 χ² 超额高度集中，50% 落在 0.4–2.3% 的像素（几十个特征）；多个特征
+（1672.7、1596.3、1659.9、1632.3 nm 等）上 PZ 线表完全没有谱线，而数据与 Astra 模型都有 10–20%
+深的吸收。按波长与 FeH 线位置的巧合做的归属不成立（APOGEE FeH 线密度下，随机位置有 54% 落在
+0.35 Å 内），单独加入 FeH 只改变 χ² 几个百分点。
+
+线表：DR17 SAS `speclib/linelists/turbospec/turbospec.20180901t20.{atoms,molec}`（Smith et al. 2021，
+空气波长，sha1 校验通过），`experiments/mgiant_apogee_linelist_v1.py` 转成 PZ 输入：原子线走 PZ 目录
+构建器，分子线（CN、CO 及同位素、OH、C2、FeH，按太阳同位素比例计入 log gf）写成编译分子数组并替换
+PZ 这五种分子的原生线；H/He 线、其他分子（H2O、TiO 等）、EOS、配分函数、连续谱不变。
+
+固定标签消融（`apogee_linelist_v1/fixed_label_chi2*.json`）：
+- 在 PZ 十参数标签上，APOGEE 原子线差 4–22%，APOGEE 分子线差约 2 倍（标签的 C、N 是按 PZ 分子线拟合的）。
+- 在 Astra 原始 FERRE 标签上，APOGEE 分子线把 χ² 降到 PZ 分子线的 0.53–0.67，APOGEE 原子线仍差 7–23%
+  （Sun+Arcturus 校准的原生原子线更好）。
+
+因此选 `apogee_molec`（Sun+Arcturus 校准原子线 + APOGEE 分子线），十参数重拟合（Garching Node-06，
+提交 185ebe7），有 Astra 模型的 7 颗从 Astra 原始标签起步，66450191 从十参数解起步。
+
+| sdss_id | 十参数（PZ 分子线） | 十参数（APOGEE 分子线） | [α/M]/[C/M]/[N/M] | χ²/像素 Astra / 新 / 旧 |
+|---|---|---|---|---|
+| 86810089 | 3245/1.01/−0.14 | 3421/0.59/−0.26 | +0.09/+0.03/+0.33 | 312 / 433 / 481 |
+| 65420634 | 3396/0.96/−0.11 | 3500/0.76/−0.18 | +0.05/+0.03/+0.22 | 173 / 239 / 288 |
+| 66450191 | 3475/1.11/+0.00 | 3570/0.89/−0.11 | +0.06/+0.05/+0.22 | — / 362 / 430 |
+| 114992838 | 3573/0.65/−0.55 | 3623/0.57/−0.61 | +0.16/+0.05/+0.26 | 168 / 274 / 313 |
+| 54948768 | 3727/1.35/−0.01 | 3694/1.26/+0.01 | +0.03/+0.05/+0.20 | 188 / 221 / 255 |
+| 96257659 | 3801/1.03/−0.34 | 3765/0.95/−0.39 | +0.12/−0.02/+0.36 | 111 / 166 / 188 |
+| 74858601 | 3809/0.70/−0.61 | 3791/0.73/−0.65 | +0.13/+0.02/+0.20 | 71 / 77 / 85 |
+| 77720555 | 3960/1.21/−0.43 | 3898/1.08/−0.49 | +0.13/−0.10/+0.34 | 300 / 405 / 430 |
+
+- χ²/像素相对 PZ 分子线十参数组再降 6–17%；χ²_Astra/χ²_PZ = 0.61–0.92（原 0.54–0.83）；Astra 在 21 个
+  星×芯片中的 19 个仍更好。残差 RMS 1.5–3.3%（Astra 1.3–2.8%）。
+- 相对 Astra：[C/M] 均值 +0.01（rms 0.02），[N/M] +0.05（rms 0.06），[α/M] +0.08，vmic −0.06 km/s；
+  Teff 相对原始 FERRE 均值 +18 K、rms 28 K（原 67 K），logg −0.12，[M/H] −0.14（rms 0.14）。
+  此前"PZ 富碳贫氮"来自 PZ 分子线表，不是恒星本身。
+- 精修 4/8 成功（2 门槛一致、2 驻定），4 颗达到 4 个收敛大气上限；收敛大气全部通过独立检查。
+  vsini 在 5 颗星上停在 0。
+- 起点取 Astra 标签，最终标签与 Astra 的接近程度部分可能来自起点；χ² 以 line search 停止。
+
+结果：`garching/free_apogee_molec/<sdss_id>/`、`summary_free_apogee_molec.json`、`astra_comparison.json`
+（含该组）、`apogee_linelist_v1/`。
+
 ## 局限
 
 - logg=0.5 是 v4 训练盒下界，6/8 颗停在这里；真实最优可能在盒外，Teff 与
@@ -215,7 +258,7 @@ EOS 与分子平衡，vmic 只进合成，vsini 为网格上的线性临边昏�
   - `garching/stars_sun_arcturus_fts_hband_shared/<sdss_id>/`、`summary_sun_arcturus.json`、
     `labels_vs_aspcap_sun_arcturus.png`
   - `astra_comparison.json`、`astra_vs_pz_96257659.png`
-  - 来源记录以 `launch_status.json` 为准（原生组提交 6a9edb2、校准组提交 782fd5c、十参数组提交 603d3e8，各含脚本 md5、
+  - 来源记录以 `launch_status.json` 为准（原生组提交 6a9edb2、校准组提交 782fd5c、十参数组提交 603d3e8、APOGEE 分子线组提交 185ebe7，各含脚本 md5、
     进程号与日志路径）；Garching 运行目录不是
     本仓库的 git 检出，各星 `summary.json` 的 `code_state` 字段不代表实际代码状态
 - Garching 运行目录：`/nexus/posix0/MIA-astro-env/hxr/jdli/payne-zero-mgiant-eso-pzfit-20260924`
