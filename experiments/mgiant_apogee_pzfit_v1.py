@@ -318,18 +318,37 @@ def stage_free(args) -> None:
     star = _stars()[args.star]
     calibration = None if args.atomic_calibration is None else Path(args.atomic_calibration).resolve()
     base_arm = "stars" if calibration is None else f"stars_{calibration.stem}"
-    out = RESULT_ROOT / f"free_{base_arm}" / str(args.star)
+    if args.linelist == "native":
+        out = RESULT_ROOT / f"free_{base_arm}" / str(args.star)
+        base = json.loads((RESULT_ROOT / base_arm / str(args.star) / "summary.json").read_text())
+        start5 = (base.get("physical") or {}).get("parameters") or base["fast"]["parameters"]
+        start = [start5["teff"], start5["logg"], start5["m_h"], 0.0, 0.0, 0.0, 2.0, start5["rv_km_s"],
+                 start5["sigma_extra_km_s"], 3.0]
+        bundle, calibration_metadata = (None, None) if calibration is None else calibrated_bundle(
+            calibration, device=args.device, dtype=args.dtype)
+    else:
+        # APOGEE DR17 line-list arm, started from the ten-parameter Sun/Arcturus solution.
+        from experiments import mgiant_apogee_linelist_v1 as linelist
+
+        out = RESULT_ROOT / f"free_{args.linelist}" / str(args.star)
+        base_arm = "free_stars_sun_arcturus_fts_hband_shared"
+        base = json.loads((RESULT_ROOT / base_arm / str(args.star) / "summary.json").read_text())
+        p = dict((base.get("physical") or {}).get("parameters") or base["fast"]["parameters"])
+        astra = next((r["astra"] for r in json.loads((RESULT_ROOT / "astra_comparison.json").read_text())
+                      if r["sdss_id"] == args.star), None)
+        if args.start == "astra" and astra is not None:
+            p.update(teff=astra["teff"], logg=astra["logg"], m_h=astra["m_h_atm"], alpha_m=astra["alpha_m_atm"],
+                     c_m=astra["c_m_atm"], n_m=astra["n_m_atm"], vmic_km_s=astra["v_micro"])
+        start = [p[name] for name in FREE_NAMES]
+        start[FREE_NAMES.index("vsini_km_s")] = max(start[FREE_NAMES.index("vsini_km_s")], 3.0)
+        bundles, calibration_metadata = linelist.build_bundles(args.device, args.dtype, out / "linelist_scratch")
+        bundle = bundles[args.linelist]
     out.mkdir(parents=True, exist_ok=True)
-    base = json.loads((RESULT_ROOT / base_arm / str(args.star) / "summary.json").read_text())
-    start5 = (base.get("physical") or {}).get("parameters") or base["fast"]["parameters"]
-    bundle, calibration_metadata = (None, None) if calibration is None else calibrated_bundle(
-        calibration, device=args.device, dtype=args.dtype)
     obs = ApogeeObservation(args.star)
     fast = FreeAbundanceFastModel(obs, device=args.device, dtype=args.dtype, cache_dir=out / "native_cache",
                                   bundle=bundle)
-    rv0 = start5["rv_km_s"]
-    initial = np.array([start5["teff"], start5["logg"], start5["m_h"], 0.0, 0.0, 0.0, 2.0, rv0,
-                        start5["sigma_extra_km_s"], 3.0])
+    rv0 = start[FREE_NAMES.index("rv_km_s")]
+    initial = np.array(start, dtype=np.float64)
     lower = np.array([BOX["teff"][0], BOX["logg"][0], BOX["m_h"][0], FREE_BOUNDS["alpha_m"][0],
                       FREE_BOUNDS["c_m"][0], FREE_BOUNDS["n_m"][0], FREE_BOUNDS["vmic_km_s"][0], rv0 - 5.0, 0.0,
                       FREE_BOUNDS["vsini_km_s"][0]])
@@ -352,7 +371,7 @@ def stage_free(args) -> None:
         "sdss_id": args.star,
         "spectrum": str(obs.path.relative_to(PROJECT_ROOT)),
         "aspcap": {k: star[k] for k in ("teff", "logg", "fe_h", "alpha_m", "mh", "v_rad", "file_snr")},
-        "start_arm": base_arm,
+        "start_arm": base_arm if args.linelist == "native" else f"{args.start} ({base_arm} for RV and broadening)",
         "start": dict(zip(FREE_NAMES, map(float, initial))),
         "fast": {"parameters": dict(zip(FREE_NAMES, map(float, fast_result.parameters))),
                  "faces": [f for f in _faces_free(fast_result.parameters, lower, upper)],
@@ -362,8 +381,9 @@ def stage_free(args) -> None:
                  "evaluations": fast.evaluations, "syntheses": fast.syntheses, "seconds": time.time() - started},
         "n_pixels": int(obs.mask.sum()),
         "config": {"device": args.device, "dtype": args.dtype, "max_iterations": args.max_iterations,
-                   "linelist": "native Payne Zero" if calibration is None else
-                   f"native Payne Zero + atomic overlay {calibration.relative_to(PROJECT_ROOT)}",
+                   "linelist": (args.linelist if args.linelist != "native" else
+                                "native Payne Zero" if calibration is None else
+                                f"native Payne Zero + atomic overlay {calibration.relative_to(PROJECT_ROOT)}"),
                    "atomic_calibration": calibration_metadata, "r_grid": R_GRID, "instrument_r": INSTRUMENT_R,
                    "structure": "v4 / converged atmosphere at (Teff, logg, [M/H], alpha=0, vmic=2); alpha, C, N and "
                                 "vmic applied in the synthesis at fixed temperature and gas pressure",
@@ -759,6 +779,11 @@ def main() -> None:
     free.add_argument("--max-iterations", type=int, default=12)
     free.add_argument("--max-physical", type=int, default=4)
     free.add_argument("--atomic-calibration", default=None)
+    free.add_argument("--linelist", choices=("native", "apogee_atoms", "apogee_molec", "apogee_all"),
+                      default="native")
+    free.add_argument("--start", choices=("astra", "free"), default="astra",
+                      help="line-list arms: start at the Astra raw FERRE labels where available, else the "
+                           "ten-parameter Sun/Arcturus solution")
     astra = sub.add_parser("astra")
     astra.add_argument("--arms", nargs="*", default=["stars", "stars_sun_arcturus_fts_hband_shared",
                                                      "free_stars_sun_arcturus_fts_hband_shared"])
