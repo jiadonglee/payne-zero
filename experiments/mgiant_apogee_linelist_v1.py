@@ -121,16 +121,16 @@ def apogee_atomic_parsed(window_nm) -> dict[str, np.ndarray]:
     }
 
 
-def apogee_molecular_compiled(native: dict) -> tuple[dict, dict]:
+def apogee_molecular_compiled(native: dict, molecules: dict = MOLECULES) -> tuple[dict, dict]:
     """APOGEE CN, CO, OH, C2 and FeH lines as compiled arrays on the native grid."""
 
     ratio, origin = float(native["log_grid_ratio"]), int(native["grid_origin_index"])
     grid_wave = lambda index: np.exp((np.asarray(index, np.float64) - 1 + origin) * ratio)
     parts, counts = [], {}
     for code, _, rows in read_turbospec(MOLEC):
-        if code not in MOLECULES:
+        if code not in molecules:
             continue
-        name, species_id, log_fraction = MOLECULES[code]
+        name, species_id, log_fraction = molecules[code]
         wave = eso.air_to_vacuum_A(rows[:, 0]) / 10.0
         keep = (wave > grid_wave(1)) & (wave < grid_wave(native["center_index_1based"].max()))
         wave, chi, loggf = wave[keep], rows[keep, 1], rows[keep, 2] + log_fraction
