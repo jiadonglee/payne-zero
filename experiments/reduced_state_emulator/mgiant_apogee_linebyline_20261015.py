@@ -191,7 +191,11 @@ def stage_calibrate(args):
     history.append(dict(iteration=0, objective=objective, seconds=0.0))
     for iteration in range(1, MAX_ITERATIONS + 1):
         previous = objective
-        objective = float(optimizer.step(closure))
+        optimizer.step(closure)
+        with torch.no_grad():
+            values = corrections()
+            objective = (sum(float((s.residual(values) ** 2).sum()) for s in stars) / scale
+                         + float((values / PRIOR_DEX).pow(2).sum()))
         history.append(dict(iteration=iteration, objective=objective, seconds=time.time() - started))
         print(json.dumps(history[-1]), flush=True)
         if previous - objective < TOLERANCE * previous:

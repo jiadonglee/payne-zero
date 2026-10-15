@@ -22,7 +22,8 @@ molecules and the atomic lines stay as in the per-group arm.
 
 ## Calibration
 
-- Stars: the 44 calibration stars of the sample split, each at the solved
+- Stars: the calibration stars of the sample split with a solved reference
+  atmosphere (49 of 50), each at the solved
   atmosphere, radial velocity, extra broadening and v sin i of its reference
   fit at the raw ASPCAP labels. The atmospheres are not re-solved.
 - Model: the per-group calibrated list plus one additive log gf correction
