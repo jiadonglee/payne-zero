@@ -4,7 +4,8 @@ At each trial set of labels (Teff, logg, [M/H], [alpha/M], vmic, [C/M],
 [N/M], [O/M]=[alpha/M]) the final six-profile network gives the fast-model
 atmosphere, synthesized over 1510-1700 nm with the Sun/Arcturus-calibrated
 atomic lines and the APOGEE DR17 molecular lines; the calibrated arm adds
-per-group log gf offsets to the molecular lines. Refinement solves the
+per-group log gf offsets to the molecular lines, and the line-by-line arm per-line
+corrections of the CN, CO and OH lines. Refinement solves the
 atmosphere from the final two-profile network, rebuilt at the composition,
 until it meets the stability rule of the M-giant test (cap 90). The data are divided
 by the file continuum only; a per-chip cubic B-spline continuum is profiled
@@ -147,16 +148,39 @@ class Observation(apogee.ApogeeObservation):
         self.mask = good & in_chip
 
 
-def bundle_for(offsets, device, dtype, scratch):
-    """Sun/Arcturus atomic lines with the APOGEE DR17 molecular lines, shifted in log gf by group."""
+# APOGEE CN, CO and OH lines, the lines of the line-by-line calibration.
+LINE_BY_LINE_SPECIES = (270, 276, 258)
+
+
+def molecular_table(offsets, line_offsets=None):
+    """Native and APOGEE molecular arrays with the per-group offsets and optional per-line corrections.
+
+    Returns the merged arrays and the indices of the APOGEE CN, CO and OH lines in them.
+    """
     from payne_zero_synthesis import pipeline as pz
 
-    base, _ = apogee.calibrated_bundle(linelist.CALIBRATION, device=device, dtype=dtype)
     molecules = {code: (name, species, fraction + offsets.get(name, 0.0)
                         + (offsets.get("13C", 0.0) if ".013" in code else 0.0))
                  for code, (name, species, fraction) in linelist.MOLECULES.items()}
     native = pz.SynthesisPipeline._compile_molecular(apogee.SYNTH_VAC_NM[0], apogee.SYNTH_VAC_NM[1], apogee.R_GRID)
-    merged, _ = linelist.apogee_molecular_compiled(native, molecules)
+    merged, inventory = linelist.apogee_molecular_compiled(native, molecules)
+    start = inventory["native_lines_kept"]
+    selected = start + np.flatnonzero(np.isin(merged["species_code"][start:], LINE_BY_LINE_SPECIES))
+    if line_offsets is not None:
+        with np.load(ROOT / line_offsets) as d:
+            for key in ("center_index_1based", "species_code", "lower_excitation_cm"):
+                if not np.array_equal(d[key], merged[key][selected]):
+                    raise ValueError(f"{line_offsets} does not match the compiled lines in {key}")
+            strength = merged["classical_line_strength"].astype(np.float64)
+            strength[selected] *= 10.0 ** d["corrections_dex"]
+            merged["classical_line_strength"] = strength.astype(merged["classical_line_strength"].dtype)
+    return merged, selected
+
+
+def bundle_for(offsets, device, dtype, scratch, line_offsets=None):
+    """Sun/Arcturus atomic lines with the APOGEE DR17 molecular lines, shifted in log gf by group and by line."""
+    base, _ = apogee.calibrated_bundle(linelist.CALIBRATION, device=device, dtype=dtype)
+    merged, _ = molecular_table(offsets, line_offsets)
     invariants, count = linelist._molecular_invariants(base, merged, device)
     return dataclasses.replace(base, molecular_invariants=invariants, n_molecular=count)
 
@@ -340,11 +364,12 @@ def stage_fit(args):
                         fit_normalized_spectrum, refine_with_physical_atmosphere)
 
     star = star_record(args.star)
-    offsets = {} if args.offsets is None else json.loads(Path(args.offsets).read_text())["offsets"]
+    record = {} if args.offsets is None else json.loads(Path(args.offsets).read_text())
+    offsets = record.get("offsets", {})
     out = OUT / arm_name(args) / str(args.star)
     out.mkdir(parents=True, exist_ok=True)
     obs = Observation(args.star)
-    bundle = bundle_for(offsets, args.device, args.dtype, out / "scratch")
+    bundle = bundle_for(offsets, args.device, args.dtype, out / "scratch", record.get("line_offsets"))
     model = NetworkModel(obs, bundle, args.device, args.dtype, out)
     aspcap = star["raw"]
     first = (dict(teff=aspcap["teff"], logg=aspcap["logg"], m_h=aspcap["m_h_atm"], alpha_m=aspcap["alpha_m_atm"],
