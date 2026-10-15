@@ -31,7 +31,7 @@ molecules and the atomic lines stay as in the per-group arm.
   evaluation adds the 32,715 lines, solves the transfer, applies the fit's
   rotation and instrument operators, and profiles the per-chip B-spline
   continuum by weighted least squares.
-- Objective: summed χ² of the 44 stars divided by their median χ² per pixel
+- Objective: summed χ² of these stars divided by their median χ² per pixel
   at zero correction, plus Σ(δ/0.25 dex)²; δ bounded to ±1 dex through a tanh
   map. Gradients by automatic differentiation (checked against central
   differences on a 1 nm window: relative agreement 1e-4).
