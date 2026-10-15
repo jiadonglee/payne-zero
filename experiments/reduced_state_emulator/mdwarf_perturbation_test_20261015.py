@@ -95,6 +95,8 @@ def deviation(path, control):
     n = min(len(path["temperature"]), len(control["temperature"]))
     values = []
     for k in range(n):
+        if not (np.isfinite(path["column_mass"][k]).all() and np.isfinite(path["temperature"][k]).all()):
+            break
         x0, x = np.log10(control["column_mass"][k]), np.log10(path["column_mass"][k])
         inside = (x0 >= x.min()) & (x0 <= x.max())
         t = np.interp(x0[inside], x, path["temperature"][k])
@@ -124,7 +126,9 @@ def collect(root):
             path = dict(np.load(directory / kind / "path.npz"))
             d = deviation(path, control)
             factors = [d[k + SEGMENT] / d[k] for k in range(0, len(d) - SEGMENT, SEGMENT) if d[k] > FLOOR]
+            finite = np.isfinite(path["column_mass"]).all(axis=1) & np.isfinite(path["temperature"]).all(axis=1)
             entry["perturbed"][kind] = dict(iterations=runs[kind]["iterations"], error=runs[kind]["error"],
+                first_nonfinite_iteration=None if finite.all() else int(np.flatnonzero(~finite)[0]),
                 deviation_start=float(d[0]), deviation_end=float(d[-1]),
                 deviation_max=float(d.max()), deviation_every_segment=d[::SEGMENT].tolist(),
                 factor_per_segment=factors,
