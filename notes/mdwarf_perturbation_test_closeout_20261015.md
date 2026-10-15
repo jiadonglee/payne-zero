@@ -33,7 +33,7 @@ All paths start at 1e-3.
 - A change that alternates in sign from layer to layer does not decay at any
   dwarf (median factor per five iterations 0.99–1.01 where it stays bounded).
   At 7 dwarfs it grows by 1.4–3.2× in the first ten iterations and then holds at
-  1.4–2.9e-3. At 4 dwarfs, 3400 and 3600 K at log g 5.0, [M/H] = +0.5 and 3800
+  1.4–2.8e-3. At 4 dwarfs, 3400 and 3600 K at log g 5.0, [M/H] = +0.5 and 3800
   and 4000 K at [M/H] = −1.0, it grows by two to three orders of magnitude to
   0.48–1.0, and at 4000 K, [M/H] = −1.0 the atmosphere becomes non-finite at
   iteration 42.
