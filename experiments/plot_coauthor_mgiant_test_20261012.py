@@ -3,16 +3,16 @@ import argparse
 import json
 from pathlib import Path
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+import sys
+
 import numpy as np
 
-plt.rcParams.update({"font.size": 11, "axes.labelsize": 11, "xtick.labelsize": 10, "ytick.labelsize": 10})
 REPO = Path(__file__).resolve().parents[1]
-STYLE = dict(two_profile=("two-profile network", "-", "#1565c0"),
-             six_profile=("six-profile network", "--", "#d55e00"),
-             marcs_node=("MARCS grid node", ":", "#2e7d32"))
+sys.path.insert(0, str(REPO / "experiments"))
+import matplotlib.pyplot as plt  # noqa: E402
+import paper_style as ps  # noqa: E402
+
+ARMS = ("two_profile", "six_profile", "marcs_node")
 
 
 def main():
@@ -26,30 +26,31 @@ def main():
     n = len(with_reference)
     args.out.mkdir(parents=True, exist_ok=True)
 
-    fig, ax = plt.subplots(figsize=(4.6, 3.4), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(ps.COLUMN, 3.0), constrained_layout=True)
     iterations = np.arange(0, 91)
-    for arm, (label, style, color) in STYLE.items():
+    for arm in ARMS:
+        role = ps.ROLES[arm]
         stable = np.asarray([r["arms"][arm]["stable_iteration"] for r in with_reference if r["arms"][arm]["success"]])
-        ax.step(iterations, [(stable <= k).sum() / n for k in iterations], where="post",
-                ls=style, color=color, label=label)
-    ax.set(xlabel="Solver iteration", ylabel="Fraction of test labels with a success", xlim=(0, 90), ylim=(0, 1.02))
-    ax.legend(fontsize=9, loc="upper left")
-    ax.grid(alpha=.2)
-    fig.savefig(args.out / "fig_mconv.pdf")
-    plt.close(fig)
+        fraction = [(stable <= k).sum() / n for k in iterations]
+        ax.step(iterations, fraction, where="post", color=role["color"], ls=role["ls"],
+                label=f"{role['label']}, {fraction[-1]:.0%}")
+    ax.set(xlabel="Solver iteration", ylabel="Fraction of test labels converged", xlim=(0, 90), ylim=(0, 1.02))
+    fig.legend(*ax.get_legend_handles_labels(), loc="outside lower center", ncol=1)
+    ps.save(fig, args.out / "fig_mconv.pdf")
 
-    fig, ax = plt.subplots(figsize=(4.6, 3.4), constrained_layout=True)
-    for arm, (label, style, color) in STYLE.items():
+    fig, ax = plt.subplots(figsize=(ps.COLUMN, 2.5), constrained_layout=True)
+    for arm in ARMS:
+        role = ps.ROLES[arm]
         values = np.sort([r["arms"][arm]["start_difference"]["normalized_flux"] for r in with_reference
                           if "start_difference" in r["arms"][arm]])
         # Starts without a spectrum stay in the denominator.
-        ax.step(values, np.arange(1, len(values) + 1) / n, where="post", ls=style, color=color, label=label)
+        ax.step(values, np.arange(1, len(values) + 1) / n, where="post", color=role["color"], ls=role["ls"],
+                label=role["label"])
+    ax.axvline(5e-3, color=ps.MUTED, lw=0.7, ls=(0, (1, 2)))
     ax.set(xscale="log", xlabel="Largest normalized-flux difference before solving",
-           ylabel="Fraction of test labels below", ylim=(0, 1.02))
-    ax.legend(fontsize=9, loc="upper left")
-    ax.grid(alpha=.2)
-    fig.savefig(args.out / "fig_mspectral.pdf")
-    plt.close(fig)
+           ylabel="Fraction of test labels", ylim=(0, 1.02))
+    ax.legend(loc="upper left")
+    ps.save(fig, args.out / "fig_mspectral.pdf")
 
 
 if __name__ == "__main__":

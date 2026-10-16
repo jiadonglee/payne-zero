@@ -1,14 +1,17 @@
 """Coverage of the bootstrapped M-giant corpus and the admitted fraction per round."""
 import json
 from pathlib import Path
+import sys
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Rectangle
 import numpy as np
 
-plt.rcParams.update({"font.size": 11, "axes.labelsize": 11, "xtick.labelsize": 10, "ytick.labelsize": 10})
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import matplotlib.pyplot as plt  # noqa: E402
+import paper_style as ps  # noqa: E402
+
+METALLICITY = LinearSegmentedColormap.from_list("metallicity", ["#cfe3fb", "#5ea1ee", ps.BLUE, "#003a75"])
 ROOT = Path(__file__).resolve().parents[1] / "results/coauthor_validation_20261005"
 OUT = Path(__file__).resolve().parents[1] / "paper/figs"
 
@@ -20,36 +23,48 @@ def main():
     setup = json.loads((ROOT / "mgiant_cno_multiparent/setup.json").read_text())
     summary = json.loads((ROOT / "mgiant_bootstrap_summary.json").read_text())
     box = summary["holdout_box"]
-    fig, axes = plt.subplots(1, 2, figsize=(9, 3.6), constrained_layout=True,
-                             gridspec_kw=dict(width_ratios=(1.5, 1)))
+    fig, axes = plt.subplots(1, 2, figsize=(ps.PAGE, 2.8), constrained_layout=True,
+                             gridspec_kw=dict(width_ratios=(1.6, 1)))
     ax = axes[0]
-    points = ax.scatter(labels[:, 0], labels[:, 1], c=labels[:, 2], s=9, cmap="viridis", vmin=-1.0, vmax=0.5,
-                        linewidths=0)
+    ax.grid(False)
+    points = ax.scatter(labels[:, 0], labels[:, 1], c=labels[:, 2], s=7, cmap=METALLICITY, vmin=-1.0, vmax=0.5,
+                        linewidths=0, alpha=0.9)
     for parent in setup["parents"]:
         t, g = parent["labels"]["effective_temperature"], parent["labels"]["log_surface_gravity"]
         if parent["role"] == "holdout":
             ax.add_patch(Rectangle((t - box["effective_temperature"], g - box["log_surface_gravity"]),
                                    2 * box["effective_temperature"], 2 * box["log_surface_gravity"],
-                                   fill=False, ec="#d55e00", lw=1.0))
+                                   fill=False, ec=ps.ORANGE, lw=1.0))
         else:
-            ax.scatter(t, g, marker="s", s=28, facecolors="none", edgecolors="k", linewidths=0.8)
+            ax.scatter(t, g, marker="s", s=20, facecolors="none", edgecolors=ps.INK, linewidths=0.7)
     ax.set(xlabel=r"$T_{\rm eff}$ (K)", ylabel=r"$\log g$", xlim=(4080, 2920), ylim=(2.65, 0.35))
-    fig.colorbar(points, ax=ax, label=r"$[\mathrm{M}/\mathrm{H}]$", pad=0.01)
-    ax.grid(alpha=.2)
+    handles = [plt.Line2D([], [], marker="s", ls="", mfc="none", mec=ps.INK, ms=4.5, mew=0.7),
+               Rectangle((0, 0), 1, 1, fill=False, ec=ps.ORANGE, lw=1.0)]
+    ax.legend(handles, ["Development parent", "Holdout box"], loc="lower right", bbox_to_anchor=(1.0, 1.0),
+              ncol=2, fontsize=7, borderaxespad=0.2, handletextpad=0.4, columnspacing=1.2)
+    bar = fig.colorbar(points, ax=ax, pad=0.01, aspect=30)
+    bar.set_label(r"$[\mathrm{M}/\mathrm{H}]$")
+    bar.outline.set_visible(False)
+    ps.panel(ax, "a")
     ax = axes[1]
     rounds = summary["rounds"]
     x = np.arange(1, len(rounds) + 1)
     all_labels = [rounds[str(k)]["admitted_fraction"] for k in x]
     with_reference = [rounds[str(k)]["admitted_fraction_with_reference"] for k in x]
-    ax.bar(x - 0.18, all_labels, width=0.34, color="#1565c0", label="all labels")
-    ax.bar(x + 0.18, with_reference, width=0.34, color="#90caf9", label="with a reference")
+    for shift, values, color, label in ((-0.19, all_labels, ps.BLUE, "All labels"),
+                                        (0.19, with_reference, "#8fbdf3", "Labels with a reference")):
+        bars = ax.bar(x + shift, values, width=0.36, color=color, label=label)
+        for rect, value in zip(bars, values):
+            ax.text(rect.get_x() + rect.get_width() / 2, value + 0.015, f"{value:.0%}", ha="center", va="bottom",
+                    fontsize=6.5, color=ps.SECONDARY)
     ax.set_xticks(x, ["1\nnear parents", "2\nfull range", "3\ncool corner"])
-    ax.set(xlabel="Bootstrapping round", ylabel="Admitted fraction", ylim=(0, 1.05))
-    ax.legend(fontsize=9, loc="lower left")
-    ax.grid(alpha=.2, axis="y")
+    ax.tick_params(axis="x", length=0)
+    ax.set(xlabel="Bootstrapping round", ylabel="Admitted fraction", ylim=(0, 1.12), yticks=[0, 0.25, 0.5, 0.75, 1])
+    ax.legend(loc="lower right", bbox_to_anchor=(1.0, 1.0), ncol=2, fontsize=7, borderaxespad=0.2,
+              handlelength=1.0, handletextpad=0.4, columnspacing=1.0)
+    ps.panel(ax, "b")
     OUT.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT / "fig_mcover.pdf")
-    fig.savefig(ROOT / "fig_mcover.png", dpi=180)
+    ps.save(fig, OUT / "fig_mcover.pdf")
 
 
 if __name__ == "__main__":
