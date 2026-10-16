@@ -26,6 +26,7 @@ import numpy as np
 MAX_BLOCKS = 4
 DLNT_LIMIT = 1e-4
 STARTS = ("payne_zero_marcs", "kurucz_grid")
+CONTROLS = {"t3600_g4.50_m+0.00", "t3800_g4.50_m+0.00", "t3400_g5.00_m+0.50"}
 
 
 def read_iterations(path):
@@ -173,14 +174,50 @@ def worker(payload):
     return record
 
 
+def collect(root, gate_path):
+    """The package criterion and, as a diagnostic, the Payne Zero flux gate on the last ATLAS12 iteration."""
+    gate = json.loads(gate_path.read_text())["thresholds"]
+    rows = []
+    for path in sorted((root / "runs").glob("*/record.json")):
+        record = json.loads(path.read_text())
+        files = sorted(path.parent.glob("block*.iter"))
+        error = abs(read_iterations(files[-1])[-1][:, 11]) if files else np.asarray([np.inf])
+        statistics = dict(median=float(np.median(error)), p95=float(np.percentile(error, 95)), max=float(error.max()))
+        record["flux_error_percent"] = statistics
+        record["flux_gate"] = bool(statistics["median"] <= gate["median_absolute_flux_error_percent"]
+                                   and statistics["p95"] <= gate["p95_absolute_flux_error_percent"]
+                                   and statistics["max"] <= gate["maximum_absolute_flux_error_percent"])
+        rows.append(record)
+    controls = [r for r in rows if r["state"]["name"] in CONTROLS]
+    failing = [r for r in rows if r["state"]["name"] not in CONTROLS]
+    summary = dict(gate=gate, controls=sorted(CONTROLS),
+                   counts={start: dict(
+                       failing_states=sum(r["start"] == start for r in failing),
+                       failing_converged=sum(r["start"] == start and r["converged"] for r in failing),
+                       failing_flux_gate=sum(r["start"] == start and r["flux_gate"] for r in failing),
+                       controls_converged=sum(r["start"] == start and r["converged"] for r in controls),
+                       controls_flux_gate=sum(r["start"] == start and r["flux_gate"] for r in controls))
+                       for start in STARTS},
+                   control_difference_max=max(r["difference_from_payne_zero"]["max"] for r in controls
+                                              if "difference_from_payne_zero" in r),
+                   rows=rows)
+    (root / "comparison.json").write_text(json.dumps(summary, indent=2) + "\n")
+    print(json.dumps(summary["counts"], indent=1))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True, help="directory with states.json and decks/")
-    parser.add_argument("--kurucz-home", type=Path, required=True)
+    parser.add_argument("--kurucz-home", type=Path)
+    parser.add_argument("--collect", action="store_true", help="summarize finished runs against the flux gate")
+    parser.add_argument("--gate", type=Path, default=Path("results/m_star_emulator_v1r2_marcs100/flux_gate.json"))
     parser.add_argument("--references", type=Path, help="JSON map state name -> converged Payne Zero product")
     parser.add_argument("--workers", type=int, default=9)
     args = parser.parse_args()
     root = args.root.resolve()
+    if args.collect:
+        collect(root, args.gate)
+        return
     states = json.loads((root / "states.json").read_text())["states"]
     references = json.loads(args.references.read_text()) if args.references else {}
     payloads = [(s, start, args.kurucz_home.resolve(), root, references.get(s["name"])) for start in STARTS for s in states]
