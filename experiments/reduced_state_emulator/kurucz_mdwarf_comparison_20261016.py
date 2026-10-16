@@ -3,9 +3,10 @@
 Each dwarf is started twice: from the MARCS node as rebuilt by Payne Zero
 (the start of the Payne Zero recovery, written as a Kurucz deck), and from
 the nearest model of the Kurucz initial-atmosphere grid (the default of the
-``kurucz`` package). ATLAS12 runs in blocks of 30 iterations with molecules,
-TiO and H2O line opacity and the convection settings of the package, at most
-four blocks (120 iterations). Convergence is the criterion of the package's
+``kurucz`` package). ATLAS12 runs in blocks of 30 iterations with the input
+cards of the package's ``atlas12`` (molecules, TiO and H2O line opacity,
+convection with overshoot), at most four blocks (120 iterations); each block
+starts from the model of the previous one. Convergence is the criterion of the package's
 ``checkconv``: the largest relative temperature change between the last two
 iterations in layers 40-75 is below 1e-4. SYNTHE is not run.
 """
@@ -16,6 +17,7 @@ import io
 import json
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import time
 
@@ -56,47 +58,110 @@ def temperature_difference(mass, temperature, reference_mass, reference_temperat
     return dict(max=float(relative.max()), p95=float(np.percentile(relative, 95)))
 
 
+ATLAS12_READ_LINES = """MOLECULES ON
+READ MOLECULES
+READ PUNCH
+READ LINES
+CONVECTION OVER 1.25 0 36
+ITERATIONS 1 PRINT 1 PUNCH 0
+BEGIN
+END
+"""
+ATLAS12_BLOCK = """MOLECULES ON
+READ MOLECULES
+READ PUNCH
+TITLE ATLAS12 l/H=1.25
+OPACITY ON LINES
+OPACITY ON XLINES
+CONVECTION OVER 1.25 0 36
+ITERATIONS 30
+PRINT 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+PUNCH 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2
+SCALE MODEL 80 -6.875 0.125 {teff:.0f}. {logg:.4f}
+VTURB {vturb:.2E}
+BEGIN
+END
+"""
+
+
+def run_blocks(kurucz, work, current, teff, logg, vturb):
+    """ATLAS12 blocks of the ``kurucz`` package, with the input kept apart from the output.
+
+    Returns the number of blocks, whether the last block wrote a model, and the iteration files.
+    """
+    iteration_files = []
+    for block in range(1, MAX_BLOCKS + 1):
+        tmp = work / f"block{block}"
+        shutil.rmtree(tmp, ignore_errors=True)
+        tmp.mkdir(parents=True)
+        kurucz._setup_atlas12_links(tmp, current)
+        with open(tmp / "read_lines.out", "w") as f:
+            subprocess.run([str(kurucz.BIN_DIR / "atlas12.exe")], input=ATLAS12_READ_LINES, text=True, stdout=f, cwd=tmp)
+        if (tmp / "fort.12").exists():
+            shutil.move(tmp / "fort.12", tmp / "tmp.bin")
+        for f in tmp.glob("fort.*"):
+            f.unlink()
+        (tmp / "fort.3").symlink_to(current)
+        (tmp / "fort.19").symlink_to(kurucz.KURUCZ_HOME / "lines" / "nltelinobsat12.bin")
+        (tmp / "fort.2").symlink_to(kurucz.KURUCZ_HOME / "lines" / "molecules.new")
+        (tmp / "fort.12").symlink_to(tmp / "tmp.bin")
+        with open(tmp / "atlas12.out", "w") as f:
+            subprocess.run([str(kurucz.BIN_DIR / "atlas12.exe")], text=True, stdout=f, cwd=tmp,
+                           input=ATLAS12_BLOCK.format(teff=teff, logg=logg, vturb=vturb * 1.0e5))
+        if (tmp / "fort.66").exists():
+            iteration_files.append(work / f"block{block}.iter")
+            shutil.copy(tmp / "fort.66", iteration_files[-1])
+        if not (tmp / "fort.7").exists():
+            return block, False, iteration_files
+        result = work / f"block{block}.atm"
+        shutil.copy(tmp / "fort.7", result)
+        subprocess.run([str(kurucz.BIN_DIR / "checkconv.exe")], cwd=tmp, capture_output=True)
+        failed = (tmp / "model.failed").exists()
+        (tmp / "tmp.bin").unlink(missing_ok=True)
+        for f in tmp.glob("fort.*"):
+            f.unlink()
+        current = result
+        if not failed:
+            return block, True, iteration_files
+    return MAX_BLOCKS, True, iteration_files
+
+
 def worker(payload):
     state, start, kurucz_home, root, reference = payload
     sys.path.insert(0, str(kurucz_home))
     import kurucz
 
-    kurucz.synthe = lambda *args, **kwargs: None
-    if start == "payne_zero_marcs":
-        deck = root / state["deck"]
-        kurucz.generate_atmosphere = lambda output_file, *args, **kwargs: shutil.copy(deck, output_file)
     name = f"{state['name']}_{start}"
-    log = io.StringIO()
-    started = time.monotonic()
-    with contextlib.redirect_stdout(log):
-        result = kurucz.atlas12(name, state["effective_temperature"], state["log_surface_gravity"],
-                                mh=state["metallicity"], am=0.0, vturb=state["microturbulence_km_s"],
-                                max_iterations=MAX_BLOCKS - 1)
-    text = log.getvalue()
     out = root / "runs" / name
-    out.mkdir(parents=True, exist_ok=True)
-    (out / "driver.log").write_text(text)
-    base = kurucz_home / "grids" / name
-    record = dict(name=name, state=state, start=start, crashed=result is None,
-                  blocks=text.count("Running atlas12.exe (main calculation)"), seconds=time.monotonic() - started)
-    iterations = sorted((base / "outfiles").glob("*.iter"))
-    if iterations:
-        shutil.copy(iterations[0], out / "last_block.iter")
-        blocks = read_iterations(iterations[0])
-        if len(blocks) >= 2:
-            temperature = blocks[:, :, 2]
+    shutil.rmtree(out, ignore_errors=True)
+    out.mkdir(parents=True)
+    initial = out / "start.atm"
+    if start == "payne_zero_marcs":
+        shutil.copy(root / state["deck"], initial)
+    else:
+        with contextlib.redirect_stdout(io.StringIO()):
+            kurucz.generate_atmosphere(initial, state["effective_temperature"], state["log_surface_gravity"],
+                                       state["metallicity"], 0.0, state["microturbulence_km_s"])
+    started = time.monotonic()
+    blocks, wrote_model, iteration_files = run_blocks(kurucz, out, initial, state["effective_temperature"],
+                                                      state["log_surface_gravity"], state["microturbulence_km_s"])
+    record = dict(name=name, state=state, start=start, crashed=not wrote_model, blocks=blocks,
+                  seconds=time.monotonic() - started)
+    if iteration_files:
+        iterations = read_iterations(iteration_files[-1])
+        if len(iterations) >= 2:
+            temperature = iterations[:, :, 2]
             dlnt = abs(temperature[-2] - temperature[-1]) / temperature[-1]
-            finite = bool(np.isfinite(blocks[-1]).all())
-            record.update(last_block_iterations=int(len(blocks)), finite=finite,
+            finite = bool(np.isfinite(iterations[-1]).all())
+            record.update(last_block_iterations=int(len(iterations)), finite=finite,
                           max_dlnt_layers_40_75=float(dlnt[39:75].max()),
-                          max_abs_flux_error=float(abs(blocks[-1][:, 11]).max()),
-                          max_abs_flux_derivative_error=float(abs(blocks[-1][:, 12]).max()))
-            record["converged"] = bool(not record["crashed"] and finite and record["max_dlnt_layers_40_75"] < DLNT_LIMIT)
+                          max_abs_flux_error=float(abs(iterations[-1][:, 11]).max()),
+                          max_abs_flux_derivative_error=float(abs(iterations[-1][:, 12]).max()))
+            record["converged"] = bool(wrote_model and finite and record["max_dlnt_layers_40_75"] < DLNT_LIMIT)
     record.setdefault("converged", False)
-    atm = base / "atm" / f"{name}_t{int(state['effective_temperature']):05d}g{state['log_surface_gravity']:.2f}.atm"
-    if atm.exists():
-        shutil.copy(atm, out / "final.atm")
-        mass, temperature = read_deck(atm)
+    final = out / f"block{blocks}.atm"
+    if final.exists():
+        mass, temperature = read_deck(final)
         record["final_temperature_range"] = [float(temperature.min()), float(temperature.max())]
         if reference is not None:
             with np.load(reference) as d:
