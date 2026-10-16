@@ -61,14 +61,14 @@ def benchmark_figure():
 
 def apogee_figure():
     summary = json.loads((ROOT / "mgiant_apogee_fit/summary.json").read_text())
-    rows = [r for r in summary["arms"]["offsets_aspcap"] if r["role"] != "calibration"]
+    rows = [r for r in summary["arms"]["linebyline_aspcap"] if r["role"] != "calibration"]
     fig = plt.figure(figsize=(9.0, 6.4), constrained_layout=True)
     grid = fig.add_gridspec(3, 3, height_ratios=(1.6, 0.6, 2.0))
     top, bottom = fig.add_subplot(grid[0, :]), fig.add_subplot(grid[1, :], sharex=None)
     obs = apogee_fit.Observation(APOGEE_STAR)
     astra = apogee.read_astra_aspcap(APOGEE_STAR)
     pixels = obs.mask & np.isfinite(astra["model_flux"]) & (astra["model_flux"] > 0)
-    model = np.load(ROOT / f"mgiant_apogee_fit/offsets_aspcap/{APOGEE_STAR}/physical_model_flux.npy")
+    model = np.load(ROOT / f"mgiant_apogee_fit/linebyline_aspcap/{APOGEE_STAR}/physical_model_flux.npy")
     design = astra["model_flux"][pixels, None] * obs.basis[pixels]
     w = np.sqrt(obs.weight[pixels])
     coefficients = np.linalg.lstsq(design * w[:, None], obs.flux[pixels] * w, rcond=None)[0]
