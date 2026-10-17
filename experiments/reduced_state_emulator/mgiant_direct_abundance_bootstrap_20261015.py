@@ -24,6 +24,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor
 import json
 from pathlib import Path
+import time
 
 import numpy as np
 import torch
@@ -246,9 +247,14 @@ def main():
     if args.stage == "evaluate":
         setup = json.loads((args.root / "setup.json").read_text())
         gate = json.loads(args.gate.read_text())["thresholds"]
-        for index in range(args.shard, setup["expected"], args.shards):
-            wait_for(args.root / f"case_{index:02d}" / "solve.json")
-            admit(index, args.root, args.gate, gate)
+        pending = list(range(args.shard, setup["expected"], args.shards))
+        while pending:
+            ready = [i for i in pending if (args.root / f"case_{i:02d}" / "solve.json").exists()]
+            if not ready:
+                time.sleep(60)
+                continue
+            admit(ready[0], args.root, args.gate, gate)
+            pending.remove(ready[0])
         return
     collect(args.root)
 
