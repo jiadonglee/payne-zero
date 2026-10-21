@@ -17,7 +17,7 @@ OUT = REPO / "paper/figs"
 BENCH_STAR, BENCH_WINDOW_A = "gamSge", (6645.0, 6690.0)
 APOGEE_STAR, APOGEE_WINDOW_NM = 86947577, (1555.0, 1570.0)
 NAMES = {"alfCet": r"$\alpha$ Cet", "alfTau": r"$\alpha$ Tau", "gamSge": r"$\gamma$ Sge"}
-COLOURS = dict(default=ps.MUTED, calibrated=ps.BLUE)
+COLOURS = dict(default=ps.LIGHT, calibrated=ps.PRIMARY)
 LABELS = dict(default="Default line list", calibrated="Calibrated TiO lines")
 
 
@@ -34,7 +34,7 @@ def benchmark_figure():
     for arm in ("default", "calibrated"):
         model = np.load(ROOT / f"mgiant_benchmark_fit/{arm}/{BENCH_STAR}/physical_model_flux.npy")
         width = 1.8 if arm == "default" else 1.0
-        colour = "#b8b8bd" if arm == "default" else COLOURS[arm]
+        colour = COLOURS[arm]
         top.plot(wave[inside], model[inside], color=colour, lw=width, label=LABELS[arm])
         bottom.plot(wave[inside], (shown - model)[inside], color=colour, lw=width * 0.8)
     bottom.axhline(0.0, color=ps.MUTED, lw=0.6)
@@ -51,19 +51,18 @@ def benchmark_figure():
         right.annotate("", (after, y), (before, y),
                        arrowprops=dict(arrowstyle="-|>", color=ps.MUTED, lw=0.9, shrinkA=4, shrinkB=4))
         right.scatter(before, y, s=34, facecolors="white", edgecolors=ps.MUTED, linewidths=1.2, zorder=3)
-        right.scatter(after, y, s=34, color=ps.BLUE, zorder=3)
+        right.scatter(after, y, s=34, color=ps.PRIMARY, zorder=3)
         ps.end_label(right, after, y, f"{after:+.0f} K".replace("-", "\u2212"), dx=6, ha="left")
     right.axvline(0, color=ps.INK, lw=0.6)
     right.set_yticks(range(len(stars)), [NAMES[s] for s in stars])
-    right.tick_params(axis="y", length=0)
-    right.grid(axis="x")
-    right.grid(axis="y", visible=False)
+    right.tick_params(axis="y", which="both", length=0)
+    right.tick_params(axis="y", which="both", right=False)
     right.set(xlim=(-320, 60), ylim=(-0.6, len(stars) - 0.4),
               xlabel=r"Fitted $-$ benchmark $T_{\rm eff}$ (K)")
-    right.text(0.02, 0.98, "γ Sge not used in the calibration", transform=right.transAxes, fontsize=6.5,
+    right.text(0.02, 0.98, "γ Sge not used in the calibration", transform=right.transAxes,
                color=ps.SECONDARY, va="top")
     handles = [plt.Line2D([], [], ls="", marker="o", mfc="white", mec=ps.MUTED, mew=1.2, ms=5.5),
-               plt.Line2D([], [], ls="", marker="o", color=ps.BLUE, ms=5.5)]
+               plt.Line2D([], [], ls="", marker="o", color=ps.PRIMARY, ms=5.5)]
     right.legend(handles, ["Default", "Calibrated"], loc="lower left", bbox_to_anchor=(0.1, 1.0), ncol=2,
                  borderaxespad=0.2, handletextpad=0.3)
     ps.panel(right, "b", y=1.06)
@@ -89,10 +88,10 @@ def apogee_figure():
     inside = (obs.wave_nm >= APOGEE_WINDOW_NM[0]) & (obs.wave_nm <= APOGEE_WINDOW_NM[1])
     data = np.where(pixels, obs.flux, np.nan)
     top.plot(obs.wave_nm[inside], data[inside], color=ps.INK, lw=0.9, label="APOGEE")
-    top.plot(obs.wave_nm[inside], aspcap[inside], color=ps.MUTED, lw=1.0, ls=(0, (3, 1.5)), label="ASPCAP model")
-    top.plot(obs.wave_nm[inside], model[inside], color=ps.BLUE, lw=1.0, label="Payne Zero")
-    bottom.plot(obs.wave_nm[inside], (data - aspcap)[inside], color=ps.MUTED, lw=0.8, ls=(0, (3, 1.5)))
-    bottom.plot(obs.wave_nm[inside], (data - model)[inside], color=ps.BLUE, lw=0.8)
+    top.plot(obs.wave_nm[inside], aspcap[inside], color=ps.ALTERNATIVE, lw=1.0, ls=(0, (3, 1.5)), label="ASPCAP model")
+    top.plot(obs.wave_nm[inside], model[inside], color=ps.PRIMARY, lw=1.0, label="Payne Zero")
+    bottom.plot(obs.wave_nm[inside], (data - aspcap)[inside], color=ps.ALTERNATIVE, lw=0.8, ls=(0, (3, 1.5)))
+    bottom.plot(obs.wave_nm[inside], (data - model)[inside], color=ps.PRIMARY, lw=0.8)
     bottom.axhline(0.0, color=ps.MUTED, lw=0.6)
     top.set(ylabel="Normalized flux", xlim=APOGEE_WINDOW_NM)
     top.tick_params(labelbottom=False)
@@ -107,17 +106,15 @@ def apogee_figure():
         x = np.array([r["raw"][raw] for r in rows])
         y = np.array([r["parameters"][key] for r in rows])
         ax.plot(lims, lims, color=ps.MUTED, lw=0.6, zorder=1)
-        ax.scatter(x, y, s=5, color=ps.BLUE, alpha=0.55, linewidths=0, zorder=2)
+        ax.scatter(x, y, s=6, color=ps.PRIMARY, alpha=0.5, linewidths=0, zorder=2, rasterized=True)
         d = y - x
         unit = " K" if key == "teff" else ""
         fmt = "{:+.0f}" if key == "teff" else "{:+.2f}"
         ax.text(0.05, 0.95, rf"$\Delta$ {fmt.format(d.mean())}{unit}" + "\n" + rf"$\sigma$ {fmt.replace('+', '').format(d.std())}{unit}",
-                transform=ax.transAxes, va="top", fontsize=6.5, color=ps.SECONDARY)
+                transform=ax.transAxes, va="top", color=ps.SECONDARY)
         ax.set(xlim=lims, ylim=lims, aspect="equal")
-        ax.set_xlabel(f"ASPCAP {label}", fontsize=7)
-        ax.set_ylabel(f"Payne Zero {label}" if i == 0 else "", fontsize=7)
-        ax.grid(axis="both")
-        ax.tick_params(labelsize=6.5)
+        ax.set_xlabel(f"ASPCAP {label}")
+        ax.set_ylabel(f"Payne Zero {label}" if i == 0 else "")
         ax.locator_params(nbins=3)
         ps.panel(ax, "bcdef"[i])
     ps.save(fig, OUT / "fig_mgiant_apogee.pdf")

@@ -77,10 +77,10 @@ def plot(args):
     fig, axes = plt.subplots(2, 2, figsize=(ps.COLUMN, 2.9), sharex=True, constrained_layout=True)
     for j, ax in enumerate(axes.flat):
         q25, median, q90 = np.maximum(d["reconstruction_percentiles"][j], 1e-12)
-        ax.fill_between(tau, q25, q90, color=ps.BLUE, alpha=0.15, lw=0)
-        ax.plot(tau, median, color=ps.BLUE, lw=1.2)
+        ax.fill_between(tau, q25, q90, color=ps.PRIMARY, alpha=0.18, lw=0)
+        ax.plot(tau, median, color=ps.PRIMARY, lw=1.3)
         ax.set(xscale="log", yscale="log", xticks=[1e-6, 1e-3, 1, 1e3])
-        ax.text(0.04, 0.92, PROFILES[j], transform=ax.transAxes, va="top", fontsize=8)
+        ax.text(0.04, 0.92, PROFILES[j], transform=ax.transAxes, va="top", fontsize=9)
         if j >= 2:
             ax.set_xlabel(r"$\tau_{\rm R}$")
         if j % 2 == 0:
@@ -95,8 +95,8 @@ def plot(args):
         left.plot(x, median, **style(arm))
         right.plot(n, d[f"{arm}_converged_fraction"], **style(arm))
     left.axhline(5e-4, color=ps.MUTED, lw=0.7, ls=(0, (1, 2)))
-    ps.end_label(left, 1, 5e-4, "stop limit", dx=3, dy=-3, ha="left", va="top")
-    left.set(yscale="log", xlim=(1, 15), xlabel="Completed iteration $n$", ylabel=r"Deep-layer temperature change $\epsilon_T$")
+    ps.end_label(left, 15, 5e-4, "stop limit", dx=-3, dy=-2, ha="right", va="top", color=ps.MUTED)
+    left.set(yscale="log", xlim=(1, 15), ylim=(2.5e-4, None), xlabel="Completed iteration $n$", ylabel=r"Deep-layer temperature change $\epsilon_T$")
     right.set(xlim=(1, 15), ylim=(0, 1.02), xlabel="Completed iteration $n$", ylabel="Fraction converged")
     handles = [plt.Line2D([], [], **style(arm)) for arm in ARMS]
     left.legend(handles, [ps.ROLES[arm]["label"] for arm in ARMS], loc="upper right")
