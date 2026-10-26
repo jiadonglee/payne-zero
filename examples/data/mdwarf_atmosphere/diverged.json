@@ -1,0 +1,24 @@
+{
+ "case": "diverged",
+ "labels": {
+  "effective_temperature": 3500.0,
+  "log_surface_gravity": 4.5,
+  "metallicity": 0.0,
+  "alpha_enhancement": 0.0,
+  "microturbulence_km_s": 1.0
+ },
+ "iteration_cap": 40,
+ "all_layer_limit": 0.0005,
+ "converged": false,
+ "iterations": 40,
+ "error": null,
+ "seconds": 981.8151398439659,
+ "product": null,
+ "marcs_indices": [
+  6,
+  4,
+  10,
+  10,
+  7
+ ]
+}

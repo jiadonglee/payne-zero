@@ -1,0 +1,24 @@
+{
+ "case": "converged",
+ "labels": {
+  "effective_temperature": 3700.0,
+  "log_surface_gravity": 4.5,
+  "metallicity": 0.0,
+  "alpha_enhancement": 0.0,
+  "microturbulence_km_s": 1.0
+ },
+ "iteration_cap": 60,
+ "all_layer_limit": 0.0005,
+ "converged": true,
+ "iterations": 12,
+ "error": null,
+ "seconds": 233.9212346909917,
+ "product": "structured_atmosphere.npz",
+ "marcs_indices": [
+  6,
+  4,
+  10,
+  10,
+  9
+ ]
+}

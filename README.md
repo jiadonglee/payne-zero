@@ -16,6 +16,7 @@ The repository also provides general interfaces for normalized-spectrum fitting 
 | [`linelist_calibration/`](linelist_calibration/README.md) | differentiable calibration of atomic line parameters |
 | [`source_data_files/`](source_data_files/README.md) | hash-verified runtime catalogs, tables, and atmosphere initializers |
 | [`payne_zero_tutorial.ipynb`](payne_zero_tutorial.ipynb) | step-by-step synthesis, atmosphere, calibration, mock-fitting, and APOGEE tutorial |
+| [`examples/`](examples/) | M-dwarf notebooks: synthesis on MARCS structures, an atmosphere from first principles, and an APOGEE fit |
 
 ## Installation
 
